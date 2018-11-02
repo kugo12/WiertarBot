@@ -335,7 +335,10 @@ class WiertarBot(Client):
                             img = parsed.body.find("img", ["ob-left-image", "ob-image-j"])["src"]
                             self.sendRemoteImage(img, None, thread_id, thread_type)
                     img, parsed, response = None, None, None
-
+                  elif message_object.text == "!huj":
+                    self.send(Message(
+                        "o ty kurwa"),
+                              thread_id, thread_type)
 
 bot = WiertarBot(email, password)
 bot.listen()
