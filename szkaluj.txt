@@ -1,0 +1,747 @@
+%on% lize puszke po konserwie
+%on% zajebal koguty z radiowozu
+%on% parzy miete
+%on% wali bombe z parapetu na panele
+%on% lepi mielone w zaciszu
+%on% wystepuje w mango
+%on% reanimuje w stajni zrebaka
+%on% suszy pety na grzejniku
+%on% otwiera zebami butelki
+%on% zaklada noge na glowe
+%on% ma dzisiaj na obiad zupe z kiepa
+%on% opierdala kasze z maslem
+%on% napalony i ulegly
+%on% prowadzi sekcje zapasow w sosnowcu
+%on% dusi psa jednorazowka z netto
+%on% dusi matke firana z pepco
+%on% ma padaczke, pseudonim grzechotnik
+%on% zgubil zasilek
+%on% gryzie ludzi, pseudonim sekator
+%on% ma jedynki jak drzwi w salonie
+%on% robi grilla na balkonie
+%on% pali liquid o smaku karkowki
+%on% ma pasztetowa w pokrowcu
+%on% ma peta na bani, sroda popielcowa
+%on% wpadl do pralki
+%on% ukradl radio z peugeota
+%on% w mopsie zaglada w gary
+%on% znowu wali prad
+%on% ukradl balerinki
+%on% dusi matke, pseudonim anakonda
+%on% lepi pacha mielone
+%on% zajebal kupe w brodziku
+%on% nie zdal z fizyki
+%on% rozpierdolił pasiekę 
+%on% przechodzi na czerwonym przez ulicę 
+%on% nie spuszcza wody w toaletach publicznych 
+%on% po sikaniu nie myje rąk po czym wita się ze wszystkimi współpracownikami 
+%on% pisał sam sobie zwolnienia z wuefu 
+%on% nie je śniadania 
+%on% mimo obietnic złożonych matce, zaraz po wyjściu z domu zdejmował czapkę i chował do tornistra 
+%on% nie nosi kaleson 
+%on% podczas grillowania w parku oddawał mocz w krzakach 
+%on% przeklina 
+%on% gdy miał 13 lat upił tacie pianę z piwa gdy nie patrzył 
+%on% trzaska drzwiami 
+%on% będąc niepełnoletnim kupił w kiosku 3 sztuki papierosów po czym przestraszył się i spuścił je w klozecie
+%on% nie podmywa się po sraniu. 
+%on% będąc w szkole podstawowej zjadał gile z nosa. Na prośby nauczycielek by przestał to robić odpowiadał, że to jak narkotyk. 
+%on% nie odmawia pacierza przed snem 
+%on% jest niegodny zaufania 
+%on% walił konia w łóżku swoich starych 
+%on% ciągnął koleżanki za warkoczyki w przedszkolu 
+%on% kradnie prąd z klatki schodowej 
+%on% kiedyś dostał za dużo reszty w sklepie spożywczym i nie powiedział ekspedientce 
+%on% podkrada spinacze sąsiadom 
+%on% zrobił aferę w poznańskim radiu 
+%on% specjalnie wpisuje błędna kapczę 
+%on% kradnie sprzęty biurowe 
+%on% nie myje po sobie naczyn 
+%on% przejeżdża na pomarańczowym 
+%on% nie ustępuje starszym w trawajach 
+%on% chodzi nago po domu. 
+%on% zajebał mi szlugi 
+%on% umyślnie podawał kolegom na sprawdzianach złe rozwiązania 
+%on% dzwonił pod wszystkie numery domofonem po czym uciekał gdzie pieprz rośnie 
+%on% nie czyta książek 
+%on% od czasu do czasu nie myje zębów przed pójściem spać 
+%on% sika na siedząco 
+%on% podgląda jaki PIN wstukują ludzie w bankomacie 
+%on% bawi się analnie 
+%on% uwięził i zamordował rodzinę carską 
+%on% często chodzi cały dzień bardzo spocony. 
+%on% będą u kogoś gościem kradnie zastawę stołową 
+%on% puszcza ciche bąki jeżdżąc komunikacją miejską 
+%on% zostawia warzywa na talerzu 
+%on% zostawia surówkę niezjedzoną. 
+%on% nie seeduje torrentów 
+%on% minusuje konstruktywne komentarze 
+%on% przykleja kozy z nosa pod blat biurka 
+%on% mlaska przy jedzeniu 
+%on% pogardliwe patrzy na starsze i schorowane osoby 
+%on% sra i nie spłukuje 
+%on% nie ustępuje miejsca starszym i schorowanym osobom w autobusie. 
+%on% nie odpowiada Dzień Dobry na ulicy 
+%on% nie mówi \"dziękuje\" po obiedzie 
+%on% spuszcza wodę tylko po kupie 
+%on% nie odkręca nakrętki przed wyrzuceniem plastikowej butelki 
+%on% dzieli przez zero 
+%on% je mięso w post 
+%on% używa licowanych bezpieczników 
+%on% zjadł święconkę przed Wielką Sobotą 
+%on% otworzył prezent przed gwiazdką 
+%on% nie wyciera butów 
+%on% wyjada wszystkie czekoladki z kalendarza adwentowego pierwszego grudnia 
+%on% nie chodzi do kościoła 
+%on% rysuje pożyczone płyty 
+%on% obraża papieża 
+%on% podbija własne tematy 
+%on% trzyma ręce w kieszeniach podczas rozmowy 
+%on% mlaska przy obiedzie 
+%on% nie przewija kaset przed oddaniem 
+%on% rozmawia w kościele 
+%on% wyciera szyjke jak pije po kimś 
+%on% sra do bidetu
+%on% suszy papierowe ręczniki na kaloryferze 
+%on% śmieje się z cudzego nieszczęścia 
+%on% gwałci małe dzieci 
+%on% nie pomaga staruszkom przejść przez pasy
+%on% przejeżdża na pomarańczowym 
+%on% nie wyciera dupy po sraniu 
+%on% nie zrobił laurki na dzień babci 
+%on% powiedział niewidomemu na przystanku, że jedzie dziewiętnastka, podczas gdy była to była siódemka 
+%on% kupuje dziewczęce majteczki na Allegro 
+%on% przykleja monety do asfaltu 
+%on% kopie działkę w Szabat. 
+%on% wyrzuca szklane butelki do pojemnika na plastik 
+%on% nie przestrzega przepisów BHP 
+%on% zostawia włosy na mydle 
+%on% nie spłukuje łanowców po kąpieli 
+%on% hałasuje podczas ciszy nocnej 
+%on% gra dalej na komputerze, mimo że powiedział mamie \"Już kończę!\" 2 godziny temu 
+%on% minusuje losowe wykopy 
+%on% obserwuje ten temat i poda was wszystkich do sądu za obrazę majestatu 
+%on% nie odłącza bezpiecznie urządzenia 
+%on% spojleruje chińskie bajki 
+%on% pluje do wody święconej 
+%on% kradnie mamie lajony 
+%on% nie dzieli się drugim śniadaniem 
+%on% prosi kolegę o jednego czipsa i bierze pół paczki 
+%on% szkaluje papieża
+%on% nie myje zębów 
+%on% wciąż używa Windows 7 
+%on% banuje losowych użytkowników Wykopu w stanie upojenia alkoholowego 
+%on% zapisuje miniaturki 
+%on% kradnie żarówki z klatki schodowej 
+%on% podkablował Ljuboję 
+%on% nie myje dupy przed analem 
+%on% plądruje piwnice sąsiadów
+%on% popiera PiS
+%on% dobiega do judasza w 2 sekundy 
+%on% maca bułki w sklepie 
+%on% ogląda kucyki 
+%on% nigdy się nie zgadza żeby kasjerka oddała grosika kiedy indziej 
+%on% nosi pantofle do dresów 
+%on% nie wie jak wyłączyć biblię 
+%on% pisze po ławkach 
+%on% nie zmienia obuwia w szkole 
+%on% wpadł w /fz/ i nie wie jak wyjść 
+%on% pije wode po pierogach 
+%on% śmiał się na Kac Wawa 
+%on% nosi buty na rzepy 
+%on% wyprzedza na podwójnej ciągłej 
+%on% przegrał z Najmanem 
+%on% prasuje spodnie dresowe w kanty 
+%on% nosi rurki na budowie 
+%on% jeździ na wakacje do Zgierza 
+%on% objada się pampuchami a potem wygląda tak jak wygląda 
+%on% twoja stara 
+%on% nie płakał po papieżu 
+%on% postuje na weszlo 
+%on% oddycha manualnie 
+%on% wita się przez próg 
+%on% uszkodził towar w sklepie po czym pospiesznie wyszedł 
+%on% trzyma widelec w prawej dłoni 
+%on% rozjebał paśnik 
+%on% rozlał kałamarz 
+%on% nie przyjął księdza po kolędzie 
+%on% mieszając herbatę dzwoni łyżeczką 
+%on% wycierał nos w rękaw
+%on% zostawia buty w przejściu zamiast schować je do szafki 
+%on% nie gasi za sobą światła w ubikacji 
+%on% odstawia do lodówki pusty karton po mleku 
+%on% depcze partnerce po palcach podczas tańca 
+%on% nie odstawia w sklepie wózka na miejsce 
+%on% oblizuje talerz po bułce 
+%on% żuje gumę przy nauczycielce 
+%on% ma wielkiego pryszcza z białym czubkiem na brodzie i go nie wyciska 
+%on% pluje na chodnik 
+%on% sika do basenu 
+%on% zamyka ludziom drzwi przed nosem 
+%on% wchodzi do ZOO bez biletu 
+%on% nie opuszcza deski 
+%on% używa układu klawiatury 214 
+%on% mówi na grysik \"kasza manna\" 
+%on% skopiował swój lolifolder na VHS 
+%on% zesrał się w czasie swojego pogrzebu 
+%on% mówi \"na pole\" 
+%on% szkaluje Ducha Świętego 
+%on% korzysta z ofertu Zrembu zawsze na czasie 
+%on% nie wie co się w okół niego dzieje
+%on% nie umie wejść na nocną 
+%on% nie szanuje swojej siostry 
+%on% nie sprząta odchodów po psie 
+%on% odpadł w 1/6 Ligi Mistrzów 
+%on% nie jest homoseksualny 
+%on% grymasi przy obiedzie 
+%on% pisze recenzje na Tanuki 
+%on% sra cegłami 
+%on% popiera ZUS 
+%on% jest cisgenderowy 
+%on% oblicza cotangensy Ojcu Rydzykowi 
+%on% nie wie że Yuri ma wielką dupe 
+%on% przeskakuje przez bramki w metrze 
+%on% śmieje się z Puchałke 
+%on% nie mówi cześć koleżankom 
+%on% jeździ amerykańskim autem
+%on% rozmawia ze świadkami Jehowy 
+%on% pije wodę po ogórkach 
+%on% rozdaje Księgę Mormona 
+%on% używa Linuxa 
+%on% nie zmienia wody w akwarium 
+%on% gryzie rękę która go karmi 
+%on% gra w LoLa 
+%on% ogląda twardą pornografię 
+%on% robi zakupy w niedziele 
+%on% ogląda Big Bang Theory 
+%on% połyka rybie ości bez gryzienia 
+%on% zajada się majonezem prosto ze słoika 
+%on% proszony o polecenie chińskiej bajki rekomenduje Boku no Pico 
+%on% chodzi na manify 
+%on% pluje bezdomnym do zupy 
+%on% robi bonbe dupom 
+%on% pije herbatę z łyżeczką w środku 
+%on% nie chodził na religię w szkole 
+%on% inicjuje gównoburze 
+%on% popiera Korwina 
+%on% jeździ pociągiem na wstecznym 
+%on% nie daje napiwków 
+%on% ma szklanki w koszyczkach 
+%on% pisał \"chuj\" i \"cipa\" na szkolnych ławkach 
+%on% narkotyzuje się acodinem 
+%on% nie zapina pasów 
+%on% ma dywan na ścianie 
+%on% wyrzuca butelki zwrotne 
+%on% samowolnie oddalał się z lekcji biologii 
+%on% parkuje na kopertach 
+%on% saguje przypięte posty 
+%on% zagina rogi w książkach 
+%on% puszcza głośne wiatry i mówi że to w trawie coś piszczy 
+%on% nie daje na tacę 
+%on% zepsuł swojej mamie kwietnik, a winę zwalił na psa 
+%on% niszczy runo leśne 
+%on% nie zna się na zegarku 
+%on% rozwiesza ulotki z cenzopapą 
+%on% dał na tacę 10 zł i zażądał 9 reszty 
+%on% nie nauczył się na pamięć inwokacji z Pana Tadeusza 
+%on% nie chce jechać do babci 
+%on% wyjada ser z chizborgirów 
+%on% podbiera pieniądze z portmonetki babci 
+%on% napastuje kobiety w lesie 
+%on% nie chce jeść zupy 
+%on% nie pisał listów do świętego Mikołaja 
+%on% lubi zupę mleczną 
+%on% kupił mecz i przegrał 
+%on% złapał je wszystkie 
+%on% przeszkadza innym dzieciom w leżakowaniu 
+%on% zabrał babci dowód 
+%on% gnębił spierdoliny w szkole 
+%on% brzydko się wyraża 
+%on% nie chce, żeby mama całowała go na dobranoc 
+%on% ma tajny folder na dyskietce 
+%on% przykleja gumę pod ławką 
+%on% podszywa się pod bł. Jana Pawła Drugiego i gwałci dzieci 
+%on% głosi kazania z ambony myśliwskiej 
+%on% czyta mangi od przodu 
+%on% szkaluje błogoslawionego Jana Pawła 2 
+%on% nosi Prządło na barana 
+%on% saguje ten temat 
+%on% wyjada mamie rodzyny z ciasta 
+%on% wszedł do internetu i nie umie wyjść 
+%on% wyrzucił Magika przez okno 
+%on% donosi do Kidprotect 
+%on% wywrócił globus na lewą stronę 
+%on% ukradł księdzu stułę i udaje kibica Fiorentiny 
+%on% w Wigilię mówi ludzkim głosem 
+%on% przedłużył kontrakt z Levy'm 
+%on% kradnie wanny z działek 
+%on% siorbie jedząc zupę 
+%on% kopie grzyby w lesie
+%on% chodzi do kościoła w dresie 
+%on% pierze w rzece 
+%on% założył słabą stronę w internecie 
+%on% kradnie z pracy papier toaletowy 
+%on% trząsł stołem w czasie gry w bierki 
+%on% się garbi 
+%on% jeździ na gapę trolejbusem 
+%on% wyjada dziury w serze 
+%on% strzela z łuku do kur 
+%on% nie nosi majtek 
+%on% maluje jajka w Wigilię 
+%on% nie wie, że Jon umiera zadźgany przez braci z Marshem na czele 
+%on% kupuje chleb krojony 
+%on% śmieci na MS AGH i zwala na studentów 
+%on% kupuje bitcoiny w szczycie 
+%on% wozi drewno do lasu 
+%on% zabierał dzieciom samochody z gum Turbo i śmiał się przy tym jak zbir 
+%on% sprzedaje śnieg Eskimosom 
+%on% pożycza w Providencie 
+%on% zjada 20 kg cebuli rocznie 
+%on% wyłącza biblię emotkami 
+%on% używa zasilacza Codegen 
+%on% wyłącza komputer zanim wyświetla się komunikat o możliwości bezpiecznego wyłączenia 
+%on% rucha wał z kołdry 
+%on% masturbuje się analnie przy rodzinnym obiedzie 
+%on% ściąga spodnie z torrentów 
+%on% nie wyłącza komórki na lekcjach 
+%on% nie wykupuje biletu w strefie płatnego parkowania 
+%on% ściągał na maturze 
+%on% nie klęka w kościele 
+%on% wpycha się w kolejki 
+%on% inkasuje opłatę za darmowe miejsca parkingowe 
+%on% wyrzuca śmieci w lesie 
+%on% sika do basenu 
+%on% błaźni się w tańcu
+%on% nie zna hymnu 
+%on% nie umie w trójsiłę 
+%on% nie zatrzymuje się przed przejazdem kolejowym 
+%on% kradnie znicze z nagrobków 
+%on% parkuje na dwójce 
+%on% nie umie wyłączyć śledzika 
+%on% nie słucha RMF FM 
+%on% kobiety za życia nie ocenia 
+%on% nie wyłącza trybu stand-by w radiu kuchennym 
+%on% wozi psa w hundayu atosie 1.0 1993 
+%on% słucha tylko mamy i radia Z 
+%on% nie głosuje w wyborach parlamentarnych 
+%on% wie gdzie się podziały tamte prywatki 
+%on% wciąga rogale marcińskie nosem 
+%on% powiedział kasjerce, że w siatce jest pięć bułek. Było sześć 
+%on% kłamie 
+%on% kopie koty 
+%on% nie przepuszcza kobiet w drzwiach 
+%on% nasrał własnej matce pod drzwiami 
+%on% ogląda \"Pamiętniki z wakacji\" 
+%on% nakręcił i zamieścił w internecie psa bitego łopatą 
+%on% kibicuje Arce Gdyni 
+%on% zajebał mi ronaldo 
+%on% urolog nie polecam 
+%on% nie bierze ulotek 
+%on% chodzi do wegetariańskich restauracji i prosi o schabowe 
+%on% przyklepuje groszek ziemniakami 
+%on% składając zamówienie podszczypuje kelnerki 
+%on% kupuje koncentrat zamiast keszupu mikado 
+%on% zajmuje toalety dla niepełnosprawnych 
+%on% ma dwie skrzynki na bezpieczniki 
+%on% kłóci się o grosik reszty 
+%on% uprawia seks bez zabezpieczeń 
+%on% obnaża się w miejscach publicznych. Zapytany, dlaczego to robi, wznosi wzrok ku niebu, wzrusza ramionami i z charakterystycznym dla niego, niewzruszonym optymizmem mówi \"wielkie mi mecyje\" 
+%on% gra sam ze sobą w szachy i przegrywa 
+%on% postawił serwer. Na dywanie 
+%on% wpłacił dotację na kurahena 
+%on% wyrzucał przygotowane przez mamę kanapki i kupował batoniki w szkolnym sklepiku 
+%on% odkurza w sobotę o 8 rano 
+%on% głosował na Huberta Humphreya i zabił Jezusa 
+%on% zgłosił się do kwestowania podczas Wielkiej Orkiestry Świątecznej Pomocy, po czym przywłaszczył sobie zawartość puszki 
+%on% ma zacięty caps lock 
+%on% bił koleżanki skakanką 
+%on% wypychał kieszenie ołówkami w IKEA i zabierał je do domu 
+%on% nie kliknął brzuszka pajacyka 
+%on% kradnie pączki Patrycji 
+%on% jeździ gimbusem na gapę 
+%on% strzela dla dziewczyn ze staników 
+%on% nie wykupował obiadów w szkolnej stołówce, a potem przy okienku twierdził, że zgubił karteczkę 
+%on% jest synem swojego brata 
+%on% nie segreguje śmieci 
+%on% chodzi ścieżką rowerową 
+%on% nie zjada skórek od chleba 
+%on% zrobił wszystkie popmki 
+%on% zgrał internet na dyskietke 
+%on% podglądał kuzynkę w wannie 
+%on% poszedł do ZOO i go małpy wyśmiały 
+%on% dokarmia zwierzęta w ZOO kiedy pracownicy nie patrzą 
+%on% pozwala spadać dobrym tematom 
+%on% pisze \"puhar\" przez samo \"h\" 
+%on% łapał w podstawówce koleżanki za siusię 
+%on% krzywi się do małych dzieci 
+%on% smaruje klamki kupą 
+%on% wrzuca sąsiadom kamienie do skrzynek na listy 
+%on% obsikuje deskę i spuszcza wodę przy otwartej klapie 
+%on% sam zrajdował 370chan.lt/b/ 
+%on% szkaluje papieża na youtube i zwala wine za to na fora katolickie 
+%on% nie przestrzega netykiety 
+%on% podbija z czternastej 
+%on% wymacywał Tazosy w paczkach Lays 
+%on% wsypywał sól czanów do cukierniczki 
+%on% lurkuje /4/ 
+%on% podrabiał podpis rodziców pod uwagami w dzienniczku 
+%on% mocno zmasakrował młodego lewaka 
+%on% mówi keczap zamiast keczup 
+%on% waży śmietanę w zupie 
+%on% rozwalił słonecznik pod ławką 
+%on% postuje o 21:37 
+%on% bije w szczepionkę 
+%on% nakremował klamki w tłusty czwartek 
+%on% trzyma ręce w kieszeniach jak rozmawia z ludźmi 
+%on% niszczy w lesie niejadalne grzyby 
+%on% nie chciał karnego po trzech rożnych 
+%on% rzuca w pomnik 
+%on% naśmiewa się z ludzi którzy mają gorzej 
+%on% kupuje papierosy od ruskich 
+%on% parkuje na miejscu dla niepełnosprawnych 
+%on% sika do zlewu 
+%on% nie umie wejść na ruski 
+%on% liczy ile pierogów kto zjadł a później wypomina! 
+%on% wzywa straż pożarną bez powodu 
+%on% maca chipsy w poszukiwaniu tazos 
+%on% nie wyłącza sprzętów elektronicznych podczas burzy 
+%on% wszedł podczas deszczu do niezabezpieczonej stacji transformatorowej 
+%on% czyta streszczenia zamiast lektur 
+%on% ksuje na spotach 
+%on% wpierdala grochową przed szkołą 
+%on% jebał w dupę bez prezerwatywy 
+%on% pali włosy na nogach w szatni od wfu 
+%on% słucha Firmy przy rodzicach 
+%on% pokazał środkowy palec na koncercie Tibii 
+%on% chodzi na wagary 
+%on% wandalizuje wikipedie 
+%on% przykleja włosy do mydła 
+%on% zostawia puste rolki po papierze toaletowym 
+%on% nie płakał po papieżu 
+%on% bagatelizuje ostrzeżenia epidemiologiczne 
+%on% podgląda sąsiadkę przez okno i wali o tym konia 
+%on% oszukał tramwaj-kupił bilet i poszedł pieszo 
+%on% podbiera jajka z kurnika 
+%on% pisał dokumenty w comic sans 
+%on% wyciągał taśmy z kaset VHS 
+%on% przeszkadza kasjerkom liczyć pieniądze 
+%on% nie daje suchego chleba dla konia 
+%on% nie segreguje śmieci 
+%on% postuje cenzo na wykopie 
+%on% odpowiada na trolla 
+%on% bierze kredyt w SKOKu 
+%on% zgwałcił pasiekę 
+%on% nie zmienił czasu na letni 
+%on% zjada swój kał 
+%on% to twoja stara 
+%on% pluł na moherowe babcie pod krzyżem 
+%on% zamiata śmieci pod dywan 
+%on% wierzy w zamach w Smoleńsku 
+%on% kibicuje Legii 
+%on% wierzy w mistrzostwo Legii 
+%on% kibicuje Lechowi 
+%on% wierzy w mistrzostwo Lecha 
+%on% kibicuje Wiśle 
+%on% wierzy, że Wisła się utrzyma 
+%on% nie wierzy w boga 
+%on% postuje w wątkach o muzyce myśląc że to kogoś obchodzi 
+%on% wierzy w boga 
+%on% jak był mały spadł z dywanu na podłogę i złamał żebra 
+%on% czyta cały ten temat 
+%on% jest cały w kale 
+%on% nie odprowadza składek na ZUS 
+%on% kompiluje jądra. Ojca 
+%on% kradnie węgiel Ślązakom 
+%on% grabi zagrabione 
+%on% gwałci się sam 
+%on% ogląda Czarodziejkę z Księżyca 
+%on% tańczy parapara z własnym kotem 
+%on% rozmawial glosno na lekcji 
+%on% nie jadł drugiego śniadania 
+%on% odpisywał prace domowe na przerwie 
+%on% nie pisze postów w epickim 
+%on% wysyła emacsem przez sendmail 
+%on% strzelał z czuba 
+%on% napluł na korytarzu 
+%on% umazał gównem portrety naszych przywódców 
+%on% pociął ostrzem od temperówki 20 kurtek w szatni i mu się to upiekło 
+%on% wali konia codziennie o 21:37 
+%on% wciąż nie wie czy grzyby to bardziej rośliny czy zwierzęta 
+%on% podchodzi do losowych przechodniów, kopie w kostkę, po czym spierdala z szyderczym śmiechem 
+%on% wraz z kolegą przyniósł na lekcję ślimaki i puszczał je po szafie 
+%on% nie wyłącza jednostki centralnej podczas burzy 
+%on% obraża Zalgo 
+%on% zapomina hasła do usuwania postów 
+%on% nie odkłada butów na półkę 
+%on% je pitcę z sokiem mailnowym super odlotowym 
+%on% pruka w autobusie i patrzy z wyrzutem na współpasażera 
+%on% wrzuca obspermione majtki matce prosto w pralkę 
+%on% obraża papieża na wykopie 
+%on% nie ustępuje pierwszeństwa pieszym na pasach 
+%on% dostaje bana na karachanie :( 
+%on% lekceważy regulamin karachan.org :( 
+%on% wyrzuca kanapki do szkoły a mamie mówi że zjadł 
+%on% rzadko zmienia skartpetki i bielizne 
+%on% odgryza czarną końcówkę od banana 
+%on% siada przy sikaniu 
+%on% pierdzi przy laniu 
+%on% zaopatruje Stana L. w fioletową ambrozję. Pijackie eldorado zdaje się nie mieć końca 
+%on% postuje chociaż nie ma pomysła na treść posta 
+%on% podczas masturbacji udaje orgazmy 
+%on% nie odrobił zadania domowego tłumacząc się, że opłakiwał śmierć papieża 
+%on% dał 5 zł 
+%on% ociera się o kobiety w autobusie 
+%on% to Peja z Poważnej 
+%on% podkablował Ljuboję 
+%on% wyjada karme dla kota 
+%on% nie dał pasty termoprzewodzącej przy montażu nowego procesora 
+%on% nie zakręca wody w kranie podczas mycia zębów 
+%on% wchodzi bez pukania 
+%on% na 3 maja chodzi po mieście i kradnie flagi 
+%on% nie świętuje urodzin Sunny 
+%on% nie wysypuje chipsów na talerz 
+%on% wylizuje miske psu 
+%on% myje ojcu plecy 
+%on% ogląda shoneny 
+%on% wali gruchę w pokoju rodziców 
+%on% ogląda How I Met Your Mother 
+%on% rucha psa jak sra 
+%on% je guwno 
+%on% na lekcji religii z szyderczym uśmiechem powiedział do katechetki: \"papież tak bardzo martwy\" po czym wyskoczył z okna 
+%on% nie opuszcza deski sedesowej bo załatwieniu potrzeby fizjologicznej 
+%on% wrzuca oc na kwejka 
+%on% nasrał koleżance do buta 
+%on% nie umył rąk po masturbacji 
+%on% pod przymusem odmówienia modlitwy od babci, ukląkł i w myślach powtarzał \"huj huj huj\" zamiast słów modlitwy 
+%on% głupio podśmiechiwał w muzeum holocaustu 
+%on% spóźnił się na zajęcia i było można wyczuć od niego zapach palonych zapałek 
+Na sesjach rpg %on% dopisywał swojej postaci fikcyjne umiejętności 
+%on% nie myje po sobie talerzy 
+%on% chodzi w bluzach \"JP\ a babci mówi, że to jest skrót od Jan Paweł, żeby mu dawała pieniądze na tace, które przeznacza na gazowane napoje i Top Chipsy 
+%on% pije piwo pod sklepem, mimo iż widnieje tam napis zakazujący owej czynności 
+%on% rozgazowuje Colę w sklepie 
+%on% nie mówi \"na zdrowie\" gdy ktoś kichnie 
+%on% chodził na wagary w podstawówce 
+%on% nie dostał licencji na grę w pucharach 
+%on% popiera dzielenie punktów po sezonie zasadniczym 
+%on% kopiuje %on% z pierwszego postu bo nie chce mu sie pisac samemu 
+%on% uratował dziecko z pożaru. A potem się obudził 
+%on% nie pomaga osobom na wózku inwalidzkim w wejściu po schodach 
+%on% gotuje parówki nie zdejmując folii 
+%on% sra ludziom na wycieraczki 
+%on% puszcza cichacze i zgania na osoby obok niego 
+%on% założył własną firmę ale go z niej zwolniono 
+%on% używa kodów grając w sapera 
+%on% nie pomaga użytkownikom forum w problemach 
+%on% dojebał Napoleonowi 
+%on% wyrywa muchom skrzydełka 
+%on% jeźdźi środkowym pasem 
+%on% skarży pani 
+%on% przyjmuje ciało Chrystusa nie podchodząc uprzednio do spowiedzi 
+%on% pojmał nowocioty 
+%on% nie mówi wszystkich grzechów przy spowiedzi 
+%on% wykupił Polonię Warszawa 
+%on% biega boso po domu, mimo że mama prosi aby założył kapcie 
+%on% rozpisuje diety na forach 
+%on% wyrzuca kubki od jogurtów nie wyskrobując do końca 
+%on% wykopuje informacje nieprawdziwe 
+%on% wyjada sarnom z paśnika 
+%on% sprawdza czy hajs się zgadza 
+%on% kurwi się czanmową 
+%on% głosował na Stana Tymińskiego 
+%on% pali w miejscach publicznych 
+%on% wrzuca do galerii nie odwrócone zdjęcia 
+%on% nie rozumie dowcipu a babie i frezarce 
+%on% zbiera wungiel przy torach 
+%on% nie przeprasza rywala po faulu 
+%on% sprzedaje obwarzanki na targu nie mając stosownego zezwolenia 
+%on% myśli że Sosnowiec jest na Śląsku 
+%on% klepie koleżanki po tyłku, zapytany dlaczego odpowiada że jest samcem alfa i mu wolno 
+%on% bierze na poczcie numerki do kilku okienek naraz 
+%on% grzebie sobie w dupie w miejscach publicznych 
+%on% psuje swój licznik neodymem 
+%on% dokonał ludobójstwa na Wołyniu 
+%on% dosyła skany za 10 tysięcy 
+%on% kładzie kamienie na szynach 
+%on% kupuje pliki na chomikuju. 
+%on% pali w piecu oponami 
+%on% raiduje kro­chana 
+%on% rzadko się goli i wygląda niechlujnie 
+%on% składuje azbest z starych fabryk w piwnicy dziadka 
+%on% obgryza paznokcie u nóg 
+%on% puszcza głośno muzykę z telefonu 
+%on% pije herbatę z łyżką w szklance 
+%on% rozdeptuje ślimaki po deszczu 
+%on% nie potrafi się cieszyć z małych rzeczy 
+%on% wchodzi mi do wanny [cool] 
+%on% fapie do chińskich bajek 
+%on% nie przyznaje się do bycia polakiem 
+%on% nie myje zębów na noc 
+%on% mówi psy na policję 
+%on% nie lubi Dragon Balla 
+%on% nosi dwie różne skarpetki 
+%on% wstaje po południu 
+%on% odgrzewa w mikrofalówce 
+%on% nie śpiewał hymnu 
+%on% chodzi nieuczesany 
+%on% nie miał stroju na wf 
+%on% nie przekazał 1% na chore dzieci 
+%on% obraża się kiedy przegrywa 
+%on% dokucza dziewczynom 
+%on% nie kupuje polskich produktów 
+%on% ciągnie koleżanki za włosy 
+%on% nie odwzajemnia uśmiechu 
+%on% rozpierdolił dwie pasieki 
+%on% zajada się smalcem 
+%on% kradnie czereśnie 
+%on% grzebie sobie w dupie 
+%on% nie umie przepraszać 
+%on% nigdy nie podaje piłki 
+%on% woli wyrzucić niż oddać koledze 
+%on% chodzi po trawnikach 
+%on% ma pirackiego Windowsa 
+%on% zadziera nosa 
+%on% ma zrośnięte brwi 
+%on% ma brudny kołnierz 
+%on% pije piwo z sokiem 
+%on% ma wysoki cholesterol 
+%on% przejechał kota sąsiada 
+%on% zaczepia młode dziewczyny 
+%on% przeszedł Mario Bros w lewo 
+%on% utopił swoje Simy 
+%on% mieszka u mamy 
+%on% ma włosy na plecach 
+%on% robi grilla na balkonie 
+%on% głosuje na PO 
+%on% nie wymienia szczoteczki do zębów 
+%on% śmiał się na wychowaniu do życia w rodzinie 
+%on% grał w karty na religii 
+%on% palił papierosy w szkolnej toalecie 
+%on% nie oszczędza prądu 
+%on% wymusza pierszeństwo 
+%on% przechodzi przez ulicę w miejscach niedozwolonych 
+%on% dzwoni na policję i robi głupie żarty 
+%on% nie zostawia napiwków 
+%on% słucha Radia Maryja 
+%on% uchylał się od służby wojskowej 
+%on% ukrywa swoje dochody 
+%on% nie chodzi na wywiadówki 
+%on% zapomniał nakarmić kota 
+%on% nie pamięta czy wyłączył żelazko 
+%on% nie lubi zwierząt 
+%on% sika do zlewu 
+%on% je kanapki z serem i szynką 
+%on% nie notował na lekcji 
+%on% wykorzystał wszystkie nieprzygotowania w pierwszym tygodniu 
+%on% rzuca papierki na ulicę 
+%on% nie sprząta po swoim psie 
+%on% przełącza dzieciom bajki 
+%on% ma trudny charakter 
+%on% nie kosi trawnika 
+%on% PISZE WIELKIMI LITERAMI 
+%on% nie wie kto to Mickiewicz 
+%on% pluje z okna na ludzi 
+%on% nie szanuje homoseksualistów 
+%on% wciąga rogale, oficjalnie do środka 
+%on% z tyłu zobaczył nasz ratusz 
+%on% ma platynowe konto na kurahenie 
+%on% wchodzi na komixxy i uważa je za zabawne 
+%on% jeździ Solarisem 
+%on% podpala Solarisy 
+%on% zakopuje znaleziska o spalających się Solarisach 
+%on% ma multikonta na wykopie 
+%on% pisze \"Cię\" w internecie 
+%on% strzelał do polaków 
+%on% streamuje chińskie bajki 
+%on% wącha przestrzenie między palcami stóp 
+%on% ściąga na dysk chińskie bajki 
+%on% obrzygał ojca podczas rodzinnego objadu 
+%on% sięgał ręką gdy Testo podawał pomarańczę 
+%on% rzucał czereśniami w przejeżdżające samochody 
+%on% uważa się za lepszego od Jana Pawła II 
+%on% siada na miejscu dla ciężarnej kobiety i odwraca głowę 
+%on% pije redbulla i udaje Magika 
+%on% z całym wózkiem zakupów ustawia się przy kasie \"do dziesięciu produktów\" 
+%on% odpowiada na maile z Nigerii 
+%on% oblał mamie białą bluzkę sokiem z czarnej porzeczki 
+%on% wrzuca plastikowe butelki do pojemnika na papier 
+%on% nie wie na czym polega spalony 
+%on% wyjada porzeczki sąsiadom, a zapytany kto to zrobił odpowiada, że Duch Święty 
+%on% wyrzuca butelki do pojemnika z papierem 
+%on% przed masturbacją nie wyłancza kamerkę internetową 
+%on% zakopuje swoje znaleziska 
+%on% przewraca żółwie na grzbiet 
+%on% zjada świeczki z tortu 
+%on% wkłada szpilki do dziurek od klucza 
+%on% podgląda nagą młodszą siostrę, zapytany co robi odpowiada że kontempluje naturę 
+%on% podpala mrówki szkłem powiększającym 
+%on% zamawia za pobraniem po czym nie odbiera przesyłki 
+%on% dzwoni na koszt rozmówcy 
+%on% zatykał pyrą rurę wydechową w polonezie ojca 
+%on% przywiązuje kotom puszki do ogonów 
+%on% zajebał mi szlugi 
+%on% wsiada do pociągu byle jakiego 
+%on% przegrał w Jumanji 
+%on% nie wie gdzie jest Wally 
+%on% to %on% tamto xD 
+%on% używa margaryny zamiast masła 
+%on% podjada między posiłkami 
+%on% zjada kozy z nosa 
+%on% mierzy rezystancję metodą techniczną omomierzem 
+%on% pełen agresji rzucał śnieżkami w sąsiedzkie okna 
+%on% uważa, że \"dzień świra\" to komedia 
+%on% wyrywa lachony na trabanta 
+%on% nie umie obliczać modułu liczb urojonych 
+%on% używa myszki kulkowej 
+%on% przeniósł się w czasie i ukrzyżował Jezusa Chrystusa 
+%on% był za ACTA 
+%on% chciał zjeść ślimaka ale mu uciekł 
+%on% zakłada thready \"prawaki vs lewaki\" zaśmiewając się przy tym do monitora 
+%on% odpala strony porno w wystawowych komputerach w MediaMarkt po czym oddala się w popłochu 
+%on% wychodzi z restauracji bez płacenia 
+%on% wyjada w Biedronce nadzienie z Oreo 
+%on% wystrzeliwał w sufit z rurki od długopisu namoczone kawałki czerwonej krepy 
+%on% podczas zabawy na świetlicy plastikowym samolotem, dźwiękiem pękającego plastiku zwrócił uwagę opiekunki i na pytanie co się stało, odpowiedział, że to tak już było 
+%on% strzela z wiatrówki do psa sąsiada 
+%on% je chipsy podczas grania na playstation 
+%on% zmienia tapety w telefonie matki bez pozwolenia 
+%on% je chipsy zimą 
+%on% nie szanuje zieleni 
+%on% nie wytrzepał butów po wyjściu z piaskownicy 
+%on% odkamienia czajnik octem 
+%on% pluje sobie w brodę 
+%on% puszcza muzykę z komórki jadąc autobusem 
+%on% kroi jedzenie widelcem 
+%on% dosypywał trutki do karmnika 
+%on% przebija opony sąsiadom 
+%on% udaje, że coś mu upadło, schyla się po to, a tak na prawdę chodzi mu o to żeby zajrzeć koleżance pod spódnice 
+%on% płaci za bułki banknotami 100-złotowymi 
+%on% podłożył koledze pierdzącą poduszke na krzesło i później się wszyscy z niego nabijali że puścił bąka 
+%on% nie zwalnia pamięci po dynamicznym jej przydzieleniu 
+%on% głośno chrupie podczas seansu filmowego 
+%on% trzyma hasła użytkowników wykop.pl w postaci jawnej 
+%on% na klasówce z matematyki odwraca kartkę na drugą stronę żeby nikt nie ściągnął 
+%on% ostentacyjnie spożywa mięsne pokarmy w piątki 
+%on% nosi słuchawki na odwrót 
+%on% nie nosi krawatu 
+%on% śmiał się na pogrzebie papieża 
+%on% depcze trawniki 
+%on% nie sprząta po psie 
+%on% nie segreguje odpadów 
+%on% zjada kozy z nosa 
+%on% wali pod cycki Aralki 
+%on% obraża papieża i wmawia wszystkim że to karachan.gov 
+%on% nie bierze prysznica przed wejściem na basen 
+%on% w kościele w momencie kiedy ksiądz podchodzi z tacą mówi: nie, dziękuję 
+%on% wyjada siano spod wigilijnego obrusa 
+%on% popiera Gimpera 
+%on% zgłosił filmik Gimperra 
+%on% pisze pozytywne komentarze pod filmikami Gimbera 
+%on% lurkuje Karachan.gov na stylu Night 
+%on% wybijał szyby vlogerom 
+%on% sam sobie wysyła zlewy i zwala winę na forum obrazkowe o kupie 
+%on% zaznacza do usunięcia epickie nitki 
+%on% zapisał tę nitkę do .mht 
+%on% nie umie zapisywać nitek 
+%on% nie umie zablokować zakodowanego tła 
+%on% sprawdza limity bumpowania sagując"
