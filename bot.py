@@ -1214,135 +1214,73 @@ class WiertarBot(Client):
             return True
 
         await self.send(Message("Użycie:\n"+config.cmd_prefix+"unban <id/oznaczenie>\nWłącza możliwość korzystania z bota."), args["thread_id"], args["thread_type"])
-
-    # todo: shorten it asap
+ ``
     async def standard_perm(self, command, args):
         if len(command) == 3:
             if command[1] == "look":
                 a = await self.perm(command[2])
-                if a == False:
-                    await self.send(Message("Podana komenda nie istnieje w bazie danych"), args["thread_id"], args["thread_type"])
-                    return True
+                if a:
+                    await self.send(
+                        Message(f'{ command[2] }:\n\nwhitelist: { a[0] }\nblacklist: { a[1] }'),
+                        args["thread_id"], args["thread_type"]
+                    )
                 else:
-                    await self.send(Message(command[2]+":\n\nwhitelist: "+str(a[0])+"\nblacklist: "+str(a[1])), args["thread_id"], args["thread_type"])
-                    return True
-        if len(command) > 4:
+                    await self.send(
+                        Message("Podana permisja nie istnieje w bazie danych"),
+                        args["thread_id"], args["thread_type"]
+                    )
+                return True
+
+        elif len(command) > 4:
             tid = False
             if command[4][:4] == "tid=":
                 try:
                     tid = str(int(command[4][4:]))
                 except ValueError:
-                    if command[4][4:] == "tu": tid = args["thread_id"]
+                    if command[4][4:] == "here":
+                        tid = args["thread_id"]
+
+            if command[3] == 'wl':
+                bl = 0
+            elif command[3] == 'bl':
+                bl = 1
+            else:
+                # send help text
+                await self.standard_perm([], args)
+                return True
 
             cmd = await self.perm(command[2])
-            if command[1] == "add":
-                if cmd == False:
-                    cmd = [{}, {}]
-                if command[3] == "wl":
-                    for i in range(len(command)-4):
-                        try: 
-                            int(command[i+4])
-                        except ValueError:
-                            if command[i+4] != "*": continue
-                        if tid:
-                            if (tid in cmd[0]) == False:
-                                cmd[0][tid] = []
-                            cmd[0][tid].append(command[i+4])
-                        else:
-                            cmd[0][command[i+4]] = 0
-
-                    mt = args["message_object"].mentions
-
-                    for i in mt:
-                        if tid:
-                            if (tid in cmd[0]) == False:
-                                cmd[0][tid] = []
-                            cmd[0][tid].append(i.thread_id)
-                        else:
-                            cmd[0][i.thread_id] = 0
-                    a = [json.dumps(cmd[0]), json.dumps(cmd[1])]
-                    await self.change_perm(command[2], a)
-                    await self.send(Message("Pomyślnie dodano do whitelisty"), args["thread_id"], args["thread_type"])
+            if command[1] == 'add':
+                add = True
+            elif command[1] == 'rm':
+                add = False
+                if cmd is False:
+                    await self.send(
+                        Message("Podana permisja nie istnieje w bazie danych"),
+                        args["thread_id"], args["thread_type"]
+                    )
                     return True
-                elif command[3] == "bl":
-                    for i in range(len(command)-4):
-                        try: 
-                            int(command[i+4])
-                        except ValueError:
-                            if command[i+4] != "*": continue
-                        if tid:
-                            if (tid in cmd[1]) == False:
-                                cmd[1][tid] = []
-                            cmd[1][tid].append(command[i+4])
-                        else:
-                            cmd[1][command[i+4]] = 0
+            else:
+                # send help text
+                await self.standard_perm([], args)
+                return True
 
-                    mt = args["message_object"].mentions
+            uids = command[3:]
+            for mention in args['message_object'].mentions:
+                uids.append(mention.thread_id)
 
-                    for i in mt:
-                        if tid:
-                            if (tid in cmd[1]) == False:
-                                cmd[1][tid] = []
-                            cmd[1][tid].append(i.thread_id)
-                        else:
-                            cmd[1][i.thread_id] = 0
-                    await self.change_perm(command[2], [json.dumps(cmd[0]), json.dumps(cmd[1])])
-                    await self.send(Message("Pomyślnie dodano do blacklisty"), args["thread_id"], args["thread_type"])
-                    return True
-            elif command[1] == "rem":
-                if cmd == False:
-                    await self.send(Message("Podana komenda nie istnieje w bazie danych"), args["thread_id"], args["thread_type"])
-                    return True
-                else:
-                    if command[3] == "wl":
-                        for i in range(len(command)-4):
-                            try: 
-                                int(command[i+4])
-                            except ValueError:
-                                if command[i+4] != "*": continue
-                            if tid:
-                                if tid in cmd[0]:
-                                    while command[i+4] in cmd[0][tid]: cmd[0][tid].remove(command[i+4])
-                                    if cmd[0][tid] == []: cmd[0].pop(tid)
-                            else:
-                                while command[i+4] in cmd[0]: cmd[0].pop(command[i+4])
-                        mt = args["message_object"].mentions
-                        for i in mt:
-                            if tid:
-                                if tid in cmd[0]:
-                                    while i.thread_id in cmd[0][tid]: cmd[0][tid].remove(i.thread_id)
-                                    if cmd[0][tid] == []: cmd[0].pop(tid)
-                            else:
-                                while i.thread_id in cmd[0]: cmd[0].pop(i.thread_id)
-                        await self.change_perm(command[2], [json.dumps(cmd[0]), json.dumps(cmd[1])])
-                        await self.send(Message("Pomyślnie usunięto z whitelisty"), args["thread_id"], args["thread_type"])
-                        return True
-                    elif command[3] == "bl":
-                        for i in range(len(command)-4):
-                            try: 
-                                int(command[i+4])
-                            except ValueError:
-                                if command[i+4] != "*": continue
-                            if tid:
-                                if tid in cmd[1]:
-                                    while command[i+4] in cmd[1][tid]: cmd[1][tid].remove(command[i+4])
-                                    if cmd[1][tid] == []: cmd[1].pop(tid)
-                            else:
-                                while command[i+4] in cmd[1]: cmd[1].pop(command[i+4])
-                        mt = args["message_object"].mentions
-                        for i in mt:
-                            if tid:
-                                if tid in cmd[1]:
-                                    while i.thread_id in cmd[1][tid]: cmd[1][tid].remove(i.thread_id)
-                                    if cmd[1][tid] == []: cmd[1].pop(tid)
-                            else:
-                                while i.thread_id in cmd[1]: cmd[1].pop(i.thread_id)
-                        await self.change_perm(command[2], [json.dumps(cmd[0]), json.dumps(cmd[1])])
-                        await self.send(Message("Pomyślnie usunięto z blacklisty"), args["thread_id"], args["thread_type"])
-                        return True
+            text = 'dodano do ' if add else 'usunięto z '
+            text += 'blacklisty' if bl else 'whitelisty'
 
-        await self.send(Message("Użycie:\n"+config.cmd_prefix+"perm look <nazwa komendy>\n"+config.cmd_prefix+"perm <add/rem> <nazwa komendy> <bl/wl> <oznaczenie/id>\nKomenda do zarządzania permisjami komend."), args["thread_id"], args["thread_type"]) 
-    
+            await self.edit_perm(command[2], uids, bl, add, tid)
+            await self.send(Message(f'Pomyślnie { text } '), args["thread_id"], args["thread_type"])
+            return True
+
+        await self.send(
+            Message("Użycie:\n"+config.cmd_prefix+"perm look <nazwa komendy>\n"+config.cmd_prefix+"perm <add/rem> <nazwa komendy> <bl/wl> <oznaczenie/id>\nKomenda do zarządzania permisjami."),
+            args["thread_id"], args["thread_type"]
+        )
+
     async def perm(self, command):
         self.cur.execute("SELECT * FROM permissions WHERE command = ?", [command])
         a = self.cur.fetchone()
@@ -1357,6 +1295,42 @@ class WiertarBot(Client):
             return True
         self.cur.execute("UPDATE permissions SET whitelist = ?, blacklist = ? WHERE command = ?", [perms[0], perms[1], command])
         self.conn.commit()
+        return False
+
+    async def edit_perm(self, perm, uids, bl=False, add=True, tid=False):
+        cmd = await self.perm(perm)
+        if (cmd) or ((not cmd) and add):
+            bl = 1 if bl else 0
+            if not cmd:
+                cmd = [{}, {}]
+
+            for uid in uids:
+                try:
+                    int(uid)
+                except ValueError:
+                    if uid != "*":
+                        continue
+                if tid:
+                    if add:
+                        if (tid in cmd[bl]) is False:
+                            cmd[bl][tid] = []
+                        cmd[bl][tid].append(uid)
+                    else:
+                        if tid in cmd[bl]:
+                            while uid in cmd[bl][tid]:
+                                cmd[bl][tid].remove(uid)
+                            if cmd[bl][tid] == []:
+                                cmd[bl].pop(tid)
+                else:
+                    if add:
+                        cmd[bl][uid] = 0
+                    else:
+                        while uid in cmd[bl]:
+                            cmd[bl].pop(uid)
+
+            a = [json.dumps(cmd[0]), json.dumps(cmd[1])]
+            await self.change_perm(perm, a)
+            return True
         return False
 
     async def check_perm(self, command, user_id, thread_id):

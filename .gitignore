@@ -8,6 +8,7 @@ __pycache__/
 bot.db
 bot.db-journal
 local_config.py
+.vscode/
 
 saved/*
 !templates/
