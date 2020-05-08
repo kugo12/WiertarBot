@@ -1214,7 +1214,7 @@ class WiertarBot(Client):
             return True
 
         await self.send(Message("Użycie:\n"+config.cmd_prefix+"unban <id/oznaczenie>\nWłącza możliwość korzystania z bota."), args["thread_id"], args["thread_type"])
- ``
+
     async def standard_perm(self, command, args):
         if len(command) == 3:
             if command[1] == "look":
