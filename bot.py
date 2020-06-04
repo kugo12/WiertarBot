@@ -997,10 +997,9 @@ class WiertarBot(Client):
                 data = json.loads(data)
 
                 latest = data['location']['latest']
-                text = f'Informacje dla { data["location"]["country"] }\n\
-                { latest["confirmed"] } zakażeń\n\
-                { latest["deaths"] } zgonów\
-                '
+                text = (f'Informacje dla { data["location"]["country"] }\n'
+                        f'{ latest["confirmed"] } zakażeń\n'
+                        f'{ latest["deaths"] } zgonów')
                 rec = f'\n{ latest["recovered"] } wyleczonych' if latest['recovered'] else ''
                 text += rec
                 
