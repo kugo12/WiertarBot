@@ -871,6 +871,23 @@ class WiertarBot(Client):
         if command == []:
             await self.send(Message("Użycie:\n"+config.cmd_prefix+"suchar\nWyświetla losowy suchar"), args["thread_id"], args["thread_type"])
 
+    async def standard_slownik(self, command, args):
+        if len(command) > 1:
+            word = args['message_object'].text.lower().replace('!slownik ', '')
+            response = requests.get('https://sjp.pwn.pl/slowniki/' + word.replace(' ', '-'))
+
+            parsed = BeautifulSoup(response.text, 'html.parser')
+            text = parsed.body.find('div', {'class': 'ribbon-element type-187126'})
+            if text:
+                text = text.get_text().strip()
+            else:
+                text = 'Coś poszło nie tak, jak nie użyłeś polskich liter, to dobry moment'
+
+            await self.send(Message(text), args['thread_id'], args['thread_type'])
+            return True
+        
+        await self.send(Message('Użycie:\n'+config.cmd_prefix+'slownik <wyraz>\nWyświetla definicje z słownika języka polskiego\nSłowo musi mieć polskie litery'), args['thread_id'], args['thread_type'])
+
     async def standard_miejski(self, command, args):
         if len(command) > 1:
             word = args["message_object"].text.lower().replace("!miejski ", "")
