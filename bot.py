@@ -1005,6 +1005,8 @@ class WiertarBot(Client):
                 text += rec
                 
                 await self.send(Message(text), args["thread_id"], args["thread_type"])
+            else:
+                await self.send(Message('https://en.wikipedia.org/wiki/ISO_3166-2'), args['thread_id'], args['thread_type'])
             return True
 
         await self.send(Message("Użycie:\n"+config.cmd_prefix+"covid (s)\nAktualne dane z gov.pl"), args["thread_id"], args["thread_type"])
