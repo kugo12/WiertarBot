@@ -971,11 +971,24 @@ class WiertarBot(Client):
             msg = "Statystyki COVID19 w Polsce na ten moment:\n"+str(a['infected'])+" chorych"+ni+"\n"
             msg += str(a['deaths'])+" śmierci"+nd+"\n"
             # msg += str(a['recovered'])+" wyleczonych"+nr+"\n"
-            msg += "szczegolowe dane !covid s\ndane innych krajów !covid <nazwa kraju po angielsku/kod kraju>"
+            msg += "szczegolowe dane Polski !covid s\ndane swiata !covid w\ndane innych krajów !covid <nazwa kraju po angielsku/kod kraju>"
             await self.send(Message(msg), args["thread_id"], args["thread_type"])
             return True 
         elif len(command) == 2:
-            if command[1] == "s":
+            if command[1] == 'w':
+                url = f'https://coronavirus-tracker-api.herokuapp.com/v2/latest?timelines=false'
+                data = requests.get(url).text
+                data = json.loads(data)
+
+                latest = a['latest']
+                text = (f'Informacje dla świata\n'
+                    f'{ latest["confirmed"] } zakażeń\n'
+                    f'{ latest["deaths"] } zgonów')
+                rec = f'\n{ latest["recovered"] } wyleczonych' if latest['recovered'] else ''
+                text += rec
+
+                await self.send(Message(text), args["thread_id"], args["thread_type"])
+            elif command[1] == "s":
                 add = "http://35.205.149.154:5000/api/detailed"
                 a = requests.get(add).text
                 a = json.loads(a)
