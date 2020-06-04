@@ -971,7 +971,7 @@ class WiertarBot(Client):
             msg = "Statystyki COVID19 w Polsce na ten moment:\n"+str(a['infected'])+" chorych"+ni+"\n"
             msg += str(a['deaths'])+" śmierci"+nd+"\n"
             # msg += str(a['recovered'])+" wyleczonych"+nr+"\n"
-            msg += "szczegolowe dane Polski !covid s\ndane swiata !covid w\ndane innych krajów !covid <nazwa kraju po angielsku/kod kraju>"
+            msg += "szczegolowe dane Polski !covid s\ndane swiata !covid w\ndane innych krajów !covid <kod kraju>"
             await self.send(Message(msg), args["thread_id"], args["thread_type"])
             return True 
         elif len(command) == 2:
@@ -980,7 +980,7 @@ class WiertarBot(Client):
                 data = requests.get(url).text
                 data = json.loads(data)
 
-                latest = a['latest']
+                latest = data['latest']
                 text = (f'Informacje dla świata\n'
                     f'{ latest["confirmed"] } zakażeń\n'
                     f'{ latest["deaths"] } zgonów')
@@ -1017,10 +1017,10 @@ class WiertarBot(Client):
                 
                 await self.send(Message(text), args["thread_id"], args["thread_type"])
             else:
-                await self.send(Message('https://en.wikipedia.org/wiki/ISO_3166-2'), args['thread_id'], args['thread_type'])
+                await self.send(Message('kody krajów: https://en.wikipedia.org/wiki/ISO_3166-2'), args['thread_id'], args['thread_type'])
             return True
 
-        await self.send(Message("Użycie:\n"+config.cmd_prefix+"covid (s)\nAktualne dane z gov.pl"), args["thread_id"], args["thread_type"])
+        await self.send(Message("Użycie:\n"+config.cmd_prefix+"covid (s/w/kod kraju)\nDane o SARS-CoV2\nkody krajów: https://en.wikipedia.org/wiki/ISO_3166-2"), args["thread_id"], args["thread_type"])
 
     async def standard_nns(self, command, args):
         if len(command) > 1:
