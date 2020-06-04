@@ -991,13 +991,12 @@ class WiertarBot(Client):
                     # msg += " "+str(a[i]['recovered'])+" wyleczonych"+nr+"\n"
                 await self.send(Message(msg), args["thread_id"], args["thread_type"])
             elif command[1] in config.covid_country_codes:
-                country_id = config.covid_country_codes[command[1]]
-                url = f'https://coronavirus-tracker-api.herokuapp.com/v2/locations/{ country_id }?timelines=false'
+                url = f'https://coronavirus-tracker-api.herokuapp.com/v2/locations?country_code={ command[1] }&timelines=false'
                 data = requests.get(url).text
                 data = json.loads(data)
 
-                latest = data['location']['latest']
-                text = (f'Informacje dla { data["location"]["country"] }\n'
+                latest = data['latest']
+                text = (f'Informacje dla { data["locations"][0]["country"] }\n'
                         f'{ latest["confirmed"] } zakażeń\n'
                         f'{ latest["deaths"] } zgonów')
                 rec = f'\n{ latest["recovered"] } wyleczonych' if latest['recovered'] else ''
