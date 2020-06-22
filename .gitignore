@@ -9,6 +9,7 @@ db.sqlite3
 db.sqlite3-journal
 local_config.py
 .vscode/
+cookies.json
 
 saved/*
 !templates/
