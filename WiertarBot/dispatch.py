@@ -3,7 +3,7 @@ class EventDispatcher():
 
     @staticmethod
     def slot(event):
-        def wrap(func):      
+        def wrap(func):
             name = event.__name__
 
             if name not in EventDispatcher._slots:
@@ -16,7 +16,7 @@ class EventDispatcher():
 
     @staticmethod
     async def send_signal(event):
-        name = event.__name__
+        name = type(event).__name__
         if name in EventDispatcher._slots:
             for func in EventDispatcher._slots[name]:
                 await func(event)
