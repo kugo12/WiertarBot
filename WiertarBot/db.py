@@ -15,5 +15,10 @@ class db():
 
     def _connect(self) -> sqlite3.Connection:
         self._conn = sqlite3.connect(config.db_path)
+        self._create_tables(self)
 
         return self._conn
+
+    def _create_tables(self):
+        with open(config.db_schema_path, 'r') as schema:
+            self._conn.cursor().executescript(schema.read())
