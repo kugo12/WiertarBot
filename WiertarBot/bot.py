@@ -3,7 +3,7 @@ import json
 import atexit
 from asyncio import AbstractEventLoop
 
-from WiertarBot import config
+from WiertarBot import config, perm
 from .dispatch import EventDispatcher
 
 
@@ -47,3 +47,25 @@ class WiertarBot():
     async def run(self):
         async for event in self.listener.listen():
             await EventDispatcher.send_signal(event)
+
+    @EventDispatcher.slot(fbchat.PeopleAdded)
+    async def on_people_added(event: fbchat.PeopleAdded):
+        if WiertarBot.session.user not in event.added:
+            await event.thread.send_text('poziom spat')
+
+    @EventDispatcher.slot(fbchat.PersonRemoved)
+    async def on_person_removed(event: fbchat.PersonRemoved):
+        await event.thread.send_text('poziom wzrus')
+
+    @EventDispatcher.slot(fbchat.ReactionEvent)
+    async def on_reaction(event: fbchat.ReactionEvent):
+        if event.author.id != WiertarBot.session.user.id:
+            if perm.check('doublereact', event.author.id, event.thread.id):
+                await event.message.react(event.reaction)
+
+    @EventDispatcher.slot(fbchat.NicknameSet)
+    async def on_nickname_change(event: fbchat.NicknameSet):
+        if event.author.id != WiertarBot.session.user.id:
+            if perm.check('deletename', event.subject.id, event.thread.id):
+                await event.thread.set_nickname(event.subject, None)
+                # await self.standard_szkaluj(["!szkaluj"], {'author_id':author_id, 'thread_id':thread_id, 'thread_type':thread_type})
