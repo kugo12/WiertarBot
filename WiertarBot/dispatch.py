@@ -55,3 +55,29 @@ class Response():
         mid = await self.event.thread.send_text(text=self.text, mentions=self.mentions,
                                                 files=self.files, reply_to_id=self.reply_to_id)
         return mid
+
+
+class MessageEventDispatcher():
+    _commands = {}
+    _special = []
+
+    def register(
+            *,
+            name: str = None,
+            aliases: Iterable[str] = None,
+            special: bool = False
+            ):
+        def wrap(func):
+            if special:
+                MessageEventDispatcher._special.append(func)
+            else:
+                _name = name if name else func.__name__
+
+                MessageEventDispatcher._commands[_name] = func
+
+                if aliases:
+                    for alias in aliases:
+                        MessageEventDispatcher._commands[alias] = func
+
+            return func
+        return wrap
