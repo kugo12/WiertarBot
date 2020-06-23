@@ -1,6 +1,7 @@
 wheel
 aenum
 aiohttp
+aiofiles
 async-timeout
 attrs
 baseconvert

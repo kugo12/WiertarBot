@@ -15,3 +15,5 @@ cookie_path = path.join(rootdir, 'cookies.json')
 
 email = ''
 password = ''
+
+prefix = '!'

@@ -1,7 +1,8 @@
 import fbchat
+import asyncio
 from typing import Iterable
 
-from . import bot
+from . import bot, perm, config
 
 
 class EventDispatcher():
@@ -60,6 +61,7 @@ class Response():
 class MessageEventDispatcher():
     _commands = {}
     _special = []
+    _alias_of = {}
 
     def register(
             *,
@@ -77,7 +79,30 @@ class MessageEventDispatcher():
 
                 if aliases:
                     for alias in aliases:
-                        MessageEventDispatcher._commands[alias] = func
+                        MessageEventDispatcher._alias_of[alias] = _name
 
             return func
         return wrap
+
+    @EventDispatcher.slot(fbchat.MessageEvent)
+    async def dispatch(event: fbchat.MessageEvent):
+        if event.author.id != bot.WiertarBot.session.user.id:
+            if perm.check('banned', event.thread.id, event.author.id):
+                pass
+            else:
+                if event.message.text:
+                    if event.message.text.startswith(config.prefix):
+                        # first word without prefix
+                        fw = event.message.text.split(' ', 1)[0][len(config.prefix):]
+                        if fw in MessageEventDispatcher._commands:
+                            # alias support
+                            if fw in MessageEventDispatcher._alias_of:
+                                fw = MessageEventDispatcher._alias_of[fw]
+
+                            if perm.check(fw, event.thread.id, event.author.id):
+                                response = await MessageEventDispatcher._commands[fw](event)
+                                if response:
+                                    await response.send()
+
+                    # run all special functions asynchronously
+                    await asyncio.gather(*[i(event) for i in MessageEventDispatcher._special])
