@@ -11,6 +11,4 @@ local_config.py
 .vscode/
 cookies.json
 
-saved/*
-!templates/
-!kupony/
+upload/

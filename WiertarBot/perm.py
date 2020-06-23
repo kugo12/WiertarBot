@@ -29,7 +29,7 @@ def _update_db(name: str, perms) -> bool:
 
 
 def check(name: str, thread_id: str, user_id: str) -> bool:
-    a = await _get(name)
+    a = _get(name)
     # a[0] - whitelist
     # a[1] - blacklist
     if a:
