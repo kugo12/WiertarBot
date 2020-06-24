@@ -25,8 +25,9 @@ class EventDispatcher():
     async def send_signal(event):
         name = type(event).__name__
         if name in EventDispatcher._slots:
-            for func in EventDispatcher._slots[name]:
-                await func(event)
+            # for func in EventDispatcher._slots[name]:
+            #     await func(event)
+            await asyncio.gather(*[i(event) for i in EventDispatcher._slots[name]])
 
 
 class Response():
