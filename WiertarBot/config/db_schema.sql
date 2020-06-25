@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS "messages" (
 	"thread_id"	TEXT,
 	"author_id"	TEXT,
 	"time"	TEXT,
-	"message_object"	BLOB
+	"message"	TEXT
 );
 CREATE TABLE IF NOT EXISTS "deleted_messages" (
 	"mid"	TEXT,
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS "deleted_messages" (
 	"author_id"	TEXT,
 	"time"	TEXT,
 	"del_time"	TEXT,
-	"message_object"	BLOB
+	"message"	TEXT
 );
 CREATE TABLE IF NOT EXISTS "permissions" (
 	"command"	TEXT,

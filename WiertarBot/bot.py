@@ -4,20 +4,25 @@ import atexit
 import mimetypes
 import aiohttp
 import aiofiles
+import asyncio
+from datetime import datetime
 from os import path, remove
 from asyncio import AbstractEventLoop
 from typing import Iterable
 
 from WiertarBot import config, perm
+from .db import db
 from .dispatch import EventDispatcher
+from .utils import serialize_MessageEvent
 
 
 class WiertarBot():
     session: fbchat.Session = None
     client: fbchat.Client = None
+    loop: AbstractEventLoop = None
 
     def __init__(self, loop: AbstractEventLoop):
-        self.loop = loop
+        WiertarBot.loop = loop
         loop.run_until_complete(self._init())
 
         atexit.register(self._save_cookies)
@@ -74,6 +79,43 @@ class WiertarBot():
             if perm.check('deletename', event.subject.id, event.thread.id):
                 await event.thread.set_nickname(event.subject, None)
                 # await self.standard_szkaluj(["!szkaluj"], {'author_id':author_id, 'thread_id':thread_id, 'thread_type':thread_type})
+
+    @EventDispatcher.slot(fbchat.MessageEvent)
+    async def save_message(event: fbchat.MessageEvent):
+        conn = db.get()
+        cur = conn.cursor()
+        cur.execute(("INSERT INTO messages (mid, thread_id, author_id, time, message) "
+                     "VALUES (?, ?, ?, ?, ?)"),
+                    [event.message.id, event.thread.id, event.author.id,
+                     datetime.timestamp(event.at), serialize_MessageEvent(event)]
+                    )
+        conn.commit()
+
+        if event.message.attachments:
+            await asyncio.gather(*[WiertarBot.save_attachment(i)
+                                   for i in event.message.attachments])
+
+    async def save_attachment(attachment):
+        name = type(attachment).__name__
+        if name in ['AudioAttachment', 'ImageAttachment', 'VideoAttachment']:
+            if name == 'AudioAttachment':
+                url = attachment.url
+                p = path.join(config.attachment_save_path,
+                              attachment.filename)
+            elif name == 'ImageAttachment':
+                url = await WiertarBot.client.fetch_image_url(attachment.id)
+                p = path.join(config.attachment_save_path,
+                              f'{ attachment.id }.{ attachment.original_extension }')
+            elif name == 'VideoAttachment':
+                url = attachment.preview_url
+                p = path.join(config.attachment_save_path,
+                              f'{ attachment.id }.mp4')
+
+            async with WiertarBot.session._session.get(url) as r:
+                if r.status == 200:
+                    f = await aiofiles.open(p, mode='wb')
+                    await f.write(await r.read())
+                    await f.close()
 
     async def upload(files: Iterable[str], voice_clip=False):
         final_files = []
