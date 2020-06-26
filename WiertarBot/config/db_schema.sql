@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS "deleted_messages" (
 	"thread_id"	TEXT,
 	"author_id"	TEXT,
 	"time"	TEXT,
-	"del_time"	TEXT,
+	"deleted_at"	TEXT,
 	"message"	TEXT
 );
 CREATE TABLE IF NOT EXISTS "permissions" (

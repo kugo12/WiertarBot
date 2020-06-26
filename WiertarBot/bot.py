@@ -80,6 +80,24 @@ class WiertarBot():
                 await event.thread.set_nickname(event.subject, None)
                 # await self.standard_szkaluj(["!szkaluj"], {'author_id':author_id, 'thread_id':thread_id, 'thread_type':thread_type})
 
+    @EventDispatcher.slot(fbchat.UnsendEvent)
+    async def on_unsend(event: fbchat.UnsendEvent):
+        conn = db.get()
+        cur = conn.cursor()
+        mid = event.message.id
+        deleted_at = int(datetime.timestamp(event.at))
+
+        cur.execute(('SELECT (mid, thread_id, author_id, time, message) '
+                     'FROM messages WHERE mid = ?'), [mid])
+        message = cur.fetchone()
+        message += (deleted_at,)  # add deleted_at to message tuple
+
+        cur.execute(('INSERT INTO deletedMessages '
+                     '(mid, thread_id, author_id, time, message, deleted_at) '
+                     'VALUES (?, ?, ?, ?, ?, ?)'), message)
+        cur.execute('DELETE FROM messages WHERE mid = ?', [mid])
+        conn.commit()
+
     @EventDispatcher.slot(fbchat.MessageEvent)
     async def save_message(event: fbchat.MessageEvent):
         conn = db.get()
@@ -87,7 +105,7 @@ class WiertarBot():
         cur.execute(("INSERT INTO messages (mid, thread_id, author_id, time, message) "
                      "VALUES (?, ?, ?, ?, ?)"),
                     [event.message.id, event.thread.id, event.author.id,
-                     datetime.timestamp(event.at), serialize_MessageEvent(event)]
+                     int(datetime.timestamp(event.at)), serialize_MessageEvent(event)]
                     )
         conn.commit()
 
