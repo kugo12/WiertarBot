@@ -10,7 +10,7 @@ from os import path, remove
 from asyncio import AbstractEventLoop
 from typing import Iterable
 
-from WiertarBot import config, perm
+from . import config, perm
 from .db import db
 from .dispatch import EventDispatcher
 from .utils import serialize_MessageEvent
@@ -22,6 +22,8 @@ class WiertarBot():
     loop: AbstractEventLoop = None
 
     def __init__(self, loop: AbstractEventLoop):
+        from . import commands  # avoid circular import
+
         WiertarBot.loop = loop
         loop.run_until_complete(self._init())
 
@@ -52,11 +54,16 @@ class WiertarBot():
             except fbchat.FacebookError:
                 print('Error at loading session from cookies')
 
-        return await fbchat.Session.login(config.email, config.password)
+        return await fbchat.Session.login(config.email, config.password,
+                                          on_2fa_callback=lambda: input('2fa_code: '))
 
     async def run(self):
         async for event in self.listener.listen():
             await EventDispatcher.send_signal(event)
+
+    @EventDispatcher.slot(fbchat.Connect)
+    async def on_connect(event: fbchat.Connect):
+        print('Connected')
 
     @EventDispatcher.slot(fbchat.PeopleAdded)
     async def on_people_added(event: fbchat.PeopleAdded):
