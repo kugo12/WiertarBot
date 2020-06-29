@@ -77,6 +77,7 @@ class MessageEventDispatcher():
                 _name = name if name else func.__name__
 
                 MessageEventDispatcher._commands[_name] = func
+                MessageEventDispatcher._alias_of[_name] = _name
 
                 if aliases:
                     for alias in aliases:
@@ -95,10 +96,8 @@ class MessageEventDispatcher():
                     if event.message.text.startswith(config.prefix):
                         # first word without prefix
                         fw = event.message.text.split(' ', 1)[0][len(config.prefix):]
-                        if fw in MessageEventDispatcher._commands:
-                            # alias support
-                            if fw in MessageEventDispatcher._alias_of:
-                                fw = MessageEventDispatcher._alias_of[fw]
+                        if fw in MessageEventDispatcher._alias_of:
+                            fw = MessageEventDispatcher._alias_of[fw]
 
                             if perm.check(fw, event.thread.id, event.author.id):
                                 response = await MessageEventDispatcher._commands[fw](event)
