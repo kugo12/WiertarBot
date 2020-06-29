@@ -1,5 +1,6 @@
 import fbchat
 import asyncio
+import inspect
 from typing import Iterable
 
 from . import bot, perm, config
@@ -79,7 +80,17 @@ class MessageEventDispatcher():
                 MessageEventDispatcher._commands[_name] = func
                 MessageEventDispatcher._alias_of[_name] = _name
 
+                func.__doc__ = inspect.cleandoc(func.__doc__)
+                format_docstr = {
+                    'prefix': config.prefix,
+                    'name': _name,
+                    'command': config.prefix+_name
+                }
+                func.__doc__ = func.__doc__.format(**format_docstr)
+
                 if aliases:
+                    func.__doc__ += '\nAliasy: ' + ', '.join(aliases)
+
                     for alias in aliases:
                         MessageEventDispatcher._alias_of[alias] = _name
 
