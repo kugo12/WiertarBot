@@ -1,6 +1,7 @@
 import fbchat
 import asyncio
 import inspect
+import importlib
 from typing import Iterable
 
 from . import bot, perm, config
@@ -117,3 +118,29 @@ class MessageEventDispatcher():
 
                     # run all special functions asynchronously
                     await asyncio.gather(*[i(event) for i in MessageEventDispatcher._special])
+
+    def cleanup():
+        MessageEventDispatcher._special = []
+        MessageEventDispatcher._alias_of = {}
+        MessageEventDispatcher._commands = {}
+
+
+@MessageEventDispatcher.register()
+async def reload(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command}
+    Zwraca:
+        Status
+    Funkcja:
+        Przeładowywuje komendy
+    """
+
+    importlib.reload(bot.WiertarBot.commands)
+
+    MessageEventDispatcher.cleanup()
+    MessageEventDispatcher.register()(reload)
+
+    bot.WiertarBot.commands.reload()
+
+    return Response(event, text='git')

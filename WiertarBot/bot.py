@@ -23,6 +23,7 @@ class WiertarBot():
 
     def __init__(self, loop: AbstractEventLoop):
         from . import commands  # avoid circular import
+        WiertarBot.commands = commands
 
         WiertarBot.loop = loop
         loop.run_until_complete(self._init())
