@@ -2,6 +2,7 @@ import fbchat
 import asyncio
 import inspect
 import importlib
+from traceback import print_exc
 from typing import Iterable
 
 from . import bot, perm, config
@@ -29,7 +30,10 @@ class EventDispatcher():
         if name in EventDispatcher._slots:
             # for func in EventDispatcher._slots[name]:
             #     await func(event)
-            await asyncio.gather(*[i(event) for i in EventDispatcher._slots[name]])
+            try:
+                await asyncio.gather(*[i(event) for i in EventDispatcher._slots[name]])
+            except Exception:
+                print_exc()
 
 
 class Response():
@@ -54,7 +58,8 @@ class Response():
 
     async def send(self):
         if self.files:
-            self.files = await bot.WiertarBot.upload(self.files, self.voice_clip)
+            if isinstance(self.files[0], str):
+                self.files = await bot.WiertarBot.upload(self.files, self.voice_clip)
 
         mid = await self.event.thread.send_text(text=self.text, mentions=self.mentions,
                                                 files=self.files, reply_to_id=self.reply_to_id)
@@ -94,6 +99,10 @@ class MessageEventDispatcher():
 
                     for alias in aliases:
                         MessageEventDispatcher._alias_of[alias] = _name
+
+                # if permission doesn't exist in db, allow all users to use command
+                if not perm._get(_name):
+                    perm.edit(_name, ['*'])
 
             return func
         return wrap

@@ -28,12 +28,12 @@ class WiertarBot():
         WiertarBot.loop = loop
         loop.run_until_complete(self._init())
 
-        atexit.register(self._save_cookies)
-
     async def _init(self):
         WiertarBot.session = await self._login()
         WiertarBot.client = fbchat.Client(session=WiertarBot.session)
         self.listener = fbchat.Listener(session=WiertarBot.session, chat_on=True, foreground=True)
+
+        atexit.register(self._save_cookies)
 
     def _save_cookies(self):
         print('Saving cookies')
@@ -95,12 +95,12 @@ class WiertarBot():
         mid = event.message.id
         deleted_at = int(datetime.timestamp(event.at))
 
-        cur.execute(('SELECT (mid, thread_id, author_id, time, message) '
+        cur.execute(('SELECT mid, thread_id, author_id, time, message '
                      'FROM messages WHERE mid = ?'), [mid])
         message = cur.fetchone()
         message += (deleted_at,)  # add deleted_at to message tuple
 
-        cur.execute(('INSERT INTO deletedMessages '
+        cur.execute(('INSERT INTO deleted_messages '
                      '(mid, thread_id, author_id, time, message, deleted_at) '
                      'VALUES (?, ?, ?, ?, ?, ?)'), message)
         cur.execute('DELETE FROM messages WHERE mid = ?', [mid])
@@ -152,6 +152,10 @@ class WiertarBot():
                 if path.exists(fn):
                     f = open(fn, 'rb')
                     fn = path.basename(fn)
+
+                    if mime == 'video/mp4' and voice_clip:
+                        mime = 'audio/mp4'
+
                     final_files.append((fn, f, mime))
                 elif fn.startswith(('http://', 'https://')):
                     url = fn
