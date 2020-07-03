@@ -1,8 +1,4 @@
-bmw/
 .venv/
-cenzo/
-konon/
-mikser/
 mobidziennik/
 __pycache__/
 db.sqlite3

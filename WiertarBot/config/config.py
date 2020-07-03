@@ -9,6 +9,7 @@ db_schema_path = path.join(rootdir, 'WiertarBot/config/db_schema.sql')
 
 upload_save_path = path.join(rootdir, 'WiertarBot/upload')
 attachment_save_path = path.join(rootdir, 'saved')
+cmd_media_path = path.join(rootdir, 'WiertarBot/commands/media')
 
 cookie_path = path.join(rootdir, 'cookies.json')
 
@@ -20,3 +21,8 @@ email = ''
 password = ''
 
 prefix = '!'
+
+# thecatapi.com
+thecatapi_headers = {
+    'x-api-key': ''
+}
