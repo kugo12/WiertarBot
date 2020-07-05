@@ -1,8 +1,7 @@
 import fbchat
-import asyncio
 import inspect
 import importlib
-from traceback import print_exc
+from asyncio import get_event_loop, gather
 from typing import Iterable
 
 from . import bot, perm, config
@@ -28,12 +27,9 @@ class EventDispatcher():
     async def send_signal(event):
         name = type(event).__name__
         if name in EventDispatcher._slots:
-            # for func in EventDispatcher._slots[name]:
-            #     await func(event)
-            try:
-                await asyncio.gather(*[i(event) for i in EventDispatcher._slots[name]])
-            except Exception:
-                print_exc()
+            loop = get_event_loop()
+            for func in EventDispatcher._slots[name]:
+                loop.create_task(func(event))
 
 
 class Response():
@@ -86,16 +82,18 @@ class MessageEventDispatcher():
                 MessageEventDispatcher._commands[_name] = func
                 MessageEventDispatcher._alias_of[_name] = _name
 
-                func.__doc__ = inspect.cleandoc(func.__doc__)
-                format_docstr = {
-                    'prefix': config.prefix,
-                    'name': _name,
-                    'command': config.prefix+_name
-                }
-                func.__doc__ = func.__doc__.format(**format_docstr)
+                if func.__doc__:
+                    func.__doc__ = inspect.cleandoc(func.__doc__)
+                    format_docstr = {
+                        'prefix': config.prefix,
+                        'name': _name,
+                        'command': config.prefix+_name
+                    }
+                    func.__doc__ = func.__doc__.format(**format_docstr)
 
                 if aliases:
-                    func.__doc__ += '\nAliasy: ' + ', '.join(aliases)
+                    if func.__doc__:
+                        func.__doc__ += '\nAliasy: ' + ', '.join(aliases)
 
                     for alias in aliases:
                         MessageEventDispatcher._alias_of[alias] = _name
@@ -126,7 +124,7 @@ class MessageEventDispatcher():
                                     await response.send()
 
                     # run all special functions asynchronously
-                    await asyncio.gather(*[i(event) for i in MessageEventDispatcher._special])
+                    await gather(*[i(event) for i in MessageEventDispatcher._special])
 
     def cleanup():
         MessageEventDispatcher._special = []

@@ -1,8 +1,8 @@
-from requests import post
 from json import loads
 from datetime import datetime
 from sys import argv
 import cloudscraper
+
 
 class AliPaczka():
     def __init__(self, number):
@@ -10,9 +10,10 @@ class AliPaczka():
         self.tracking = self.get_tracking()
 
     def get_tracking(self):
-        p = cloudscraper.create_scraper().post("https://api.alipaczka.pl/track/"+self.number+"/", data={"uid": "2222", "ver":"22"}).text
-        print(p)
-        p = loads(p)
+        p = cloudscraper.create_scraper().post("https://api.alipaczka.pl/track/"+self.number+"/",
+                                               data={"uid": "2222", "ver": "22"})
+
+        p = loads(p.text)
         if 'error' in p:
             return p
         for i in p['DataEntry']:
@@ -29,6 +30,7 @@ class AliPaczka():
         for i in self.tracking['DataEntry']:
             out += "\n"+i['time'].strftime("%d/%m/%Y %H:%M")+": "+i['status']
         return out
+
 
 if __name__ == "__main__":
     print(AliPaczka(argv[1]))

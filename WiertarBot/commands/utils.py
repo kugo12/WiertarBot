@@ -199,7 +199,7 @@ async def uptime(event: fbchat.MessageEvent) -> Response:
     with open('/proc/uptime', 'r') as f:
         up = int(float(f.readline().split()[0]))
 
-    d = up//86500
+    d = up//86400
     h = up//3600 % 24
     m = up//60 % 60
 

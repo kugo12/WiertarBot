@@ -98,13 +98,14 @@ class WiertarBot():
         cur.execute(('SELECT mid, thread_id, author_id, time, message '
                      'FROM messages WHERE mid = ?'), [mid])
         message = cur.fetchone()
-        message += (deleted_at,)  # add deleted_at to message tuple
+        if message:
+            message += (deleted_at,)  # add deleted_at to message tuple
 
-        cur.execute(('INSERT INTO deleted_messages '
-                     '(mid, thread_id, author_id, time, message, deleted_at) '
-                     'VALUES (?, ?, ?, ?, ?, ?)'), message)
-        cur.execute('DELETE FROM messages WHERE mid = ?', [mid])
-        conn.commit()
+            cur.execute(('INSERT INTO deleted_messages '
+                        '(mid, thread_id, author_id, time, message, deleted_at) '
+                        'VALUES (?, ?, ?, ?, ?, ?)'), message)
+            cur.execute('DELETE FROM messages WHERE mid = ?', [mid])
+            conn.commit()
 
     @EventDispatcher.slot(fbchat.MessageEvent)
     async def save_message(event: fbchat.MessageEvent):
