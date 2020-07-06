@@ -6,10 +6,11 @@ import aiohttp
 import aiofiles
 import asyncio
 from datetime import datetime
-from os import path
-from asyncio import AbstractEventLoop
+from os import path, remove
+from asyncio import AbstractEventLoop, sleep
 from typing import Iterable
 from io import BytesIO
+from time import time
 
 from . import config, perm
 from .db import db
@@ -34,6 +35,7 @@ class WiertarBot():
         WiertarBot.client = fbchat.Client(session=WiertarBot.session)
         self.listener = fbchat.Listener(session=WiertarBot.session, chat_on=True, foreground=True)
 
+        self.loop.create_task(self.message_garbage_collector())
         atexit.register(self._save_cookies)
 
     def _save_cookies(self):
@@ -178,3 +180,38 @@ class WiertarBot():
             return None
 
         return uploaded
+
+    async def message_garbage_collector(self):
+        conn = db.get()
+        cur = conn.cursor()
+
+        while True:
+            t = int(time()) - 20*60
+            cur.execute("SELECT mid, message FROM messages WHERE time < ? ORDER BY time ASC", [t])
+            messages = cur.fetchall()
+            for message in messages:
+                mid, msg = message
+                msg = json.loads(msg)
+
+                for att in msg['attachments']:
+                    if att['type'] == 'ImageAttachment':
+                        p = path.join(config.attachment_save_path,
+                                      f'{ att["id"] }.{ att["original_extension"] }')
+                    elif att['type'] == 'AudioAttachment':
+                        p = path.join(config.attachment_save_path,
+                                      att['filename'])
+                    elif att['type'] == 'VideoAttachment':
+                        p = path.join(config.attachment_save_path,
+                                      f'{ att["id"] }.mp4')
+                    else:
+                        continue
+
+                    if path.exists(p):
+                        remove(p)
+
+                cur.execute("DELETE FROM messages WHERE mid = ?", [mid])
+
+            conn.commit()
+            del messages
+
+            await sleep(20*60)
