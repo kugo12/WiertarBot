@@ -6,9 +6,10 @@ import aiohttp
 import aiofiles
 import asyncio
 from datetime import datetime
-from os import path, remove
+from os import path
 from asyncio import AbstractEventLoop
 from typing import Iterable
+from io import BytesIO
 
 from . import config, perm
 from .db import db
@@ -102,8 +103,8 @@ class WiertarBot():
             message += (deleted_at,)  # add deleted_at to message tuple
 
             cur.execute(('INSERT INTO deleted_messages '
-                        '(mid, thread_id, author_id, time, message, deleted_at) '
-                        'VALUES (?, ?, ?, ?, ?, ?)'), message)
+                         '(mid, thread_id, author_id, time, message, deleted_at) '
+                         'VALUES (?, ?, ?, ?, ?, ?)'), message)
             cur.execute('DELETE FROM messages WHERE mid = ?', [mid])
             conn.commit()
 
@@ -146,41 +147,34 @@ class WiertarBot():
 
     async def upload(files: Iterable[str], voice_clip=False):
         final_files = []
-        cleanup = []
         for fn in files:
-            mime, _ = mimetypes.guess_type(fn)
+            if fn.startswith(('http://', 'https://')):
+                true_fn = path.basename(fn.split('?', 1)[0])  # without get params
+                mime, _ = mimetypes.guess_type(true_fn)
+            else:
+                mime, _ = mimetypes.guess_type(fn)
+
             if mime:
                 if path.exists(fn):
                     f = open(fn, 'rb')
-                    fn = path.basename(fn)
+                    true_fn = path.basename(fn)
 
                     if mime == 'video/mp4' and voice_clip:
                         mime = 'audio/mp4'
 
-                    final_files.append((fn, f, mime))
+                    final_files.append((true_fn, f, mime))
+
                 elif fn.startswith(('http://', 'https://')):
-                    url = fn
-                    fn = path.basename(fn)
-                    download_path = path.join(config.upload_save_path, fn)
 
                     async with aiohttp.ClientSession() as session:
-                        async with session.get(url) as r:
+                        async with session.get(fn) as r:
                             if r.status == 200:
-                                f = await aiofiles.open(download_path, mode='wb')
-                                await f.write(await r.read())
-                                await f.close()
-
-                                f = open(download_path, 'rb')
-                                final_files.append((fn, f, mime))
-                                cleanup.append(download_path)
+                                f = BytesIO(await r.read())
+                                final_files.append((true_fn, f, mime))
 
         if final_files:
             uploaded = await WiertarBot.client.upload(final_files, voice_clip)
         else:
             return None
-
-        for f in cleanup:
-            if path.exists(f):
-                remove(f)
 
         return uploaded

@@ -4,6 +4,7 @@ import os
 import requests
 import baseconvert
 import time
+import json
 from bs4 import BeautifulSoup
 from datetime import datetime
 from PIL import Image, ImageDraw, ImageFont
@@ -12,7 +13,7 @@ from aiogtts import aiogTTS
 
 from ..dispatch import MessageEventDispatcher, Response
 from ..bot import WiertarBot
-from ..config import cmd_media_path
+from ..config import cmd_media_path, wb_site
 from .modules import AliPaczka
 
 
@@ -420,3 +421,173 @@ async def tts(event: fbchat.MessageEvent) -> Response:
         msg = None
 
     return Response(event, text=msg, files=files)
+
+
+@MessageEventDispatcher.register()
+async def mc(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command} <names/skin> <nick>
+    Zwraca:
+        skin lub historie nazw związana z nickiem
+    """
+
+    msg = mc.__doc__
+    files = None
+
+    args = event.message.text.split(' ', 2)
+    if len(args) == 3:
+        arg = args[1].lower()
+
+        uuid = requests.get(f'https://api.mojang.com/users/profiles/minecraft/{ args[2] }').text
+        if uuid:
+            uuid = json.loads(uuid)["id"]
+
+            if arg == 'names':
+                names = requests.get(f'https://api.mojang.com/user/profiles/{ uuid }/names').text
+                names = json.loads(names)
+
+                msg = f'Oryginalny: { names[0]["name"] }\n'
+                for name in names[1:]:
+                    date = datetime.fromtimestamp(name['changedToAt']/1000)
+                    msg += f'{ date }: { name["name"] }\n'
+
+            elif arg == 'skin':
+                files = [
+                    f'https://crafatar.com/skins/{ uuid }.png',
+                    f'https://crafatar.com/renders/body/{ uuid }.png?overlay&scale=6',
+                    f'https://crafatar.com/avatars/{ uuid }.png',
+                    f'https://crafatar.com/renders/head/{ uuid }.png?overlay&scale=6'
+                ]
+                msg = None
+
+        else:
+            msg = 'Podany nick nie istnieje'
+
+    return Response(event, text=msg, files=files)
+
+
+# constant
+__covid_country_codes = ['af', 'al', 'dz', 'ad', 'ao', 'ag', 'ar', 'am', 'au', 'au', 'au', 'au', 'au', 'au', 'au', 'au', 'at', 'az', 'bs', 'bh', 'bd', 'bb', 'by', 'be', 'bj', 'bt', 'bo', 'ba', 'br', 'bn', 'bg', 'bf', 'cv', 'kh', 'cm', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'cf', 'td', 'cl', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'co', 'cg', 'cd', 'cr', 'ci', 'hr', 'xx', 'cu', 'cy', 'cz', 'dk', 'dk', 'dk', 'dj', 'do', 'ec', 'eg', 'sv', 'gq', 'er', 'ee', 'sz', 'et', 'fj', 'fi', 'fr', 'fr', 'fr', 'fr', 'fr', 'fr', 'fr', 'fr', 'fr', 'fr', 'ga', 'gm', 'ge', 'de', 'gh', 'gr', 'gt', 'gn', 'gy', 'ht', 'va', 'hn', 'hu', 'is', 'in', 'id', 'ir', 'iq', 'ie', 'il', 'it', 'jm', 'jp', 'jo', 'kz', 'ke', 'kr', 'kw', 'kg', 'lv', 'lb', 'lr', 'li', 'lt', 'lu', 'mg', 'my', 'mv', 'mt', 'mr', 'mu', 'mx', 'md', 'mc', 'mn', 'me', 'ma', 'na', 'np', 'nl', 'nl', 'nl', 'nl', 'nz', 'ni', 'ne', 'ng', 'mk', 'no', 'om', 'pk', 'pa', 'pg', 'py', 'pe', 'ph', 'pl', 'pt', 'qa', 'ro', 'ru', 'rw', 'lc', 'vc', 'sm', 'sa', 'sn', 'rs', 'sc', 'sg', 'sk', 'si', 'so', 'za', 'es', 'lk', 'sd', 'sr', 'se', 'ch', 'tw', 'tz', 'th', 'tg', 'tt', 'tn', 'tr', 'ug', 'ua', 'ae', 'gb', 'gb', 'gb', 'gb', 'gb', 'gb', 'gb', 'uy', 'us', 'uz', 've', 'vn', 'zm', 'zw', 'ca', 'dm', 'gd', 'mz', 'sy', 'tl', 'bz', 'la', 'ly', 'ps', 'gw', 'ml', 'kn', 'ca', 'ca', 'xk', 'mm', 'gb', 'gb', 'gb', 'xx', 'bw', 'bi', 'sl', 'nl', 'mw', 'gb', 'fr', 'ss', 'eh', 'st', 'ye', 'km', 'tj', 'ls']
+
+
+@MessageEventDispatcher.register()
+async def covid(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command} (s/w/kod kraju)
+    Zwraca:
+        informacje o koronawirusie
+    Informacje:
+        s - szczegółowe z Polski
+        w - świat
+        kody krajów - https://en.wikipedia.org/wiki/ISO_3166-2
+    """
+
+    msg = covid.__doc__
+
+    args = event.message.text.split(' ', 1)
+    if len(args) == 1:
+        add = "http://35.205.149.154:5000/api"
+        a = requests.get(add).text
+        a = json.loads(a)
+        n = a['new']
+        ni = f'({ n["infected"] } nowych)' if n['infected'] else ''
+        nd = f'({ n["deaths"] } nowych)' if n['deaths'] else ''
+        # nr = f'({ n["recovered"] } nowych)' if n['recovered'] else ''
+
+        msg = (
+            f'Statystyki COVID19 w Polsce na ten moment:\n'
+            f'{ a["infected"] } chorych { ni }\n'
+            f'{ a["deaths"] } śmierci { nd }\n'
+            # f'{ a['recovered'] } wyleczonych { nr }\n'
+            f'szczegółowe dane Polski !covid s\n'
+            f'dane świata !covid w\n'
+            f'dane innych krajów !covid <kod kraju>'
+        )
+
+    elif len(args) == 2:
+        arg = args[1].lower()
+        if arg == 's':
+            add = "http://35.205.149.154:5000/api/detailed"
+            a = requests.get(add).text
+            a = json.loads(a)
+            msg = ''
+            for i in a:
+                n = a[i]['new']
+                ni = f'({ n["infected"] } nowych)' if n['infected'] else ''
+                nd = f'({ n["deaths"] } nowych)' if n['deaths'] else ''
+                # nr = f'({ n["recovered"] } nowych)' if n['recovered'] else ''
+
+                msg += (
+                    f'{ i }:\n'
+                    f' { a[i]["infected"] } chorych { ni }\n'
+                    f' { a[i]["deaths"] } śmierci { nd }\n'
+                    # f'{ a[i]["recovered"] } wyleczonych { nr }\n'
+                )
+
+        elif arg == 'w':
+            url = 'https://coronavirus-tracker-api.herokuapp.com/v2/latest?timelines=false'
+            data = requests.get(url).text
+            data = json.loads(data)
+
+            latest = data['latest']
+            msg = (
+                f'Informacje dla świata\n'
+                f'{ latest["confirmed"] } zakażeń\n'
+                f'{ latest["deaths"] } zgonów'
+            )
+            recovered = f'\n{ latest["recovered"] } wyleczonych' if latest['recovered'] else ''
+            msg += recovered
+
+        elif arg in __covid_country_codes:
+            url = (f'https://coronavirus-tracker-api.herokuapp.com/v2/'
+                   f'locations?country_code={ arg }&timelines=false')
+            data = requests.get(url).text
+            data = json.loads(data)
+
+            latest = data['latest']
+            msg = (
+                f'Informacje dla { data["locations"][0]["country"] }\n'
+                f'{ latest["confirmed"] } zakażeń\n'
+                f'{ latest["deaths"] } zgonów'
+            )
+            recovered = f'\n{ latest["recovered"] } wyleczonych' if latest['recovered'] else ''
+            msg += recovered
+
+    return Response(event, text=msg)
+
+
+@MessageEventDispatcher.register()
+async def sugestia(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command} (tekst, minimum dwa wyrazy)
+    Zwraca:
+        link do strony z sugestią
+    """
+
+    msg = sugestia.__doc__
+
+    args = event.message.text.split(' ', 3)
+    if len(args) > 2 and ' ' not in args:
+        txt = ' '.join(args[1:])
+        name = await WiertarBot.client.fetch_thread_info(event.author.id).__anext__()
+        name = name.name
+
+        data = {
+            'api': wb_site['api_key'],
+            'text': txt,
+            'name': name
+        }
+
+        response = requests.post(url=wb_site['add_suggestion_url'], data=data)
+
+        if response.status_code == 200:
+            url = json.loads(response.text)['url']
+            msg = f'Sugestia pomyślnie dodana, znajduje się pod adresem:\nhttps://{ url }'
+
+        else:
+            msg = 'Coś poszło nie tak'
+
+    return Response(event, text=msg)
