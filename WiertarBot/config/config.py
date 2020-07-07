@@ -31,3 +31,5 @@ wb_site = {
     'api_key': '',
     'add_suggestion_url': '',
 }
+
+image_edit_timeout = 5*60

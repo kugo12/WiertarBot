@@ -3,6 +3,7 @@ import inspect
 import importlib
 from asyncio import get_event_loop, gather
 from typing import Iterable
+from time import time
 
 from . import bot, perm, config
 
@@ -66,6 +67,7 @@ class MessageEventDispatcher():
     _commands = {}
     _special = []
     _alias_of = {}
+    _image_edit_queue = {}
 
     def register(
             *,
@@ -119,12 +121,35 @@ class MessageEventDispatcher():
                             fw = MessageEventDispatcher._alias_of[fw]
 
                             if perm.check(fw, event.thread.id, event.author.id):
-                                response = await MessageEventDispatcher._commands[fw](event)
-                                if response:
-                                    await response.send()
+                                command = MessageEventDispatcher._commands[fw]
+                                try:
+                                    response = await command(event)
+                                    if response:
+                                        await response.send()
+                                except TypeError:
+                                    img_edit = command()
+                                    response = await img_edit.check(event)
+                                    if response:
+                                        # add to queue
+                                        t_u_id = f'{ event.thread.id }_{ event.author.id }'
+                                        queue = (int(time()), img_edit)
+                                        MessageEventDispatcher._image_edit_queue[t_u_id] = queue
 
                     # run all special functions asynchronously
                     await gather(*[i(event) for i in MessageEventDispatcher._special])
+
+                else:  # if there is no text in message
+                    t_u_id = f'{ event.thread.id }_{ event.author.id }'
+                    if t_u_id in MessageEventDispatcher._image_edit_queue:
+                        t, img_edit = MessageEventDispatcher._image_edit_queue[t_u_id]
+
+                        if t + config.image_edit_timeout > time():
+                            img = await img_edit.get_image_from_attachments(event.message)
+                            if img:  # if found and image
+                                await img_edit.edit_and_send(event, img)
+                                del MessageEventDispatcher._image_edit_queue[t_u_id]
+                        else:  # if timed out
+                            del MessageEventDispatcher._image_edit_queue[t_u_id]
 
     def cleanup():
         MessageEventDispatcher._special = []
