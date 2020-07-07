@@ -20,6 +20,8 @@ class EventDispatcher():
                 EventDispatcher._slots[name] = []
 
             EventDispatcher._slots[name].append(func)
+            if name == 'MessageEvent':
+                EventDispatcher.slot(fbchat.MessageReplyEvent)(func)
 
             return func
         return wrap

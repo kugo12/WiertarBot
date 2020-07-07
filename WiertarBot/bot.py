@@ -117,7 +117,8 @@ class WiertarBot():
         cur.execute(("INSERT INTO messages (mid, thread_id, author_id, time, message) "
                      "VALUES (?, ?, ?, ?, ?)"),
                     [event.message.id, event.thread.id, event.author.id,
-                     int(datetime.timestamp(event.at)), serialize_MessageEvent(event)]
+                     int(datetime.timestamp(event.message.created_at)),
+                     serialize_MessageEvent(event)]
                     )
         conn.commit()
 
