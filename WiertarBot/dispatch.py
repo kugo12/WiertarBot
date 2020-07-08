@@ -147,7 +147,7 @@ class MessageEventDispatcher():
 
                         if t + config.image_edit_timeout > time():
                             img = await img_edit.get_image_from_attachments(event.message)
-                            if img:  # if found and image
+                            if img:  # if found an image
                                 await img_edit.edit_and_send(event, img)
                                 del MessageEventDispatcher._image_edit_queue[t_u_id]
                         else:  # if timed out

@@ -242,3 +242,24 @@ async def mikser(event: fbchat.MessageEvent) -> Response:
     image_path = random_from_media_dir('random/mikser')
 
     return Response(event, files=[image_path])
+
+
+@MessageEventDispatcher.register(aliases=['meme'])
+async def mem(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command}
+    Zwraca:
+        losowy mem
+    Informacje:
+        memy są z subredditów: memes, dankmemes, me_irl
+    """
+
+    # https://github.com/R3l3ntl3ss/Meme_Api
+    r = requests.get('https://meme-api.herokuapp.com/gimme').text
+    data = json.loads(r)
+
+    msg = data['title']
+    files = [data['url']]
+
+    return Response(event, text=msg, files=files)
