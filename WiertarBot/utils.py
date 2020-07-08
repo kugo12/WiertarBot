@@ -3,7 +3,7 @@ import json
 from datetime import datetime
 
 
-def serialize_MessageEvent(event: fbchat.MessageEvent):
+def serialize_MessageEvent(event: fbchat.MessageEvent) -> str:
     out = {
         'thread_id': event.thread.id,
         'message_id': event.message.id,
@@ -28,7 +28,7 @@ def serialize_MessageEvent(event: fbchat.MessageEvent):
     return json.dumps(out)
 
 
-def attachment_to_dict(att: fbchat.Attachment):
+def attachment_to_dict(att: fbchat.Attachment) -> dict:
     att_type = type(att).__name__
     out = {
         'id': att.id,

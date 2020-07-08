@@ -1,9 +1,10 @@
 import json
+from typing import Iterable, Union
 
 from .db import db
 
 
-def _get(name: str):
+def _get(name: str) -> Union[Iterable, bool]:
     cur = db.get().cursor()
     cur.execute("SELECT * FROM permissions WHERE command = ?", [name])
     a = cur.fetchone()
@@ -93,9 +94,9 @@ def check(name: str, thread_id: str, user_id: str) -> bool:
     return False
 
 
-def edit(name: str, uids, bl=False, add=True, tid=False) -> bool:
+def edit(name: str, uids: Iterable[str], bl=False, add=True, tid=False) -> bool:
     cmd = _get(name)
-    if (cmd) or ((not cmd) and add):
+    if cmd or ((not cmd) and add):
         bl = 1 if bl else 0
         if not cmd:
             cmd = [{}, {}]

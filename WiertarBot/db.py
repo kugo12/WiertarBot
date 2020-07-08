@@ -7,18 +7,20 @@ class db():
     _conn: sqlite3.Connection = None
 
     @classmethod
-    def get(self) -> sqlite3.Connection:
-        if self._conn:
-            return self._conn
+    def get(cls) -> sqlite3.Connection:
+        if cls._conn:
+            return cls._conn
         else:
-            return self._connect(self)
+            return cls._connect()
 
-    def _connect(self) -> sqlite3.Connection:
-        self._conn = sqlite3.connect(config.db_path)
-        self._create_tables(self)
+    @classmethod
+    def _connect(cls) -> sqlite3.Connection:
+        cls._conn = sqlite3.connect(config.db_path)
+        cls._create_tables()
 
-        return self._conn
+        return cls._conn
 
-    def _create_tables(self):
+    @classmethod
+    def _create_tables(cls):
         with open(config.db_schema_path, 'r') as schema:
-            self._conn.cursor().executescript(schema.read())
+            cls._conn.cursor().executescript(schema.read())

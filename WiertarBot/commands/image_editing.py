@@ -20,7 +20,7 @@ class wypierdalaj(ImageEditABC):
     """
     template_path = os.path.join(cmd_media_path, 'templates/wypierdalaj.jpg')
 
-    async def edit(self, fp: BinaryIO):
+    async def edit(self, fp: BinaryIO) -> BinaryIO:
         img = Image.open(fp)
         new = Image.new("RGB", img.size)
         wyp = Image.open(self.template_path)
@@ -51,7 +51,7 @@ class _2020(ImageEditABC):
     """
     template_path = os.path.join(cmd_media_path, 'templates/2020.jpg')
 
-    async def edit(self, fp: BinaryIO):
+    async def edit(self, fp: BinaryIO) -> BinaryIO:
         tps = [500, 179]
         img = Image.open(fp)
         ims = [img.width, img.height]
@@ -93,7 +93,7 @@ class deepfry(ImageEditABC):
     template_flare1 = os.path.join(cmd_media_path, 'templates/flara.png')
     template_flare2 = os.path.join(cmd_media_path, 'templates/flara2.png')
 
-    async def edit(self, fp: BinaryIO):
+    async def edit(self, fp: BinaryIO) -> BinaryIO:
         img = Image.open(fp).convert("RGB")
         fl = Image.open(self.template_flare1).convert("RGBA")
         fl2 = Image.open(self.template_flare2).convert("RGBA")
@@ -157,7 +157,7 @@ class nobody(ImageEditABC):
     """
     arial_path = os.path.join(cmd_media_path, 'arial.ttf')
 
-    async def edit(self, fp: BinaryIO):
+    async def edit(self, fp: BinaryIO) -> BinaryIO:
         del self.args[0]
         if self.args:
             text = ' '.join(self.args)

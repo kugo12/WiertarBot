@@ -2,7 +2,7 @@ import fbchat
 import aiohttp
 from abc import ABC, abstractmethod
 from io import BytesIO
-from typing import BinaryIO
+from typing import BinaryIO, Optional
 
 from .. import bot
 
@@ -19,7 +19,7 @@ class ImageEditABC(ABC):
     async def edit(self, fp: BinaryIO) -> BinaryIO:
         pass
 
-    async def get_profile_picture(self, uid: str) -> BinaryIO:
+    async def get_profile_picture(self, uid: str) -> Optional[BinaryIO]:
         url = f'https://graph.facebook.com/v3.1/{ uid }/picture?height=500'
         f = None
 
@@ -30,7 +30,7 @@ class ImageEditABC(ABC):
 
         return f
 
-    async def get_image_from_attachments(self, msg: fbchat.MessageData) -> BinaryIO:
+    async def get_image_from_attachments(self, msg: fbchat.MessageData) -> Optional[BinaryIO]:
         f = None
 
         if msg.attachments:
@@ -50,7 +50,7 @@ class ImageEditABC(ABC):
         f = await bot.WiertarBot.client.upload([(self.fn, f, self.mime)])
         await event.thread.send_files(f)
 
-    async def check(self, event: fbchat.MessageEvent):
+    async def check(self, event: fbchat.MessageEvent) -> bool:
         msg = event.message
         self.args = msg.text.split(' ')
 

@@ -8,7 +8,7 @@ import asyncio
 from datetime import datetime
 from os import path, remove
 from asyncio import AbstractEventLoop, sleep
-from typing import Iterable
+from typing import Iterable, Optional, Sequence, Tuple
 from io import BytesIO
 from time import time
 
@@ -43,14 +43,14 @@ class WiertarBot():
         with open(config.cookie_path, 'w') as f:
             json.dump(WiertarBot.session.get_cookies(), f)
 
-    def _load_cookies(self):
+    def _load_cookies(self) -> Optional[dict]:
         try:
             with open(config.cookie_path) as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             return None
 
-    async def _login(self):
+    async def _login(self) -> fbchat.Session:
         cookies = self._load_cookies()
         if cookies:
             try:
@@ -144,11 +144,13 @@ class WiertarBot():
 
             async with WiertarBot.session._session.get(url) as r:
                 if r.status == 200:
-                    f = await aiofiles.open(p, mode='wb')
-                    await f.write(await r.read())
-                    await f.close()
+                    async with aiofiles.open(p, mode='wb') as f:
+                        await f.write(await r.read())
 
-    async def upload(files: Iterable[str], voice_clip=False):
+    async def upload(
+                files: Iterable[str], voice_clip=False
+            ) -> Optional[Sequence[Tuple[str, str]]]:
+
         final_files = []
         for fn in files:
             if fn.startswith(('http://', 'https://')):

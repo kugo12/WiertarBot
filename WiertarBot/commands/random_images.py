@@ -182,7 +182,7 @@ async def shiba(event: fbchat.MessageEvent) -> Response:
     return Response(event, files=image_urls)
 
 
-def random_from_media_dir(directory):
+def random_from_media_dir(directory: str) -> str:
     path = os.path.join(config.cmd_media_path, directory)
     filename = random.choice(os.listdir(path))
     return os.path.join(path, filename)
