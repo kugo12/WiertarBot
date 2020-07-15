@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS "notes" (
 	"end"	TEXT,
 	"note"	TEXT
 );
-CREATE TABLE IF NOT EXISTS "deletedNotes" (
+CREATE TABLE IF NOT EXISTS "deleted_notes" (
 	"id"	TEXT,
 	"mid"	TEXT,
 	"uid"	TEXT,
@@ -22,15 +22,15 @@ CREATE TABLE IF NOT EXISTS "messages" (
 	"thread_id"	TEXT,
 	"author_id"	TEXT,
 	"time"	TEXT,
-	"message_object"	BLOB
+	"message"	TEXT
 );
-CREATE TABLE IF NOT EXISTS "deletedMessages" (
+CREATE TABLE IF NOT EXISTS "deleted_messages" (
 	"mid"	TEXT,
 	"thread_id"	TEXT,
 	"author_id"	TEXT,
 	"time"	TEXT,
-	"del_time"	TEXT,
-	"message_object"	BLOB
+	"deleted_at"	TEXT,
+	"message"	TEXT
 );
 CREATE TABLE IF NOT EXISTS "permissions" (
 	"command"	TEXT,

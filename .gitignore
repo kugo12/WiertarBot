@@ -1,15 +1,13 @@
-bmw/
 .venv/
-cenzo/
-konon/
-mikser/
 mobidziennik/
 __pycache__/
-bot.db
-bot.db-journal
+db.sqlite3
+db.sqlite3-journal
 local_config.py
 .vscode/
+cookies.json
 
-saved/*
-!templates/
-!kupony/
+upload/
+saved/
+
+arial.ttf

@@ -1,22 +1,29 @@
-import requests, pickle, time, os, json
+import requests
+import pickle
+import time
+import os
+import json
 from bs4 import BeautifulSoup
+
 
 class IncorrectSubdomain(Exception):
     def __init__(self, subdomain):
         self.subdomain = subdomain
+
     def __str__(self):
         return "Subdomain doesn't exist (" + self.subdomain + ")"
 
+
 class MobiDziennik():
     def __init__(self, subdomain, login, password, session_file="mobidziennik/session"):
-        if os.path.isdir("mobidziennik/") == False:
+        if not os.path.isdir("mobidziennik/"):
             os.mkdir("mobidziennik")
         self.address = "https://"+subdomain+".mobidziennik.pl/dziennik"
         self.login = login
         self.password = password
         self.session_file = session_file
         self.fl = open(session_file, "wb+")
-        
+
         response = requests.head(self.address, allow_redirects=True).url
         if "zlyadres.php" in response:
             raise IncorrectSubdomain(subdomain)
@@ -28,17 +35,17 @@ class MobiDziennik():
                     return None
                 except:
                     pass
-            
+
             self.s = requests.Session()
-            self.s.post(self.address, data={'login': self.login, 'haslo': self.password}, allow_redirects=True)
+            self.s.post(self.address, data={'login': self.login, 'haslo': self.password},
+                        allow_redirects=True)
             pickle.dump(self.s, self.fl)
-                
 
     def checkSession(self):
         response = self.s.get(self.address+"/bazaplikow", allow_redirects=True)
         if response.url != self.address+"/bazaplikow" or "id=\"login\" name=\"login\" type=\"text\"" in response.text:
             self.newSession()
-            
+
     def newSession(self):
         self.s = requests.Session()
         self.s.post(self.address, data={'login': self.login, 'haslo': self.password}, allow_redirects=True)
@@ -81,7 +88,7 @@ class MobiDziennik():
             b.append(a[1].a.span.get_text())
             b.append(a[2].a.span.get_text())
             b.append(a[3].get_text())
-            #a[4] - kto wpisal i kiedy
+            # a[4] - kto wpisal i kiedy
             homeworks.append(b)
 
         return homeworks
@@ -91,7 +98,7 @@ class MobiDziennik():
         response = self.s.get(self.address+"/sprawdziany").text
         parsed = BeautifulSoup(response, "html.parser")
         parsed = parsed.body.find("table", "spis").find_all("tr")[2:]
-        
+
         tests = []
         for test in parsed:
             p = test.find_all("td")
@@ -109,13 +116,13 @@ class MobiDziennik():
         self.checkSession()
         response = self.s.get(self.address+"/kalendarzklasowy")
         parsed = BeautifulSoup(response.text, "html.parser")
-        script = parsed.find_all("script", attrs={"src":""})[1].text
+        script = parsed.find_all("script", attrs={"src": ""})[1].text
         script = script[script.find("events: [")+8:script.rfind("}],")+2]
-        
+
         events = json.loads(script)
         if date == "all":
             return events
-            
+
         date = time.mktime(time.strptime(time.strftime("%Y-%m-%d", time.gmtime(date)), "%Y-%m-%d"))
         ev = []
         for event in events:
@@ -161,23 +168,23 @@ class MobiDziennik():
     #     dut = []
     #     for a in duty:
     #         dut.append({"who":a["title"].replace("Dyżurny - ", ""), "start":a["start"], "end":a["end"]})
-        
+
     #     return dut
 
     def getClass(self):
         self.checkSession()
-        response = self.s.post(self.address+"/odbiorcyWiadomosci", data={"typ":"4", "odpowiedz":0})
+        response = self.s.post(self.address+"/odbiorcyWiadomosci", data={"typ": "4", "odpowiedz": 0})
         parsed = BeautifulSoup(response.text, "html.parser")
-        parsed = parsed.find_all("label") #Osoby z klasy
+        parsed = parsed.find_all("label")  # Osoby z klasy
 
         cl = {}
-        n = 1 #Numer w dzienniku
+        n = 1  # Numer w dzienniku
         for person in parsed:
-            name = person.span.text #Imie i nazwisko 
-            ID = person.input["value"] #ID z mobidziennika
-            cl[n] = {"ID":ID, "name":name}
+            name = person.span.text  # Imie i nazwisko
+            ID = person.input["value"]  # ID z mobidziennika
+            cl[n] = {"ID": ID, "name": name}
             n += 1
-            
+
         return cl
 
     def getScheduleTime(self):
@@ -185,14 +192,14 @@ class MobiDziennik():
         response = self.s.get(self.address+"/planlekcji")
         parsed = BeautifulSoup(response.text, "html.parser").find("div", {"class": "plansc_godz"}).find_all("span")
 
+        b = None
         lesson_time = {}
         for t in parsed:
-            if t.b == None:
+            if not t.b:
                 lesson_time[b]["end"] = t.text[:5]
             else:
                 b = t.b.text
-                lesson_time.update({b:{"start":None, "end": None}})
+                lesson_time.update({b: {"start": None, "end": None}})
                 lesson_time[b]["start"] = t.text[:5]
 
         return lesson_time
-
