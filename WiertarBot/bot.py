@@ -33,7 +33,6 @@ class WiertarBot():
     async def _init(self):
         WiertarBot.session = await self._login()
         WiertarBot.client = fbchat.Client(session=WiertarBot.session)
-        self.listener = fbchat.Listener(session=WiertarBot.session, chat_on=True, foreground=True)
 
         self.loop.create_task(self.message_garbage_collector())
         atexit.register(self._save_cookies)
@@ -62,8 +61,17 @@ class WiertarBot():
                                           on_2fa_callback=lambda: input('2fa_code: '))
 
     async def run(self):
-        async for event in self.listener.listen():
-            await EventDispatcher.send_signal(event)
+        try:
+            self.listener = fbchat.Listener(session=WiertarBot.session,
+                                            chat_on=True, foreground=True)
+            async for event in self.listener.listen():
+                await EventDispatcher.send_signal(event)
+
+        except fbchat.NotConnected as e:
+            print(e)
+            if e.message == 'MQTT error: no connection':
+                self.listener.disconnect()
+                asyncio.get_event_loop().create_task(self.run())
 
     @EventDispatcher.slot(fbchat.Connect)
     async def on_connect(event: fbchat.Connect):
