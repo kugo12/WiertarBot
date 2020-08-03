@@ -11,6 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from aiogtts import aiogTTS
 from typing import Union
+from aiogoogletrans import Translator
 
 from ..dispatch import MessageEventDispatcher, Response
 from ..bot import WiertarBot
@@ -590,5 +591,31 @@ async def sugestia(event: fbchat.MessageEvent) -> Response:
 
         else:
             msg = 'Coś poszło nie tak'
+
+    return Response(event, text=msg)
+
+
+translator = Translator()
+
+
+@MessageEventDispatcher.register(aliases=['tłumacz'])
+async def tlumacz(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command} <docelowy język> <tekst>
+    Zwraca:
+        przetłumaczony tekst
+    Informacje:
+    """
+
+    msg = tlumacz.__doc__
+
+    args = event.message.text.split(' ', 2)
+    if len(args) == 3:
+        try:
+            t = await translator.translate(args[2], dest=args[1])
+            msg = t.text
+        except ValueError:
+            msg = 'Zły docelowy język'
 
     return Response(event, text=msg)
