@@ -12,7 +12,7 @@ from typing import Iterable, Optional, Sequence, Tuple
 from io import BytesIO
 from time import time
 
-from . import config, perm
+from . import config, perm, unlock
 from .db import db
 from .dispatch import EventDispatcher
 from .utils import serialize_MessageEvent
@@ -31,8 +31,17 @@ class WiertarBot():
         loop.run_until_complete(self._init())
 
     async def _init(self):
-        WiertarBot.session = await self._login()
+        try:
+            WiertarBot.session = await self._login()
+        except fbchat.NotLoggedIn as e:
+            print(e)
+            if 'account is locked' in e.message:
+                config.password = unlock.FacebookUnlock()
+
+            WiertarBot.session = await self._login()
+
         WiertarBot.client = fbchat.Client(session=WiertarBot.session)
+        self.loop.create_task(self.run())
 
         self.loop.create_task(self.message_garbage_collector())
         atexit.register(self._save_cookies)
@@ -70,8 +79,22 @@ class WiertarBot():
         except fbchat.NotConnected as e:
             print(e)
             if e.message == 'MQTT error: no connection':
+                print('Reconnecting mqtt...')
                 self.listener.disconnect()
                 asyncio.get_event_loop().create_task(self.run())
+                return
+
+        except fbchat.NotLoggedIn as e:
+            print(e)
+            if 'account is locked' in e.message:
+                config.password = unlock.FacebookUnlock()
+                WiertarBot.session = await self._login()
+                WiertarBot.client = fbchat.Client(session=WiertarBot.session)
+                asyncio.get_event_loop().create_task(self.run())
+                return
+
+        self.loop.stop()
+        self.loop.close()
 
     @EventDispatcher.slot(fbchat.Connect)
     async def on_connect(event: fbchat.Connect):

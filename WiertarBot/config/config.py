@@ -19,6 +19,7 @@ for directory in [upload_save_path, attachment_save_path]:
 
 email = ''
 password = ''
+gmail_password = ''
 
 prefix = '!'
 

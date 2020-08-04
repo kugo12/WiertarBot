@@ -28,3 +28,6 @@ urllib3
 websockets
 yarl
 cloudscraper
+aiogoogletrans
+selenium
+webdriver_manager
