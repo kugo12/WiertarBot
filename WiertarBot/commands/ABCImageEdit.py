@@ -72,10 +72,11 @@ class ImageEditABC(ABC):
             await self.edit_and_send(event, f)
             return False
 
-        if self.args[1].lower() == '@me':
-            f = await self.get_profile_picture(event.author.id)
-            await self.edit_and_send(event, f)
-            return False
+        if len(self.args) == 2:
+            if self.args[1].lower() == '@me':
+                f = await self.get_profile_picture(event.author.id)
+                await self.edit_and_send(event, f)
+                return False
 
         await event.thread.send_text(text="Wyślij zdjęcie")
         return True
