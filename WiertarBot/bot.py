@@ -78,7 +78,7 @@ class WiertarBot():
 
         except fbchat.NotConnected as e:
             print(e)
-            if e.message == 'MQTT error: no connection':
+            if e.message in ['MQTT error: no connection', 'MQTT reconnection failed']:
                 print('Reconnecting mqtt...')
                 self.listener.disconnect()
                 asyncio.get_event_loop().create_task(self.run())
@@ -94,7 +94,6 @@ class WiertarBot():
                 return
 
         self.loop.stop()
-        self.loop.close()
 
     @EventDispatcher.slot(fbchat.Connect)
     async def on_connect(event: fbchat.Connect):
