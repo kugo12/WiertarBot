@@ -168,8 +168,8 @@ async def shiba(event: fbchat.MessageEvent) -> Response:
 
     try:
         count = int(event.message.text.split(' ', 1)[1])
-        if count > 5:
-            count = 5
+        if count > 10:
+            count = 10
         elif count < 1:
             count = 1
     except (IndexError, ValueError):
