@@ -161,7 +161,7 @@ async def pandka(event: fbchat.MessageEvent) -> Response:
 async def shiba(event: fbchat.MessageEvent) -> Response:
     """
     Użycie:
-        {command} (ilosc<=5)
+        {command} (ilosc<=10)
     Zwraca:
         zdjęcie/a z pieskami rasy shiba
     """

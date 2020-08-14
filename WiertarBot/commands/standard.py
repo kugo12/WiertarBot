@@ -153,7 +153,7 @@ async def barka(event: fbchat.MessageEvent) -> Response:
     return Response(event, text=msg)
 
 
-@MessageEventDispatcher.register()
+@MessageEventDispatcher.register(aliases=['xd'])
 async def Xd(event: fbchat.MessageEvent) -> Response:
     """
     Użycie:

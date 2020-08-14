@@ -118,7 +118,7 @@ class MessageEventDispatcher():
                 if event.message.text:
                     if event.message.text.startswith(config.prefix):
                         # first word without prefix
-                        fw = event.message.text.split(' ', 1)[0][len(config.prefix):]
+                        fw = event.message.text.split(' ', 1)[0][len(config.prefix):].lower()
                         if fw in MessageEventDispatcher._alias_of:
                             fw = MessageEventDispatcher._alias_of[fw]
 
