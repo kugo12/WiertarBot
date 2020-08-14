@@ -4,9 +4,10 @@ from datetime import datetime
 
 
 class AliPaczka():
-    __slots__ = ['tracking']
+    __slots__ = ['tracking', 'number']
 
     def __init__(self, number: str):
+        self.number = number
         self.tracking = self.get_tracking()
 
     def get_tracking(self) -> dict:
