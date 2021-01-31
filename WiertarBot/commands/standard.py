@@ -20,6 +20,24 @@ from .modules import AliPaczka
 
 
 @MessageEventDispatcher.register()
+async def wybierz(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command} <opcje do wyboru po przecinku>
+    Zwraca:
+        losowo wybrana opcje
+    """
+
+    txt = "Brak opcji do wyboru"
+    m = event.message.text.split(" ", 1)
+    if len(m) > 1:
+        m = m[1].split(",")
+        txt = random.choice(m)
+
+    return Response(event, text=txt)
+
+
+@MessageEventDispatcher.register()
 async def moneta(event: fbchat.MessageEvent) -> Response:
     """
     Użycie:
@@ -191,7 +209,8 @@ __czas_localize_datetime = {
     "Sunday": "Niedziela"
 }
 __czas_timers = [
-    ('Koniec wakacji (1 września) za', datetime(2020, 9, 1))
+        ("Koniec roku szkolnego (25 czerwca) za: ", datetime(2021, 6, 25)),
+        ("Wielkanoc (4 kwietnia) za: ", datetime(2021, 4, 4))
 ]
 
 

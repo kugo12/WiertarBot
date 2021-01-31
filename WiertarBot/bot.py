@@ -69,10 +69,18 @@ class WiertarBot():
         return await fbchat.Session.login(config.email, config.password,
                                           on_2fa_callback=lambda: input('2fa_code: '))
 
+    async def _fetch_sequence_id(self):
+        self.client.sequence_id_callback = self.listener.set_sequence_id
+
+        await asyncio.sleep(5)
+        await self.client.fetch_threads(limit=1).__anext__()
+
     async def run(self):
         try:
             self.listener = fbchat.Listener(session=WiertarBot.session,
                                             chat_on=True, foreground=True)
+            self.loop.create_task(self._fetch_sequence_id())
+
             async for event in self.listener.listen():
                 await EventDispatcher.send_signal(event)
 
