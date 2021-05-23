@@ -39,13 +39,13 @@ class wypierdalaj(ImageEditABC):
         return f
 
 
-@MessageEventDispatcher.register(name='2020')
-class _2020(ImageEditABC):
+@MessageEventDispatcher.register(name='2021')
+class _2021(ImageEditABC):
     """
     Użycie:
         {command} (oznaczenie/@me)
     Zwraca:
-        przerobione zdjęcie z templatem 2020
+        przerobione zdjęcie z templatem 2021
     Informacje:
         działa również na zdjęcia z odpowiedzi
     """
