@@ -26,7 +26,7 @@ async def suchar(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register(aliases=['jeż'])
-async def jez(event: fbchat.MessageEvent) -> Response:
+async def jeż(event: fbchat.MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -44,7 +44,7 @@ async def jez(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register(aliases=['żółw'])
-async def zolw(event: fbchat.MessageEvent) -> Response:
+async def żółw(event: fbchat.MessageEvent) -> Response:
     """
     Użycie:
         {command}
