@@ -4,9 +4,11 @@ import random
 import json
 import os
 from bs4 import BeautifulSoup
+from io import BytesIO
 
 from ..dispatch import MessageEventDispatcher, Response
 from .. import config
+from ..bot import WiertarBot
 
 
 @MessageEventDispatcher.register()
@@ -44,7 +46,7 @@ async def jez(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register(aliases=['żółw'])
-async def zolw(event: fbchat.MessageEvent) -> Response:
+async def zolw(event: fbchat.MessageEvent):
     """
     Użycie:
         {command}
@@ -52,13 +54,30 @@ async def zolw(event: fbchat.MessageEvent) -> Response:
         zdjęcie z żółwikiem
     """
 
-    url = f'http://www.cutestpaw.com/tag/tortoises/page/{ random.randint(1, 8) }/'
-    response = requests.get(url)
-    h = BeautifulSoup(response.text, 'html.parser')
-    h = h.find_all('a', {'title': True})
-    image_url = random.choice(h).img['src']
+    random_page = random.randint(1, zolw.pages)
+    data = {
+        "query": "turtle",
+        "per_page": 1,
+        "page": random_page
+    }
 
-    return Response(event, files=[image_url])
+    response = requests.get("https://unsplash.com/napi/search/photos", params=data).text
+    response = json.loads(response)
+    zolw.pages = response["total_pages"]
+
+    image_url = response["results"][0]["urls"]["regular"]
+
+    image = BytesIO(
+        requests.get(image_url).content
+    )
+
+    files_to_upload = [
+        (f"turtle{ random_page }.jpg", image, "image/jpeg")
+    ]
+
+    uploaded_files = await WiertarBot.client.upload(files_to_upload, False)
+    await event.thread.send_files(uploaded_files)
+zolw.pages = 1000
 
 
 @MessageEventDispatcher.register(aliases=['dog', 'pies'])
