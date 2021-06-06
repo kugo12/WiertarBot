@@ -282,3 +282,17 @@ async def mem(event: fbchat.MessageEvent) -> Response:
     files = [data['url']]
 
     return Response(event, text=msg, files=files)
+
+
+@MessageEventDispatcher.register()
+async def hug(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command}
+    Zwraca:
+        losowy obrazek z tuleniem
+    """
+
+    response = requests.get("https://some-random-api.ml/animu/hug").json()
+
+    return Response(event, files=[response["link"]])
