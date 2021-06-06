@@ -227,7 +227,7 @@ class WiertarBot():
         cur = conn.cursor()
 
         while True:
-            t = int(time()) - 20*60
+            t = int(time()) - config.time_to_remove_sent_messages
             cur.execute("SELECT mid, message FROM messages WHERE time < ? ORDER BY time ASC", [t])
             messages = cur.fetchall()
             for message in messages:
@@ -255,4 +255,4 @@ class WiertarBot():
             conn.commit()
             del messages
 
-            await sleep(20*60)
+            await sleep(6*60*60)
