@@ -49,7 +49,7 @@ class _2021(ImageEditABC):
     Informacje:
         działa również na zdjęcia z odpowiedzi
     """
-    template_path = os.path.join(cmd_media_path, 'templates/2020.jpg')
+    template_path = os.path.join(cmd_media_path, 'templates/2021.jpg')
 
     async def edit(self, fp: BinaryIO) -> BinaryIO:
         tps = [500, 179]
