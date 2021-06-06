@@ -585,7 +585,9 @@ async def sugestia(event: fbchat.MessageEvent) -> Response:
     Użycie:
         {command} (tekst, minimum dwa wyrazy)
     Zwraca:
-        link do strony z sugestią
+        link do strony z dodaną sugestią
+    Link do sugestii:
+        https://wiertarbot.pl/sugestie/
     """
 
     msg = sugestia.__doc__
