@@ -6,7 +6,7 @@ import baseconvert
 import time
 import json
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, date
 from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from aiogtts import aiogTTS
@@ -638,5 +638,52 @@ async def tlumacz(event: fbchat.MessageEvent) -> Response:
             msg = t.text
         except ValueError:
             msg = 'Zły docelowy język'
+
+    return Response(event, text=msg)
+
+
+sundays = [
+    date(2021, 1, 31),
+    date(2021, 3, 28),
+    date(2021, 4, 25),
+    date(2021, 6, 27),
+    date(2021, 8, 29),
+    date(2021, 12, 12),
+    date(2021, 12, 19)
+]
+    
+
+@MessageEventDispatcher.register()
+async def niedziela(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command} [lista]
+    Zwraca:
+        Najbliższą niedzielę handlową
+
+        {prefix}{command} lista
+        Zwraca listę niedziel handlowych w tym roku
+    """
+
+    now = date.today()
+    msg = niedziela.__doc__
+
+    request = event.message.text.split(" ", 2)
+    if len(request) == 1:
+        nearest_sunday = None
+
+        for s in sundays:
+            if s >= now:
+                nearest_sunday = s
+                break
+
+        if nearest_sunday:
+            msg = "Dzisiejsza niedziela jest handlowa"
+            if now != nearest_sunday:
+                msg = f"Najbliższa handlowa niedziela: { nearest_sunday.isoformat() }"
+
+    elif request[1] == "lista":
+        msg = "Niedziele handlowe:\n- " \
+            + "\n- ".join([i.isoformat() for i in sundays if i >= now])
 
     return Response(event, text=msg)
