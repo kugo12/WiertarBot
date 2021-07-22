@@ -15,6 +15,10 @@ def get_message_ids_from_gmail(M):
     return ids[0]
 
 
+def click_by_aria_label(driver, label):
+    driver.find_element_by_xpath(f"//div[@aria-label='{ label }']").click()
+
+
 def FacebookUnlock():
     print('Unlocking account...')
     M = imaplib.IMAP4_SSL('imap.gmail.com', 993)
@@ -28,7 +32,7 @@ def FacebookUnlock():
     driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=options)
     driver.implicitly_wait(10)
     driver.get('https://www.facebook.com/')
-    time.sleep(2)
+    time.sleep(5)
 
     username_box = driver.find_element_by_id('email')
     username_box.send_keys(email)
@@ -39,50 +43,46 @@ def FacebookUnlock():
     password_box.submit()
     time.sleep(5)
 
-    checkpointSubmit = lambda: driver.find_element_by_id('checkpointSubmitButton').click()
+    click_by_aria_label(driver, "Rozpocznij")
+    time.sleep(5)
+    click_by_aria_label(driver, "Dalej")
+    time.sleep(5)
+    
+    driver.find_element_by_xpath("//span[text()='Uzyskaj kod w e-mailu']").click()
+    time.sleep(5)
+    click_by_aria_label(driver, "Uzyskaj kod")
 
-    checkpointSubmit()
-    time.sleep(3)
-    try:
-        radio = driver.find_element_by_class_name('uiInputLabelLabel')
-        radio.click()
-        time.sleep(3)
-        checkpointSubmit()
-        time.sleep(3)
-        checkpointSubmit()
-        time.sleep(3)
+    ids1 = ids
+    tries = 0
+    while ids1 == ids and tries < 100:
+        M.select('INBOX')
+        ids1 = get_message_ids_from_gmail(M)
+        time.sleep(5)
+        tries += 1
 
-        ids1 = ids
-        tries = 0
-        while ids1 == ids and tries < 100:
-            M.select('INBOX')
-            ids1 = get_message_ids_from_gmail(M)
-            time.sleep(3)
-            tries += 1
+    id = ids1.split()[-1]
+    key = M.fetch(id, '(BODY[TEXT])')[1][0][1].split(b'to ', 1)[1].split(b'.', 1)[0].decode()
 
-        id = ids1.split()[-1]
-        key = M.fetch(id, '(BODY[TEXT])')[1][0][1].split(b'to ', 1)[1].split(b'.', 1)[0].decode()
-
-        driver.find_element_by_name('captcha_response').send_keys(key)
-        time.sleep(3)
-        checkpointSubmit()
-        time.sleep(3)
-        checkpointSubmit()
-        time.sleep(3)
-    except:
-        print('nie')
+    driver.find_element_by_xpath("//label[@aria-label='Wprowadź kod']//input[@type='text']").send_keys(key)
+    time.sleep(5)
+    click_by_aria_label(driver, "Potwierdź")
+    time.sleep(5)
+    click_by_aria_label(driver, "Dalej")
+    time.sleep(5)
+    click_by_aria_label(driver, "Dalej")
+    time.sleep(5)
 
     psw = hashlib.sha256(password.encode()).hexdigest()[20:-24]
-    driver.find_element_by_name('password_new').send_keys(psw)
-    driver.find_element_by_name('password_confirm').send_keys(psw)
-    time.sleep(3)
-    checkpointSubmit()
+    
+    driver.find_element_by_xpath("//label[@aria-label='Podaj nowe hasło']//input[@type='password']").send_keys(psw)
+    time.sleep(5)
+    click_by_aria_label(driver, "Zapisz zmiany")
     time.sleep(8)
     try:
-        checkpointSubmit()
+        click_by_aria_label(driver, "Dalej")
+        time.sleep(10)
     except:
-        print('nie ma')
-    time.sleep(10)
+        pass
     driver.quit()
 
     config_path = os.path.join(os.path.dirname(__file__), 'config/local_config.py')
@@ -96,6 +96,6 @@ def FacebookUnlock():
     if os.path.exists(cookie_path):
         os.remove(cookie_path)
 
-    print('Account unlocked...')
+    print('Account unlocked')
     time.sleep(20)
     return psw
