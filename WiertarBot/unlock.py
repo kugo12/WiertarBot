@@ -28,6 +28,9 @@ def FacebookUnlock():
 
     options = webdriver.ChromeOptions()
     options.add_argument('--disable-gpu')
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--no-sandbox")
+    options.headless = True
 
     driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(), options=options)
     driver.implicitly_wait(10)

@@ -33,9 +33,11 @@ class WiertarBot():
     async def _init(self):
         try:
             WiertarBot.session = await self._login()
-        except fbchat.NotLoggedIn as e:
+        except (fbchat.ParseError, fbchat.NotLoggedIn) as e:
             print(e)
-            if 'account is locked' in e.message:
+            open(config.cookie_path, 'w').close()  # clear session file
+
+            if 'account is locked' in e.message or 'Failed loading session' in e.message:
                 config.password = unlock.FacebookUnlock()
 
             WiertarBot.session = await self._login()
@@ -92,7 +94,7 @@ class WiertarBot():
                 asyncio.get_event_loop().create_task(self.run())
                 return
 
-        except fbchat.NotLoggedIn as e:
+        except (fbchat.NotLoggedIn, ValueError) as e:
             print(e)
             if 'account is locked' in e.message:
                 config.password = unlock.FacebookUnlock()
