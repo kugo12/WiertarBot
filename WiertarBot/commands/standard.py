@@ -209,8 +209,7 @@ __czas_localize_datetime = {
     "Sunday": "Niedziela"
 }
 __czas_timers = [
-        ("Koniec roku szkolnego (25 czerwca) za: ", datetime(2021, 6, 25)),
-        ("Wielkanoc (4 kwietnia) za: ", datetime(2021, 4, 4))
+        ("Koniec wakacji (1 wrzesnia) za: ", datetime(2021, 9, 1))
 ]
 
 
@@ -488,93 +487,39 @@ async def mc(event: fbchat.MessageEvent) -> Response:
     return Response(event, text=msg, files=files)
 
 
-# constant
-__covid_country_codes = ['af', 'al', 'dz', 'ad', 'ao', 'ag', 'ar', 'am', 'au', 'au', 'au', 'au', 'au', 'au', 'au', 'au', 'at', 'az', 'bs', 'bh', 'bd', 'bb', 'by', 'be', 'bj', 'bt', 'bo', 'ba', 'br', 'bn', 'bg', 'bf', 'cv', 'kh', 'cm', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'ca', 'cf', 'td', 'cl', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'cn', 'co', 'cg', 'cd', 'cr', 'ci', 'hr', 'xx', 'cu', 'cy', 'cz', 'dk', 'dk', 'dk', 'dj', 'do', 'ec', 'eg', 'sv', 'gq', 'er', 'ee', 'sz', 'et', 'fj', 'fi', 'fr', 'fr', 'fr', 'fr', 'fr', 'fr', 'fr', 'fr', 'fr', 'fr', 'ga', 'gm', 'ge', 'de', 'gh', 'gr', 'gt', 'gn', 'gy', 'ht', 'va', 'hn', 'hu', 'is', 'in', 'id', 'ir', 'iq', 'ie', 'il', 'it', 'jm', 'jp', 'jo', 'kz', 'ke', 'kr', 'kw', 'kg', 'lv', 'lb', 'lr', 'li', 'lt', 'lu', 'mg', 'my', 'mv', 'mt', 'mr', 'mu', 'mx', 'md', 'mc', 'mn', 'me', 'ma', 'na', 'np', 'nl', 'nl', 'nl', 'nl', 'nz', 'ni', 'ne', 'ng', 'mk', 'no', 'om', 'pk', 'pa', 'pg', 'py', 'pe', 'ph', 'pl', 'pt', 'qa', 'ro', 'ru', 'rw', 'lc', 'vc', 'sm', 'sa', 'sn', 'rs', 'sc', 'sg', 'sk', 'si', 'so', 'za', 'es', 'lk', 'sd', 'sr', 'se', 'ch', 'tw', 'tz', 'th', 'tg', 'tt', 'tn', 'tr', 'ug', 'ua', 'ae', 'gb', 'gb', 'gb', 'gb', 'gb', 'gb', 'gb', 'uy', 'us', 'uz', 've', 'vn', 'zm', 'zw', 'ca', 'dm', 'gd', 'mz', 'sy', 'tl', 'bz', 'la', 'ly', 'ps', 'gw', 'ml', 'kn', 'ca', 'ca', 'xk', 'mm', 'gb', 'gb', 'gb', 'xx', 'bw', 'bi', 'sl', 'nl', 'mw', 'gb', 'fr', 'ss', 'eh', 'st', 'ye', 'km', 'tj', 'ls']
-
-
 @MessageEventDispatcher.register()
 async def covid(event: fbchat.MessageEvent) -> Response:
     """
     Użycie:
-        {command} (s/w/kod kraju)
+        {command}
     Zwraca:
         informacje o koronawirusie
-    Informacje:
-        s - szczegółowe z Polski
-        w - świat
-        kody krajów - https://en.wikipedia.org/wiki/ISO_3166-2
     """
 
     msg = covid.__doc__
 
     args = event.message.text.split(' ', 1)
     if len(args) == 1:
-        add = "http://35.205.149.154:5000/api"
-        a = requests.get(add).text
-        a = json.loads(a)
-        n = a['new']
-        ni = f'({ n["infected"] } nowych)' if n['infected'] else ''
-        nd = f'({ n["deaths"] } nowych)' if n['deaths'] else ''
-        # nr = f'({ n["recovered"] } nowych)' if n['recovered'] else ''
+        url = "https://services-eu1.arcgis.com/zk7YlClTgerl62BY/arcgis/rest/services/global_corona_actual_widok3/FeatureServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=1&where=1%3D1&outFields=*"
+        response = requests.get(url).json()
+        fields = response["features"][0]["attributes"]
 
         msg = (
-            f'Statystyki COVID19 w Polsce na ten moment:\n'
-            f'{ a["infected"] } chorych { ni }\n'
-            f'{ a["deaths"] } śmierci { nd }\n'
-            # f'{ a['recovered'] } wyleczonych { nr }\n'
-            f'szczegółowe dane Polski !covid s\n'
-            f'dane świata !covid w\n'
-            f'dane innych krajów !covid <kod kraju>'
+            f'Statystyki COVID19 w Polsce na { fields["DATA_SHOW"] }:\n'
+            'Dziennie:\n'
+            f'{ fields["ZAKAZENIA_DZIENNE"] } zakażonych\n'
+            f'{ fields["ZGONY_DZIENNE"] } zgonów\n'
+            f'{ fields["LICZBA_OZDROWIENCOW"] } ozdrowieńców\n'
+            f'{ fields["TESTY"] } testów\n'
+            f'{ fields["TESTY_POZYTYWNE"] } testów pozytywnych\n'
+            f'{ fields["KWARANTANNA"] } osób na kwarantannie aktualnie\n'
+
+            '\nOgółem:\n'
+            f'{ fields["LICZBA_ZAKAZEN"] } zakażonych\n'
+            f'{ fields["WSZYSCY_OZDROWIENCY"] } ozdrowieńców\n'
+            f'{ fields["LICZBA_ZGONOW"] } zgonów'
+            # f'szczegółowe dane Polski !covid s\n'
         )
-
-    elif len(args) == 2:
-        arg = args[1].lower()
-        if arg == 's':
-            add = "http://35.205.149.154:5000/api/detailed"
-            a = requests.get(add).text
-            a = json.loads(a)
-            msg = ''
-            for i in a:
-                n = a[i]['new']
-                ni = f'({ n["infected"] } nowych)' if n['infected'] else ''
-                nd = f'({ n["deaths"] } nowych)' if n['deaths'] else ''
-                # nr = f'({ n["recovered"] } nowych)' if n['recovered'] else ''
-
-                msg += (
-                    f'{ i }:\n'
-                    f' { a[i]["infected"] } chorych { ni }\n'
-                    f' { a[i]["deaths"] } śmierci { nd }\n'
-                    # f'{ a[i]["recovered"] } wyleczonych { nr }\n'
-                )
-
-        elif arg == 'w':
-            url = 'https://coronavirus-tracker-api.herokuapp.com/v2/latest?timelines=false'
-            data = requests.get(url).text
-            data = json.loads(data)
-
-            latest = data['latest']
-            msg = (
-                f'Informacje dla świata\n'
-                f'{ latest["confirmed"] } zakażeń\n'
-                f'{ latest["deaths"] } zgonów'
-            )
-            recovered = f'\n{ latest["recovered"] } wyleczonych' if latest['recovered'] else ''
-            msg += recovered
-
-        elif arg in __covid_country_codes:
-            url = (f'https://coronavirus-tracker-api.herokuapp.com/v2/'
-                   f'locations?country_code={ arg }&timelines=false')
-            data = requests.get(url).text
-            data = json.loads(data)
-
-            latest = data['latest']
-            msg = (
-                f'Informacje dla { data["locations"][0]["country"] }\n'
-                f'{ latest["confirmed"] } zakażeń\n'
-                f'{ latest["deaths"] } zgonów'
-            )
-            recovered = f'\n{ latest["recovered"] } wyleczonych' if latest['recovered'] else ''
-            msg += recovered
 
     return Response(event, text=msg)
 
