@@ -296,3 +296,16 @@ async def hug(event: fbchat.MessageEvent) -> Response:
     response = requests.get("https://some-random-api.ml/animu/hug").json()
 
     return Response(event, files=[response["link"]])
+
+@MessageEventDispatcher.register()
+async def jabol(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command}
+    Zwraca:
+        Zdjęcie losowego jabola
+    """
+
+    image_path = random_from_media_dir('random/jabol')
+
+    return Response(event, files=[image_path])
