@@ -248,6 +248,18 @@ async def bmw(event: fbchat.MessageEvent) -> Response:
 
     return Response(event, files=[image_path])
 
+@MessageEventDispatcher.register()
+async def audi(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command}
+    Zwraca:
+        zdjęcie z rozwalonym audi
+    """
+
+    image_path = random_from_media_dir('random/audi')
+
+    return Response(event, files=[image_path])
 
 @MessageEventDispatcher.register()
 async def mikser(event: fbchat.MessageEvent) -> Response:
