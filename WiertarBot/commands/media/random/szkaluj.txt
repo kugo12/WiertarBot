@@ -745,3 +745,35 @@ Na sesjach rpg %on% dopisywał swojej postaci fikcyjne umiejętności
 %on% nie umie zapisywać nitek 
 %on% nie umie zablokować zakodowanego tła 
 %on% sprawdza limity bumpowania sagując"
+%on% gra w angry birdsy na tablecie
+%on% kupuje cienkie papierosy myśląc że są tańsze
+%on% słucha szpaka
+%on% gra w pengle zamiast uważać na lekcji
+%on% zajebał kota sąsiadce
+%on% znalazł kota w domu
+%on% sie najebał, będzie rzygał
+%on% zajebał towar z kurwy swojej
+%on% kupił browara za 2 dychy na kajucie
+%on% wychwala autostrady w stanach
+%on% ma takiego chuja jak z klocków lego
+dla %on% nie sprzedają w spożywczaku
+%on% montuje panele słoneczne ze starym
+%on% wystawia negatywne opinie dla solar technika
+%on% ukradł krowę
+%on% nie lubi piwa wojak
+%on% zbił browara w sklepie
+%on% zamawia świadków jehowy znajomym
+%on% uwielbia wino biały patyk
+%on% przeprasza patecką kuflowym
+%on% woli hangar niż kajute
+%on% pali szlugi od strony filtra
+%on% nie jeździł nigdy oroną
+%on% zabrał ojcu kartę od dekodera
+%on% ojebała baginiakowi gałe za dychę
+%on% kupuje polskie szlugi u małpy
+%on% najebany śpiewa Donda Chant przez całą noc
+%on% będzie ruchany w celi
+%on% skręcił wodospada dla gąseckiej na dzikiej
+%on% postawił markowi białego patyka
+%on% prosi mnie o pojare
+stary %on% prosi mnie o pojare
