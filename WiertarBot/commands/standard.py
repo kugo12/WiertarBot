@@ -643,9 +643,9 @@ async def fantano(event: fbchat.MessageEvent) -> Response:
         Treść: <Treść recenzji>
         Ocena: <Końcowa ocena>
     """
-    args = event.message.split(' ', 1)
+    args = event.message.text.split(' ', 1)
     if len(args) == 2:
-        review = Fantano.get_review(args[1])
+        review = Fantano().get_rate(args[1])
         msg = (
             f"Nazwa albumu: {review['title']}\n"
             f"Treść: {review['review']}\n"
