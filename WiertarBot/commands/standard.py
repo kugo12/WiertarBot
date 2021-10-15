@@ -16,7 +16,7 @@ from aiogoogletrans import Translator
 from ..dispatch import MessageEventDispatcher, Response
 from ..bot import WiertarBot
 from ..config import cmd_media_path, wb_site
-from .modules import AliPaczka
+from .modules import AliPaczka, Fantano
 
 
 @MessageEventDispatcher.register()
@@ -630,5 +630,28 @@ async def niedziela(event: fbchat.MessageEvent) -> Response:
     elif request[1] == "lista":
         msg = "Niedziele handlowe:\n- " \
             + "\n- ".join([i.isoformat() for i in sundays if i >= now])
+
+    return Response(event, text=msg)
+
+@MessageEventDispatcher.register(aliases=['anthony', 'melon'])
+async def fantano(event: fbchat.MessageEvent) -> Response:
+    """
+    Użycie:
+        {command} <nazwa albumu>
+    Zwraca:
+        Nazwa albumu: <Nazwa Albumu>
+        Treść: <Treść recenzji>
+        Ocena: <Końcowa ocena>
+    """
+    args = event.message.text.split(' ', 1)
+    if len(args) == 2:
+        review = Fantano().get_rate(args[1])
+        msg = (
+            f"Nazwa albumu: {review['title']}\n"
+            f"Treść: {review['review']}\n"
+            f"Ocena: {review['rate']}"
+        )
+    else:
+        msg = fantano.__doc__
 
     return Response(event, text=msg)
