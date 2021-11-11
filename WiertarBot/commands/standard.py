@@ -1,16 +1,11 @@
 import fbchat
 import random
-import os
 import requests
-import baseconvert
-import time
 import json
 from bs4 import BeautifulSoup
 from datetime import datetime, date
-from PIL import Image, ImageDraw, ImageFont
 from io import BytesIO
 from aiogtts import aiogTTS
-from typing import Union
 from aiogoogletrans import Translator
 
 from ..dispatch import MessageEventDispatcher
@@ -322,82 +317,6 @@ async def miejski(event: fbchat.MessageEvent) -> Response:
             msg = f'{ arg }\nDefinicja: { definition }{ example }'
 
     return Response(event, text=msg)
-
-
-# constants
-
-# __mcd_r = [118, 121, 129, 145, 148, 151, 154, 157, 161, 170, 171, 173, 176, 181, 191, 199, 201, 215, 216, 220, 232, 236, 246, 249, 252, 253, 256, 257, 276, 322, 335, 337, 338, 349, 359, 362, 364, 375, 380, 384, 390, 396, 400, 421, 431, 435, 437, 438, 448, 450, 452, 454, 455, 468, 480, 481, 483, 484, 485, 487, 489, 490, 491, 492, 493, 494, 495, 496, 497, 498, 499]
-# def __mcd_g():
-#     while True:
-#         re = random.randint(135, 535)
-#         if re in __mcd_r:
-#             pass
-#         else:
-#             return str(re)
-__mcd_notr = ['135', '136', '137', '138', '139', '140', '141', '142', '143', '144', '146', '147', '149', '150', '152', '153', '155', '156', '158', '159', '160', '162', '163', '164', '165', '166', '167', '168', '169', '172', '174', '175', '177', '178', '179', '180', '182', '183', '184', '185', '186', '187', '188', '189', '190', '192', '193', '194', '195', '196', '197', '198', '200', '202', '203', '204', '205', '206', '207', '208', '209', '210', '211', '212', '213', '214', '217', '218', '219', '221', '222', '223', '224', '225', '226', '227', '228', '229', '230', '231', '233', '234', '235', '237', '238', '239', '240', '241', '242', '243', '244', '245', '247', '248', '250', '251', '254', '255', '258', '259', '260', '261', '262', '263', '264', '265', '266', '267', '268', '269', '270', '271', '272', '273', '274', '275', '277', '278', '279', '280', '281', '282', '283', '284', '285', '286', '287', '288', '289', '290', '291', '292', '293', '294', '295', '296', '297', '298', '299', '300', '301', '302', '303', '304', '305', '306', '307', '308', '309', '310', '311', '312', '313', '314', '315', '316', '317', '318', '319', '320', '321', '323', '324', '325', '326', '327', '328', '329', '330', '331', '332', '333', '334', '336', '339', '340', '341', '342', '343', '344', '345', '346', '347', '348', '350', '351', '352', '353', '354', '355', '356', '357', '358', '360', '361', '363', '365', '366', '367', '368', '369', '370', '371', '372', '373', '374', '376', '377', '378', '379', '381', '382', '383', '385', '386', '387', '388', '389', '391', '392', '393', '394', '395', '397', '398', '399', '401', '402', '403', '404', '405', '406', '407', '408', '409', '410', '411', '412', '413', '414', '415', '416', '417', '418', '419', '420', '422', '423', '424', '425', '426', '427', '428', '429', '430', '432', '433', '434', '436', '439', '440', '441', '442', '443', '444', '445', '446', '447', '449', '451', '453', '456', '457', '458', '459', '460', '461', '462', '463', '464', '465', '466', '467', '469', '470', '471', '472', '473', '474', '475', '476', '477', '478', '479', '482', '486', '488', '500', '501', '502', '503', '504', '505', '506', '507', '508', '509', '510', '511', '512', '513', '514', '515', '516', '517', '518', '519', '520', '521', '522', '523', '524', '525', '526', '527', '528', '529', '530', '531', '532', '533', '534', '535']
-
-
-def __mcd_s(a: Union[int, str]) -> str:
-    return ("0" + str(a))[-2:]
-
-
-@MessageEventDispatcher.register()
-async def mcd(event: fbchat.MessageEvent) -> Response:
-    """
-    Użycie:
-        {command} <lody/hamburger>
-    Zwraca:
-        zdjęcie z kuponem do mcd
-    """
-
-    msg = mcd.__doc__
-    files = None
-
-    arg = event.message.text.split(' ', 1)
-    if len(arg) == 2:
-        arg = arg[1].lower()
-        if arg in ['lody', 'hamburger']:
-            if arg == 'lody':
-                path = str(cmd_media_path / 'templates/kuponlody.jpg')
-            else:
-                path = str(cmd_media_path / 'templates/kuponhamburger.jpg')
-
-            image = Image.open(path)
-
-            t = time.time()-60
-            d = datetime.fromtimestamp(t)
-
-            d = [random.choice(__mcd_notr), __mcd_s(d.month), __mcd_s(d.day),
-                 __mcd_s(d.hour), __mcd_s(d.minute),
-                 '10', '05', str(random.randint(100, 999))]
-            kod = int(''.join(d), 10)
-            kod = baseconvert.base(kod, 10, 32, string=True)[0:11]
-
-            draw = ImageDraw.Draw(image)
-            try:
-                path = str(cmd_media_path / 'arial.ttf')
-                font = ImageFont.truetype(path, 16)
-            except OSError:
-                print('Wrzuc czcionke arial.ttf do WiertarBot/commands/media')
-                return None
-
-            date = time.strftime("%d-%m-%Y", time.gmtime(round(time.time())-86400))
-            draw.text((3, 55), f'DATA WYDANIA { date }', font=font, fill="#000")
-            tekst = "UNIKALNY KOD: 0"+kod
-            size = draw.textsize(tekst, font=font)
-            draw.text((577-size[0], 55), tekst, font=font, fill="#000")
-
-            img_bin = BytesIO()
-            image.save(img_bin, format='jpeg')
-            image.close()
-            img_bin.seek(0)
-
-            fn = 'mcd.jpg'
-            mime = 'image/jpeg'
-            files = await WiertarBot.client.upload([(fn, img_bin, mime)])
-            msg = None
-
-    return Response(event, text=msg, files=files)
 
 
 # constants
