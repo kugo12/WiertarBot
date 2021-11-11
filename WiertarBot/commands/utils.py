@@ -6,7 +6,8 @@ import asyncio
 from io import BytesIO
 
 from .. import perm
-from ..dispatch import MessageEventDispatcher, Response
+from ..dispatch import MessageEventDispatcher
+from ..response import Response
 from ..config import prefix, attachment_save_path
 from ..bot import WiertarBot
 from ..db import db

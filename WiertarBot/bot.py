@@ -7,7 +7,7 @@ import aiofiles
 import asyncio
 from datetime import datetime
 from os import path, remove
-from asyncio import AbstractEventLoop, sleep
+from asyncio import sleep, get_event_loop
 from typing import Iterable, Optional, Sequence, Tuple
 from io import BytesIO
 from time import time
@@ -15,20 +15,19 @@ from time import time
 from . import config, perm, unlock
 from .db import db
 from .dispatch import EventDispatcher
-from .utils import serialize_MessageEvent
+from .utils import serialize_MessageEvent, execute_after_delay
 
 
-class WiertarBot():
+class WiertarBot:
     session: fbchat.Session = None
     client: fbchat.Client = None
-    loop: AbstractEventLoop = None
+    listener: fbchat.Listener = None
 
-    def __init__(self, loop: AbstractEventLoop):
+    def __init__(self):
         from . import commands  # avoid circular import
         WiertarBot.commands = commands
 
-        WiertarBot.loop = loop
-        loop.run_until_complete(self._init())
+        get_event_loop().run_until_complete(self._init())
 
     async def _init(self):
         try:
@@ -43,17 +42,21 @@ class WiertarBot():
             WiertarBot.session = await self._login()
 
         WiertarBot.client = fbchat.Client(session=WiertarBot.session)
-        self.loop.create_task(self.run())
 
-        self.loop.create_task(self.message_garbage_collector())
-        atexit.register(self._save_cookies)
+        loop = get_event_loop()
+        loop.create_task(self.run())
 
-    def _save_cookies(self):
+        loop.create_task(WiertarBot.message_garbage_collector())
+        atexit.register(WiertarBot._save_cookies)
+
+    @staticmethod
+    def _save_cookies():
         print('Saving cookies')
         with config.cookie_path.open('w') as f:
             json.dump(WiertarBot.session.get_cookies(), f)
 
-    def _load_cookies(self) -> Optional[dict]:
+    @staticmethod
+    def _load_cookies() -> Optional[dict]:
         try:
             with config.cookie_path.open() as f:
                 return json.load(f)
@@ -61,7 +64,7 @@ class WiertarBot():
             return None
 
     async def _login(self) -> fbchat.Session:
-        cookies = self._load_cookies()
+        cookies = WiertarBot._load_cookies()
         if cookies:
             try:
                 return await fbchat.Session.from_cookies(cookies)
@@ -71,19 +74,20 @@ class WiertarBot():
         return await fbchat.Session.login(config.email, config.password,
                                           on_2fa_callback=lambda: input('2fa_code: '))
 
-    async def _fetch_sequence_id(self):
-        self.client.sequence_id_callback = self.listener.set_sequence_id
-
-        await asyncio.sleep(5)
-        await self.client.fetch_threads(limit=1).__anext__()
-
     async def run(self):
-        try:
-            self.listener = fbchat.Listener(session=WiertarBot.session,
-                                            chat_on=True, foreground=True)
-            self.loop.create_task(self._fetch_sequence_id())
+        loop = get_event_loop()
 
-            async for event in self.listener.listen():
+        try:
+            WiertarBot.listener = fbchat.Listener(session=WiertarBot.session,
+                                                  chat_on=True, foreground=True)
+
+            # funny sequence id fetching
+            WiertarBot.client.sequence_id_callback = WiertarBot.listener.set_sequence_id
+            loop.create_task(
+                execute_after_delay(5, WiertarBot.client.fetch_threads(limit=1).__anext__())
+            )
+
+            async for event in WiertarBot.listener.listen():
                 await EventDispatcher.send_signal(event)
 
         except fbchat.NotConnected as e:
@@ -100,30 +104,35 @@ class WiertarBot():
                 config.password = unlock.FacebookUnlock()
                 WiertarBot.session = await self._login()
                 WiertarBot.client = fbchat.Client(session=WiertarBot.session)
-                asyncio.get_event_loop().create_task(self.run())
+                loop.create_task(self.run())
                 return
 
-        self.loop.stop()
+        loop.stop()
 
+    @staticmethod
     @EventDispatcher.slot(fbchat.Connect)
     async def on_connect(event: fbchat.Connect):
         print('Connected')
 
+    @staticmethod
     @EventDispatcher.slot(fbchat.PeopleAdded)
     async def on_people_added(event: fbchat.PeopleAdded):
         if WiertarBot.session.user not in event.added:
             await event.thread.send_text('poziom spat')
 
+    @staticmethod
     @EventDispatcher.slot(fbchat.PersonRemoved)
     async def on_person_removed(event: fbchat.PersonRemoved):
         await event.thread.send_text('poziom wzrus')
 
+    @staticmethod
     @EventDispatcher.slot(fbchat.ReactionEvent)
     async def on_reaction(event: fbchat.ReactionEvent):
         if event.author.id != WiertarBot.session.user.id:
             if perm.check('doublereact', event.thread.id, event.author.id):
                 await event.message.react(event.reaction)
 
+    @staticmethod
     @EventDispatcher.slot(fbchat.NicknameSet)
     async def on_nickname_change(event: fbchat.NicknameSet):
         if event.author.id != WiertarBot.session.user.id:
@@ -131,6 +140,7 @@ class WiertarBot():
                 await event.thread.set_nickname(event.subject, None)
                 # await self.standard_szkaluj(["!szkaluj"], {'author_id':author_id, 'thread_id':thread_id, 'thread_type':thread_type})
 
+    @staticmethod
     @EventDispatcher.slot(fbchat.UnsendEvent)
     async def on_unsend(event: fbchat.UnsendEvent):
         conn = db.get()
@@ -150,6 +160,7 @@ class WiertarBot():
             cur.execute('DELETE FROM messages WHERE mid = ?', [mid])
             conn.commit()
 
+    @staticmethod
     @EventDispatcher.slot(fbchat.MessageEvent)
     async def save_message(event: fbchat.MessageEvent):
         conn = db.get()
@@ -166,6 +177,7 @@ class WiertarBot():
             await asyncio.gather(*[WiertarBot.save_attachment(i)
                                    for i in event.message.attachments])
 
+    @staticmethod
     async def save_attachment(attachment):
         name = type(attachment).__name__
         if name in ['AudioAttachment', 'ImageAttachment', 'VideoAttachment']:
@@ -184,6 +196,7 @@ class WiertarBot():
                     async with aiofiles.open(p, mode='wb') as f:
                         await f.write(await r.read())
 
+    @staticmethod
     async def upload(
                 files: Iterable[str], voice_clip=False
             ) -> Optional[Sequence[Tuple[str, str]]]:
@@ -221,7 +234,8 @@ class WiertarBot():
 
         return uploaded
 
-    async def message_garbage_collector(self):
+    @staticmethod
+    async def message_garbage_collector():
         conn = db.get()
         cur = conn.cursor()
 

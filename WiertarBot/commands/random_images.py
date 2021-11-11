@@ -6,7 +6,8 @@ import os
 from bs4 import BeautifulSoup
 from io import BytesIO
 
-from ..dispatch import MessageEventDispatcher, Response
+from ..dispatch import MessageEventDispatcher
+from ..response import Response
 from .. import config
 from ..bot import WiertarBot
 

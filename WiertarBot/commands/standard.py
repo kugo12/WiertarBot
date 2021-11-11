@@ -13,7 +13,8 @@ from aiogtts import aiogTTS
 from typing import Union
 from aiogoogletrans import Translator
 
-from ..dispatch import MessageEventDispatcher, Response
+from ..dispatch import MessageEventDispatcher
+from ..response import Response
 from ..bot import WiertarBot
 from ..config import cmd_media_path, wb_site
 from .modules import AliPaczka, Fantano

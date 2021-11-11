@@ -6,9 +6,10 @@ from typing import Iterable
 from time import time
 
 from . import bot, perm, config
+from .response import Response
 
 
-class EventDispatcher():
+class EventDispatcher:
     _slots = {}
 
     @staticmethod
@@ -35,42 +36,13 @@ class EventDispatcher():
                 loop.create_task(func(event))
 
 
-class Response():
-    __slots__ = ['event', 'text', 'files', 'voice_clip', 'mentions', 'reply_to_id']
-
-    def __init__(
-            self,
-            event: fbchat.MessageEvent,
-            *,
-            text: str = None,
-            files: Iterable[str] = None,
-            voice_clip: bool = False,
-            mentions: Iterable[fbchat.Mention] = None,
-            reply_to_id: str = None
-            ):
-        self.event = event
-        self.text = text
-        self.files = files
-        self.voice_clip = voice_clip
-        self.mentions = mentions
-        self.reply_to_id = reply_to_id
-
-    async def send(self):
-        if self.files:
-            if isinstance(self.files[0], str):
-                self.files = await bot.WiertarBot.upload(self.files, self.voice_clip)
-
-        mid = await self.event.thread.send_text(text=self.text, mentions=self.mentions,
-                                                files=self.files, reply_to_id=self.reply_to_id)
-        return mid
-
-
-class MessageEventDispatcher():
+class MessageEventDispatcher:
     _commands = {}
     _special = []
     _alias_of = {}
     _image_edit_queue = {}
 
+    @staticmethod
     def register(
             *,
             name: str = None,
@@ -109,6 +81,7 @@ class MessageEventDispatcher():
             return func
         return wrap
 
+    @staticmethod
     @EventDispatcher.slot(fbchat.MessageEvent)
     async def dispatch(event: fbchat.MessageEvent):
         if event.author.id != bot.WiertarBot.session.user.id:
@@ -153,6 +126,7 @@ class MessageEventDispatcher():
                         else:  # if timed out
                             del MessageEventDispatcher._image_edit_queue[t_u_id]
 
+    @staticmethod
     def cleanup():
         MessageEventDispatcher._special = []
         MessageEventDispatcher._alias_of = {}
