@@ -35,7 +35,7 @@ class WiertarBot():
             WiertarBot.session = await self._login()
         except (fbchat.ParseError, fbchat.NotLoggedIn) as e:
             print(e)
-            open(config.cookie_path, 'w').close()  # clear session file
+            config.cookie_path.open('w').close()  # clear session file
 
             if 'account is locked' in e.message or 'Failed loading session' in e.message:
                 config.password = unlock.FacebookUnlock()
@@ -50,12 +50,12 @@ class WiertarBot():
 
     def _save_cookies(self):
         print('Saving cookies')
-        with open(config.cookie_path, 'w') as f:
+        with config.cookie_path.open('w') as f:
             json.dump(WiertarBot.session.get_cookies(), f)
 
     def _load_cookies(self) -> Optional[dict]:
         try:
-            with open(config.cookie_path) as f:
+            with config.cookie_path.open() as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             return None
@@ -171,16 +171,13 @@ class WiertarBot():
         if name in ['AudioAttachment', 'ImageAttachment', 'VideoAttachment']:
             if name == 'AudioAttachment':
                 url = attachment.url
-                p = path.join(config.attachment_save_path,
-                              attachment.filename)
+                p = str(config.attachment_save_path / attachment.filename)
             elif name == 'ImageAttachment':
                 url = await WiertarBot.client.fetch_image_url(attachment.id)
-                p = path.join(config.attachment_save_path,
-                              f'{ attachment.id }.{ attachment.original_extension }')
+                p = str(config.attachment_save_path / f'{ attachment.id }.{ attachment.original_extension }')
             elif name == 'VideoAttachment':
                 url = attachment.preview_url
-                p = path.join(config.attachment_save_path,
-                              f'{ attachment.id }.mp4')
+                p = str(config.attachment_save_path / f'{ attachment.id }.mp4')
 
             async with WiertarBot.session._session.get(url) as r:
                 if r.status == 200:
@@ -238,14 +235,11 @@ class WiertarBot():
 
                 for att in msg['attachments']:
                     if att['type'] == 'ImageAttachment':
-                        p = path.join(config.attachment_save_path,
-                                      f'{ att["id"] }.{ att["original_extension"] }')
+                        p = str(config.attachment_save_path / f'{ att["id"] }.{ att["original_extension"] }')
                     elif att['type'] == 'AudioAttachment':
-                        p = path.join(config.attachment_save_path,
-                                      att['filename'])
+                        p = str(config.attachment_save_path / att['filename'])
                     elif att['type'] == 'VideoAttachment':
-                        p = path.join(config.attachment_save_path,
-                                      f'{ att["id"] }.mp4')
+                        p = str(config.attachment_save_path / f'{ att["id"] }.mp4')
                     else:
                         continue
 

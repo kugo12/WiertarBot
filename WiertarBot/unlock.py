@@ -98,8 +98,8 @@ def FacebookUnlock():
         f.seek(0)
         f.write(text)
 
-    if os.path.exists(cookie_path):
-        os.remove(cookie_path)
+    if cookie_path.exists():
+        cookie_path.unlink()
 
     print('Account unlocked')
     time.sleep(20)

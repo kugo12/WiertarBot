@@ -95,8 +95,8 @@ async def szkaluj(event: fbchat.MessageEvent) -> Response:
     user = await WiertarBot.client.fetch_thread_info([uid]).__anext__()
     name = user.name
 
-    path = os.path.join(cmd_media_path, 'random/szkaluj.txt')
-    with open(path, 'r', encoding='utf-8') as f:
+    path = cmd_media_path / 'random/szkaluj.txt'
+    with path.open('r', encoding='utf-8') as f:
         lines = f.readlines()
         msg = random.choice(lines)
         del lines
@@ -357,9 +357,9 @@ async def mcd(event: fbchat.MessageEvent) -> Response:
         arg = arg[1].lower()
         if arg in ['lody', 'hamburger']:
             if arg == 'lody':
-                path = os.path.join(cmd_media_path, 'templates/kuponlody.jpg')
+                path = str(cmd_media_path / 'templates/kuponlody.jpg')
             else:
-                path = os.path.join(cmd_media_path, 'templates/kuponhamburger.jpg')
+                path = str(cmd_media_path / 'templates/kuponhamburger.jpg')
 
             image = Image.open(path)
 
@@ -374,7 +374,7 @@ async def mcd(event: fbchat.MessageEvent) -> Response:
 
             draw = ImageDraw.Draw(image)
             try:
-                path = os.path.join(cmd_media_path, 'arial.ttf')
+                path = str(cmd_media_path / 'arial.ttf')
                 font = ImageFont.truetype(path, 16)
             except OSError:
                 print('Wrzuc czcionke arial.ttf do WiertarBot/commands/media')

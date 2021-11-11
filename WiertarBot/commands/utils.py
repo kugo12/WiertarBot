@@ -273,18 +273,15 @@ async def see(event: fbchat.MessageEvent) -> Response:
         files = []
         for att in msg['attachments']:
             if att['type'] == 'ImageAttachment':
-                p = os.path.join(attachment_save_path,
-                                 f'{ att["id"] }.{ att["original_extension"] }')
-                files.append(p)
+                p = attachment_save_path / f'{ att["id"] }.{ att["original_extension"] }'
+                files.append(str(p))
             elif att['type'] == 'AudioAttachment':
-                p = os.path.join(attachment_save_path,
-                                 att['filename'])
-                files.append(p)
+                p = attachment_save_path / att['filename']
+                files.append(str(p))
                 voice_clip = True
             elif att['type'] == 'VideoAttachment':
-                p = os.path.join(attachment_save_path,
-                                 f'{ att["id"] }.mp4')
-                files.append(p)
+                p = attachment_save_path / f'{ att["id"] }.mp4'
+                files.append(str(p))
 
         r = Response(event,
                      text=msg['text'],

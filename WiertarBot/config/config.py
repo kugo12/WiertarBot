@@ -1,36 +1,34 @@
-from os import path, mkdir
+from pathlib import Path
 
-rootdir = path.dirname(__file__)
-rootdir = path.join(rootdir, '../..')
-rootdir = path.abspath(rootdir)
+root_dir = Path(__file__).parents[2]
 
-db_path = path.join(rootdir, 'db.sqlite3')
-db_schema_path = path.join(rootdir, 'WiertarBot/config/db_schema.sql')
+db_path = root_dir / "db.sqlite3"
+db_schema_path = root_dir / "WiertarBot/config/db_schema.sql"
 
-upload_save_path = path.join(rootdir, 'WiertarBot/upload')
-attachment_save_path = path.join(rootdir, 'saved')
-cmd_media_path = path.join(rootdir, 'WiertarBot/commands/media')
+upload_save_path = root_dir / "WiertarBot/upload"
+attachment_save_path = root_dir / "saved"
+cmd_media_path = root_dir / "WiertarBot/commands/media"
 
-cookie_path = path.join(rootdir, 'cookies.json')
+cookie_path = root_dir / "cookies.json"
 
 for directory in [upload_save_path, attachment_save_path]:
-    if not path.exists(directory):
-        mkdir(directory)
+    if not directory.exists():
+        directory.mkdir()
 
-email = ''
-password = ''
-gmail_password = ''
+email = ""
+password = ""
+gmail_password = ""
 
-prefix = '!'
+prefix = "!"
 
 # thecatapi.com
 thecatapi_headers = {
-    'x-api-key': ''
+    "x-api-key": ""
 }
 
 wb_site = {
-    'api_key': '',
-    'add_suggestion_url': '',
+    "api_key": "",
+    "add_suggestion_url": "",
 }
 
 image_edit_timeout = 5*60
