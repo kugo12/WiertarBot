@@ -28,7 +28,6 @@ class WiertarBot:
         if not WiertarBot._initialized:
             from . import commands, listeners  # avoid circular import
             WiertarBot.commands = commands
-            init_db()
             WiertarBot._initialized = True
 
         get_event_loop().run_until_complete(self._init())
