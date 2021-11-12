@@ -12,9 +12,9 @@ from io import BytesIO
 from time import time
 
 from . import config, unlock
-from .db import db
 from .dispatch import EventDispatcher
 from .utils import execute_after_delay
+from .database import FBMessage, init_db
 
 
 class WiertarBot:
@@ -27,6 +27,8 @@ class WiertarBot:
     def __init__(self):
         if not WiertarBot._initialized:
             from . import commands, listeners  # avoid circular import
+            WiertarBot.commands = commands
+            init_db()
             WiertarBot._initialized = True
 
         get_event_loop().run_until_complete(self._init())
@@ -170,33 +172,31 @@ class WiertarBot:
 
     @staticmethod
     async def message_garbage_collector():
-        conn = db.get()
-        cur = conn.cursor()
-
         while True:
             t = int(time()) - config.time_to_remove_sent_messages
-            cur.execute("SELECT mid, message FROM messages WHERE time < ? ORDER BY time ASC", [t])
-            messages = cur.fetchall()
-            for message in messages:
-                mid, msg = message
-                msg = json.loads(msg)
+            messages: Iterable[FBMessage] = FBMessage\
+                .select(FBMessage.message_id, FBMessage.message)\
+                .where(FBMessage.time < t, FBMessage.deleted_at is None)\
+                .order_by(FBMessage.time)
 
-                for att in msg['attachments']:
-                    if att['type'] == 'ImageAttachment':
-                        p = str(config.attachment_save_path / f'{ att["id"] }.{ att["original_extension"] }')
-                    elif att['type'] == 'AudioAttachment':
-                        p = str(config.attachment_save_path / att['filename'])
-                    elif att['type'] == 'VideoAttachment':
-                        p = str(config.attachment_save_path / f'{ att["id"] }.mp4')
+            for message in messages:
+                deserialized_message = json.loads(message.message)
+
+                for attachment in deserialized_message['attachments']:
+                    if attachment['type'] == 'ImageAttachment':
+                        p = config.attachment_save_path / f'{ attachment["id"] }.{ attachment["original_extension"] }'
+                    elif attachment['type'] == 'AudioAttachment':
+                        p = config.attachment_save_path / attachment['filename']
+                    elif attachment['type'] == 'VideoAttachment':
+                        p = config.attachment_save_path / f'{ attachment["id"] }.mp4'
                     else:
                         continue
 
-                    if path.exists(p):
-                        remove(p)
+                    if p.exists():
+                        p.unlink()
 
-                cur.execute("DELETE FROM messages WHERE mid = ?", [mid])
+                message.delete_instance()
 
-            conn.commit()
             del messages
 
             await sleep(6*60*60)

@@ -75,7 +75,7 @@ class MessageEventDispatcher:
                         MessageEventDispatcher._alias_of[alias] = _name
 
                 # if permission doesn't exist in db, allow all users to use command
-                if not perm._get(_name):
+                if not perm.get_permission(_name):
                     perm.edit(_name, ['*'])
 
             return func

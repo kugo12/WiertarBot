@@ -5,9 +5,9 @@ import fbchat
 
 from . import perm
 from .bot import WiertarBot
-from .db import db
 from .dispatch import EventDispatcher
 from .utils import serialize_MessageEvent
+from .database import FBMessage
 
 
 @EventDispatcher.slot(fbchat.Connect)
@@ -43,35 +43,25 @@ async def on_nickname_change(event: fbchat.NicknameSet):
 
 @EventDispatcher.slot(fbchat.UnsendEvent)
 async def on_unsend(event: fbchat.UnsendEvent):
-    conn = db.get()
-    cur = conn.cursor()
-    mid = event.message.id
     deleted_at = int(datetime.timestamp(event.at))
 
-    cur.execute(('SELECT mid, thread_id, author_id, time, message '
-                 'FROM messages WHERE mid = ?'), [mid])
-    message = cur.fetchone()
-    if message:
-        message += (deleted_at,)  # add deleted_at to message tuple
-
-        cur.execute(('INSERT INTO deleted_messages '
-                     '(mid, thread_id, author_id, time, message, deleted_at) '
-                     'VALUES (?, ?, ?, ?, ?, ?)'), message)
-        cur.execute('DELETE FROM messages WHERE mid = ?', [mid])
-        conn.commit()
+    FBMessage\
+        .update(deleted_at=deleted_at)\
+        .where(FBMessage.message_id == event.message.id)\
+        .execute()
 
 
 @EventDispatcher.slot(fbchat.MessageEvent)
 async def save_message(event: fbchat.MessageEvent):
-    conn = db.get()
-    cur = conn.cursor()
-    cur.execute(("INSERT INTO messages (mid, thread_id, author_id, time, message) "
-                 "VALUES (?, ?, ?, ?, ?)"),
-                [event.message.id, event.thread.id, event.author.id,
-                 int(datetime.timestamp(event.message.created_at)),
-                 serialize_MessageEvent(event)]
-                )
-    conn.commit()
+    created_at = int(datetime.timestamp(event.message.created_at))
+
+    FBMessage(
+        message_id=event.message.id,
+        thread_id=event.thread.id,
+        author_id=event.author.id,
+        time=created_at,
+        message=serialize_MessageEvent(event)
+    ).save()
 
     if event.message.attachments:
         await asyncio.gather(*[WiertarBot.save_attachment(i)
