@@ -6,7 +6,8 @@ import os
 from bs4 import BeautifulSoup
 from io import BytesIO
 
-from ..dispatch import MessageEventDispatcher, Response
+from ..dispatch import MessageEventDispatcher
+from ..response import Response
 from .. import config
 from ..bot import WiertarBot
 
@@ -202,9 +203,9 @@ async def shiba(event: fbchat.MessageEvent) -> Response:
 
 
 def random_from_media_dir(directory: str) -> str:
-    path = os.path.join(config.cmd_media_path, directory)
-    filename = random.choice(os.listdir(path))
-    return os.path.join(path, filename)
+    path = config.cmd_media_path / directory
+    filename = random.choice(os.listdir(str(path)))
+    return str(path / filename)
 
 
 @MessageEventDispatcher.register()

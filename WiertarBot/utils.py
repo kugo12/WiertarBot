@@ -1,6 +1,13 @@
 import fbchat
 import json
+import asyncio
+from typing import Awaitable
 from datetime import datetime
+
+
+async def execute_after_delay(delay: int, async_function: Awaitable):
+    await asyncio.sleep(delay)
+    await async_function
 
 
 def serialize_MessageEvent(event: fbchat.MessageEvent) -> str:

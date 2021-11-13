@@ -1,15 +1,16 @@
 import aiohttp
 import fbchat
-import os
 import json
 import asyncio
 from io import BytesIO
+from typing import List, Awaitable, Iterable
 
 from .. import perm
-from ..dispatch import MessageEventDispatcher, Response
+from ..dispatch import MessageEventDispatcher
+from ..response import Response
 from ..config import prefix, attachment_save_path
 from ..bot import WiertarBot
-from ..db import db
+from ..database import FBMessage
 
 
 @MessageEventDispatcher.register(aliases=['pomoc'])
@@ -93,7 +94,7 @@ async def _perm(event: fbchat.MessageEvent) -> Response:
     cmd = event.message.text.split(' ')
     if len(cmd) == 3:
         if cmd[1] == 'look':
-            perms = perm._get(cmd[2])
+            perms = perm.get_permission(cmd[2])
             if perms:
                 msg = (
                     f'{ cmd[2] }:\n\n'
@@ -115,7 +116,7 @@ async def _perm(event: fbchat.MessageEvent) -> Response:
         # whitelist if true else blacklist
         bl = 0 if cmd[3] == 'wl' else 1
 
-        perms = perm._get(cmd[2])
+        perms = perm.get_permission(cmd[2])
         add = cmd[1] == 'add'
 
         # if remove from not existing permissions
@@ -254,47 +255,48 @@ async def see(event: fbchat.MessageEvent) -> Response:
     except (IndexError, ValueError):
         n = 1
 
-    cur = db.get().cursor()
-    cur.execute(('SELECT message FROM deleted_messages '
-                 'WHERE thread_id = ? ORDER BY time DESC LIMIT ?'),
-                [event.thread.id, n])
-    messages = cur.fetchall()
+    messages: Iterable[FBMessage] = FBMessage\
+        .select(FBMessage.message)\
+        .where(
+            FBMessage.deleted_at is not None,
+            FBMessage.thread_id == event.thread.id
+        )\
+        .order_by(FBMessage.time.desc())\
+        .limit(n)
 
-    send_resp = []
-    for msg in messages:
-        msg = json.loads(msg[0])
+    send_responses: List[Awaitable] = []
+    for message in messages:
+        message = json.loads(message.message)
 
         mentions = [
             fbchat.Mention(**mention)
-            for mention in msg['mentions']
+            for mention in message['mentions']
         ]
 
         voice_clip = False
         files = []
-        for att in msg['attachments']:
+        for att in message['attachments']:
             if att['type'] == 'ImageAttachment':
-                p = os.path.join(attachment_save_path,
-                                 f'{ att["id"] }.{ att["original_extension"] }')
-                files.append(p)
+                p = attachment_save_path / f'{ att["id"] }.{ att["original_extension"] }'
+                files.append(str(p))
             elif att['type'] == 'AudioAttachment':
-                p = os.path.join(attachment_save_path,
-                                 att['filename'])
-                files.append(p)
+                p = attachment_save_path / att['filename']
+                files.append(str(p))
                 voice_clip = True
             elif att['type'] == 'VideoAttachment':
-                p = os.path.join(attachment_save_path,
-                                 f'{ att["id"] }.mp4')
-                files.append(p)
+                p = attachment_save_path / f'{ att["id"] }.mp4'
+                files.append(str(p))
 
-        r = Response(event,
-                     text=msg['text'],
-                     mentions=mentions,
-                     files=files,
-                     voice_clip=voice_clip
-                     ).send()
-        send_resp.append(r)
+        response = Response(
+            event,
+            text=message['text'],
+            mentions=mentions,
+            files=files,
+            voice_clip=voice_clip
+        )
+        send_responses.append(response.send())
 
-    if send_resp:
-        await asyncio.gather(*send_resp)
+    if send_responses:
+        await asyncio.gather(*send_responses)
     else:
         return Response(event, text='Nie ma żadnych zapisanych usuniętych wiadomości w tym wątku')

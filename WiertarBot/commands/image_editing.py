@@ -18,7 +18,7 @@ class wypierdalaj(ImageEditABC):
     Informacje:
         działa również na zdjęcia z odpowiedzi
     """
-    template_path = os.path.join(cmd_media_path, 'templates/wypierdalaj.jpg')
+    template_path = str(cmd_media_path / 'templates/wypierdalaj.jpg')
 
     async def edit(self, fp: BinaryIO) -> BinaryIO:
         img = Image.open(fp)
@@ -49,7 +49,7 @@ class _2021(ImageEditABC):
     Informacje:
         działa również na zdjęcia z odpowiedzi
     """
-    template_path = os.path.join(cmd_media_path, 'templates/2021.jpg')
+    template_path = str(cmd_media_path / 'templates/2021.jpg')
 
     async def edit(self, fp: BinaryIO) -> BinaryIO:
         tps = [500, 179]
@@ -90,8 +90,8 @@ class deepfry(ImageEditABC):
     Informacje:
         działa również na zdjęcia z odpowiedzi
     """
-    template_flare1 = os.path.join(cmd_media_path, 'templates/flara.png')
-    template_flare2 = os.path.join(cmd_media_path, 'templates/flara2.png')
+    template_flare1 = str(cmd_media_path / 'templates/flara.png')
+    template_flare2 = str(cmd_media_path / 'templates/flara2.png')
 
     async def edit(self, fp: BinaryIO) -> BinaryIO:
         img = Image.open(fp).convert("RGB")
@@ -155,7 +155,7 @@ class nobody(ImageEditABC):
     Informacje:
         działa również na zdjęcia z odpowiedzi
     """
-    arial_path = os.path.join(cmd_media_path, 'arial.ttf')
+    arial_path = str(cmd_media_path / 'arial.ttf')
 
     async def edit(self, fp: BinaryIO) -> BinaryIO:
         del self.args[0]

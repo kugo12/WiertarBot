@@ -5,37 +5,39 @@ import mimetypes
 import aiohttp
 import aiofiles
 import asyncio
-from datetime import datetime
 from os import path, remove
-from asyncio import AbstractEventLoop, sleep
+from asyncio import sleep, get_event_loop
 from typing import Iterable, Optional, Sequence, Tuple
 from io import BytesIO
 from time import time
 
-from . import config, perm, unlock
-from .db import db
+from . import config, unlock
 from .dispatch import EventDispatcher
-from .utils import serialize_MessageEvent
+from .utils import execute_after_delay
+from .database import FBMessage, init_db
 
 
-class WiertarBot():
+class WiertarBot:
+    _initialized: bool = False
+
     session: fbchat.Session = None
     client: fbchat.Client = None
-    loop: AbstractEventLoop = None
+    listener: fbchat.Listener = None
 
-    def __init__(self, loop: AbstractEventLoop):
-        from . import commands  # avoid circular import
-        WiertarBot.commands = commands
+    def __init__(self):
+        if not WiertarBot._initialized:
+            from . import commands, listeners  # avoid circular import
+            WiertarBot.commands = commands
+            WiertarBot._initialized = True
 
-        WiertarBot.loop = loop
-        loop.run_until_complete(self._init())
+        get_event_loop().run_until_complete(self._init())
 
     async def _init(self):
         try:
             WiertarBot.session = await self._login()
         except (fbchat.ParseError, fbchat.NotLoggedIn) as e:
             print(e)
-            open(config.cookie_path, 'w').close()  # clear session file
+            config.cookie_path.open('w').close()  # clear session file
 
             if 'account is locked' in e.message or 'Failed loading session' in e.message:
                 config.password = unlock.FacebookUnlock()
@@ -43,25 +45,29 @@ class WiertarBot():
             WiertarBot.session = await self._login()
 
         WiertarBot.client = fbchat.Client(session=WiertarBot.session)
-        self.loop.create_task(self.run())
 
-        self.loop.create_task(self.message_garbage_collector())
-        atexit.register(self._save_cookies)
+        loop = get_event_loop()
+        loop.create_task(self.run())
 
-    def _save_cookies(self):
+        loop.create_task(WiertarBot.message_garbage_collector())
+        atexit.register(WiertarBot._save_cookies)
+
+    @staticmethod
+    def _save_cookies():
         print('Saving cookies')
-        with open(config.cookie_path, 'w') as f:
+        with config.cookie_path.open('w') as f:
             json.dump(WiertarBot.session.get_cookies(), f)
 
-    def _load_cookies(self) -> Optional[dict]:
+    @staticmethod
+    def _load_cookies() -> Optional[dict]:
         try:
-            with open(config.cookie_path) as f:
+            with config.cookie_path.open() as f:
                 return json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             return None
 
     async def _login(self) -> fbchat.Session:
-        cookies = self._load_cookies()
+        cookies = WiertarBot._load_cookies()
         if cookies:
             try:
                 return await fbchat.Session.from_cookies(cookies)
@@ -71,19 +77,20 @@ class WiertarBot():
         return await fbchat.Session.login(config.email, config.password,
                                           on_2fa_callback=lambda: input('2fa_code: '))
 
-    async def _fetch_sequence_id(self):
-        self.client.sequence_id_callback = self.listener.set_sequence_id
-
-        await asyncio.sleep(5)
-        await self.client.fetch_threads(limit=1).__anext__()
-
     async def run(self):
-        try:
-            self.listener = fbchat.Listener(session=WiertarBot.session,
-                                            chat_on=True, foreground=True)
-            self.loop.create_task(self._fetch_sequence_id())
+        loop = get_event_loop()
 
-            async for event in self.listener.listen():
+        try:
+            WiertarBot.listener = fbchat.Listener(session=WiertarBot.session,
+                                                  chat_on=True, foreground=True)
+
+            # funny sequence id fetching
+            WiertarBot.client.sequence_id_callback = WiertarBot.listener.set_sequence_id
+            loop.create_task(
+                execute_after_delay(5, WiertarBot.client.fetch_threads(limit=1).__anext__())
+            )
+
+            async for event in WiertarBot.listener.listen():
                 await EventDispatcher.send_signal(event)
 
         except fbchat.NotConnected as e:
@@ -100,93 +107,31 @@ class WiertarBot():
                 config.password = unlock.FacebookUnlock()
                 WiertarBot.session = await self._login()
                 WiertarBot.client = fbchat.Client(session=WiertarBot.session)
-                asyncio.get_event_loop().create_task(self.run())
+                loop.create_task(self.run())
                 return
 
-        self.loop.stop()
+        loop.stop()
 
-    @EventDispatcher.slot(fbchat.Connect)
-    async def on_connect(event: fbchat.Connect):
-        print('Connected')
-
-    @EventDispatcher.slot(fbchat.PeopleAdded)
-    async def on_people_added(event: fbchat.PeopleAdded):
-        if WiertarBot.session.user not in event.added:
-            await event.thread.send_text('poziom spat')
-
-    @EventDispatcher.slot(fbchat.PersonRemoved)
-    async def on_person_removed(event: fbchat.PersonRemoved):
-        await event.thread.send_text('poziom wzrus')
-
-    @EventDispatcher.slot(fbchat.ReactionEvent)
-    async def on_reaction(event: fbchat.ReactionEvent):
-        if event.author.id != WiertarBot.session.user.id:
-            if perm.check('doublereact', event.thread.id, event.author.id):
-                await event.message.react(event.reaction)
-
-    @EventDispatcher.slot(fbchat.NicknameSet)
-    async def on_nickname_change(event: fbchat.NicknameSet):
-        if event.author.id != WiertarBot.session.user.id:
-            if perm.check('deletename', event.thread.id, event.subject.id):
-                await event.thread.set_nickname(event.subject, None)
-                # await self.standard_szkaluj(["!szkaluj"], {'author_id':author_id, 'thread_id':thread_id, 'thread_type':thread_type})
-
-    @EventDispatcher.slot(fbchat.UnsendEvent)
-    async def on_unsend(event: fbchat.UnsendEvent):
-        conn = db.get()
-        cur = conn.cursor()
-        mid = event.message.id
-        deleted_at = int(datetime.timestamp(event.at))
-
-        cur.execute(('SELECT mid, thread_id, author_id, time, message '
-                     'FROM messages WHERE mid = ?'), [mid])
-        message = cur.fetchone()
-        if message:
-            message += (deleted_at,)  # add deleted_at to message tuple
-
-            cur.execute(('INSERT INTO deleted_messages '
-                         '(mid, thread_id, author_id, time, message, deleted_at) '
-                         'VALUES (?, ?, ?, ?, ?, ?)'), message)
-            cur.execute('DELETE FROM messages WHERE mid = ?', [mid])
-            conn.commit()
-
-    @EventDispatcher.slot(fbchat.MessageEvent)
-    async def save_message(event: fbchat.MessageEvent):
-        conn = db.get()
-        cur = conn.cursor()
-        cur.execute(("INSERT INTO messages (mid, thread_id, author_id, time, message) "
-                     "VALUES (?, ?, ?, ?, ?)"),
-                    [event.message.id, event.thread.id, event.author.id,
-                     int(datetime.timestamp(event.message.created_at)),
-                     serialize_MessageEvent(event)]
-                    )
-        conn.commit()
-
-        if event.message.attachments:
-            await asyncio.gather(*[WiertarBot.save_attachment(i)
-                                   for i in event.message.attachments])
-
+    @staticmethod
     async def save_attachment(attachment):
         name = type(attachment).__name__
         if name in ['AudioAttachment', 'ImageAttachment', 'VideoAttachment']:
             if name == 'AudioAttachment':
                 url = attachment.url
-                p = path.join(config.attachment_save_path,
-                              attachment.filename)
+                p = str(config.attachment_save_path / attachment.filename)
             elif name == 'ImageAttachment':
                 url = await WiertarBot.client.fetch_image_url(attachment.id)
-                p = path.join(config.attachment_save_path,
-                              f'{ attachment.id }.{ attachment.original_extension }')
+                p = str(config.attachment_save_path / f'{ attachment.id }.{ attachment.original_extension }')
             elif name == 'VideoAttachment':
                 url = attachment.preview_url
-                p = path.join(config.attachment_save_path,
-                              f'{ attachment.id }.mp4')
+                p = str(config.attachment_save_path / f'{ attachment.id }.mp4')
 
             async with WiertarBot.session._session.get(url) as r:
                 if r.status == 200:
                     async with aiofiles.open(p, mode='wb') as f:
                         await f.write(await r.read())
 
+    @staticmethod
     async def upload(
                 files: Iterable[str], voice_clip=False
             ) -> Optional[Sequence[Tuple[str, str]]]:
@@ -224,37 +169,33 @@ class WiertarBot():
 
         return uploaded
 
-    async def message_garbage_collector(self):
-        conn = db.get()
-        cur = conn.cursor()
-
+    @staticmethod
+    async def message_garbage_collector():
         while True:
             t = int(time()) - config.time_to_remove_sent_messages
-            cur.execute("SELECT mid, message FROM messages WHERE time < ? ORDER BY time ASC", [t])
-            messages = cur.fetchall()
-            for message in messages:
-                mid, msg = message
-                msg = json.loads(msg)
+            messages: Iterable[FBMessage] = FBMessage\
+                .select(FBMessage.message_id, FBMessage.message)\
+                .where(FBMessage.time < t, FBMessage.deleted_at is None)\
+                .order_by(FBMessage.time)
 
-                for att in msg['attachments']:
-                    if att['type'] == 'ImageAttachment':
-                        p = path.join(config.attachment_save_path,
-                                      f'{ att["id"] }.{ att["original_extension"] }')
-                    elif att['type'] == 'AudioAttachment':
-                        p = path.join(config.attachment_save_path,
-                                      att['filename'])
-                    elif att['type'] == 'VideoAttachment':
-                        p = path.join(config.attachment_save_path,
-                                      f'{ att["id"] }.mp4')
+            for message in messages:
+                deserialized_message = json.loads(message.message)
+
+                for attachment in deserialized_message['attachments']:
+                    if attachment['type'] == 'ImageAttachment':
+                        p = config.attachment_save_path / f'{ attachment["id"] }.{ attachment["original_extension"] }'
+                    elif attachment['type'] == 'AudioAttachment':
+                        p = config.attachment_save_path / attachment['filename']
+                    elif attachment['type'] == 'VideoAttachment':
+                        p = config.attachment_save_path / f'{ attachment["id"] }.mp4'
                     else:
                         continue
 
-                    if path.exists(p):
-                        remove(p)
+                    if p.exists():
+                        p.unlink()
 
-                cur.execute("DELETE FROM messages WHERE mid = ?", [mid])
+                message.delete_instance()
 
-            conn.commit()
             del messages
 
             await sleep(6*60*60)
