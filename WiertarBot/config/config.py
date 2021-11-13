@@ -33,7 +33,7 @@ wb_site = {
 
 stats_api = {
     "headers": {
-        "API_KEY": "",
+        "API-KEY": "",
         "Content-Type": "application/json"
     },
     "message_url": ""
