@@ -1,5 +1,5 @@
 import fbchat
-from requests import post
+from requests import post, delete
 
 from .config import stats_api
 
@@ -11,7 +11,7 @@ def post_message(message: str) -> None:
         print(e)
 
 
-def post_delete_message(unsend: fbchat.UnsendEvent):
+def delete_message(unsend: fbchat.UnsendEvent):
     try:
         request = {
             "message_id": unsend.message.id,
@@ -20,6 +20,6 @@ def post_delete_message(unsend: fbchat.UnsendEvent):
             "at": unsend.at.timestamp()
         }
 
-        post(stats_api["delete_message_url"], json=request, headers=stats_api["headers"])
+        delete(stats_api["message_url"], json=request, headers=stats_api["headers"])
     except Exception as e:
         print(e)

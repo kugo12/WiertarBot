@@ -36,7 +36,6 @@ stats_api = {
         "API_KEY": "",
         "Content-Type": "application/json"
     },
-    "delete_message_url": "",
     "message_url": ""
 }
 

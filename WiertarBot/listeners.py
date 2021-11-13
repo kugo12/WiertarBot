@@ -45,7 +45,7 @@ async def on_nickname_change(event: fbchat.NicknameSet):
 async def on_unsend(event: fbchat.UnsendEvent):
     deleted_at = int(datetime.timestamp(event.at))
 
-    statistics.post_delete_message(event)
+    statistics.delete_message(event)
 
     FBMessage\
         .update(deleted_at=deleted_at)\
