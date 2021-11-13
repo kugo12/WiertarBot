@@ -43,3 +43,7 @@ stats_api = {
 image_edit_timeout = 5*60
 
 time_to_remove_sent_messages = 24*60*60
+
+
+def unlock_facebook_account() -> str:
+    raise NotImplementedError()

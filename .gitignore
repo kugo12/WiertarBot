@@ -4,6 +4,7 @@ __pycache__/
 db.sqlite3
 db.sqlite3-journal
 local_config.py
+unlock.py
 .vscode/
 cookies.json
 
