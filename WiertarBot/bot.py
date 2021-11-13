@@ -5,16 +5,16 @@ import mimetypes
 import aiohttp
 import aiofiles
 import asyncio
-from os import path, remove
+from os import path
 from asyncio import sleep, get_event_loop
 from typing import Iterable, Optional, Sequence, Tuple
 from io import BytesIO
 from time import time
 
-from . import config, unlock
+from . import config
 from .dispatch import EventDispatcher
 from .utils import execute_after_delay
-from .database import FBMessage, init_db
+from .database import FBMessage
 
 
 class WiertarBot:
@@ -40,7 +40,7 @@ class WiertarBot:
             config.cookie_path.open('w').close()  # clear session file
 
             if 'account is locked' in e.message or 'Failed loading session' in e.message:
-                config.password = unlock.FacebookUnlock()
+                config.password = config.unlock_facebook_account()
 
             WiertarBot.session = await self._login()
 
@@ -104,7 +104,7 @@ class WiertarBot:
         except (fbchat.NotLoggedIn, ValueError) as e:
             print(e)
             if 'account is locked' in e.message:
-                config.password = unlock.FacebookUnlock()
+                config.password = config.unlock_facebook_account()
                 WiertarBot.session = await self._login()
                 WiertarBot.client = fbchat.Client(session=WiertarBot.session)
                 loop.create_task(self.run())
