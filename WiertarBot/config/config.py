@@ -31,6 +31,15 @@ wb_site = {
     "add_suggestion_url": "",
 }
 
+stats_api = {
+    "headers": {
+        "API_KEY": "",
+        "Content-Type": "application/json"
+    },
+    "delete_message_url": "",
+    "message_url": ""
+}
+
 image_edit_timeout = 5*60
 
 time_to_remove_sent_messages = 24*60*60

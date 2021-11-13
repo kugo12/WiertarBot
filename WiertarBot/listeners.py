@@ -3,7 +3,7 @@ from datetime import datetime
 
 import fbchat
 
-from . import perm
+from . import perm, statistics
 from .bot import WiertarBot
 from .dispatch import EventDispatcher
 from .utils import serialize_MessageEvent
@@ -45,6 +45,8 @@ async def on_nickname_change(event: fbchat.NicknameSet):
 async def on_unsend(event: fbchat.UnsendEvent):
     deleted_at = int(datetime.timestamp(event.at))
 
+    statistics.post_delete_message(event)
+
     FBMessage\
         .update(deleted_at=deleted_at)\
         .where(FBMessage.message_id == event.message.id)\
@@ -55,12 +57,15 @@ async def on_unsend(event: fbchat.UnsendEvent):
 async def save_message(event: fbchat.MessageEvent):
     created_at = int(datetime.timestamp(event.message.created_at))
 
+    serialized_message = serialize_MessageEvent(event)
+    statistics.post_message(serialized_message)
+
     FBMessage(
         message_id=event.message.id,
         thread_id=event.thread.id,
         author_id=event.author.id,
         time=created_at,
-        message=serialize_MessageEvent(event)
+        message=serialized_message
     ).save()
 
     if event.message.attachments:
