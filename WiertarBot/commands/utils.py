@@ -258,7 +258,7 @@ async def see(event: fbchat.MessageEvent) -> Response:
     messages: Iterable[FBMessage] = FBMessage\
         .select(FBMessage.message)\
         .where(
-            FBMessage.deleted_at is not None,
+            FBMessage.deleted_at != None,
             FBMessage.thread_id == event.thread.id
         )\
         .order_by(FBMessage.time.desc())\
