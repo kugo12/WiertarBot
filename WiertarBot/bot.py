@@ -175,7 +175,7 @@ class WiertarBot:
             t = int(time()) - config.time_to_remove_sent_messages
             messages: Iterable[FBMessage] = FBMessage\
                 .select(FBMessage.message_id, FBMessage.message)\
-                .where(FBMessage.time < t, FBMessage.deleted_at is None)\
+                .where(FBMessage.time < t, FBMessage.deleted_at == None)\
                 .order_by(FBMessage.time)
 
             for message in messages:
