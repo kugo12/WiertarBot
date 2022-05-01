@@ -508,13 +508,10 @@ async def tlumacz(event: fbchat.MessageEvent) -> Response:
 
 
 sundays = [
-    date(2021, 1, 31),
-    date(2021, 3, 28),
-    date(2021, 4, 25),
-    date(2021, 6, 27),
-    date(2021, 8, 29),
-    date(2021, 12, 12),
-    date(2021, 12, 19)
+    date(2022, 6, 26),
+    date(2022, 8, 28),
+    date(2022, 12, 11),
+    date(2022, 12, 18)
 ]
     
 
