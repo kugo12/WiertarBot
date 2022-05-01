@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import fbchat
 import json
 import atexit
@@ -121,10 +123,10 @@ class WiertarBot:
                 p = str(config.attachment_save_path / attachment.filename)
             elif name == 'ImageAttachment':
                 url = await WiertarBot.client.fetch_image_url(attachment.id)
-                p = str(config.attachment_save_path / f'{ attachment.id }.{ attachment.original_extension }')
+                p = str(config.attachment_save_path / f'{attachment.id}.{attachment.original_extension}')
             elif name == 'VideoAttachment':
                 url = attachment.preview_url
-                p = str(config.attachment_save_path / f'{ attachment.id }.mp4')
+                p = str(config.attachment_save_path / f'{attachment.id}.mp4')
 
             async with WiertarBot.session._session.get(url) as r:
                 if r.status == 200:
@@ -133,8 +135,8 @@ class WiertarBot:
 
     @staticmethod
     async def upload(
-                files: Iterable[str], voice_clip=False
-            ) -> Optional[Sequence[Tuple[str, str]]]:
+            files: Iterable[str], voice_clip=False
+    ) -> Optional[Sequence[Tuple[str, str]]]:
 
         final_files = []
         for fn in files:
@@ -173,9 +175,9 @@ class WiertarBot:
     async def message_garbage_collector():
         while True:
             t = int(time()) - config.time_to_remove_sent_messages
-            messages: Iterable[FBMessage] = FBMessage\
-                .select(FBMessage.message_id, FBMessage.message)\
-                .where(FBMessage.time < t, FBMessage.deleted_at == None)\
+            messages: Iterable[FBMessage] = FBMessage \
+                .select(FBMessage.message) \
+                .where(FBMessage.time < t, FBMessage.deleted_at == None) \
                 .order_by(FBMessage.time)
 
             for message in messages:
@@ -183,19 +185,22 @@ class WiertarBot:
 
                 for attachment in deserialized_message['attachments']:
                     if attachment['type'] == 'ImageAttachment':
-                        p = config.attachment_save_path / f'{ attachment["id"] }.{ attachment["original_extension"] }'
+                        p = config.attachment_save_path / f'{attachment["id"]}.{attachment["original_extension"]}'
                     elif attachment['type'] == 'AudioAttachment':
                         p = config.attachment_save_path / attachment['filename']
                     elif attachment['type'] == 'VideoAttachment':
-                        p = config.attachment_save_path / f'{ attachment["id"] }.mp4'
+                        p = config.attachment_save_path / f'{attachment["id"]}.mp4'
                     else:
                         continue
 
                     if p.exists():
                         p.unlink()
 
-                message.delete_instance()
+            count = FBMessage.delete() \
+                .where(FBMessage.time < t, FBMessage.deleted_at == None) \
+                .execute()
+            print(f"Deleted {count} messages from db")
 
             del messages
 
-            await sleep(6*60*60)
+            await sleep(6 * 60 * 60)
