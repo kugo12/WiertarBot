@@ -13,3 +13,4 @@ cloudscraper==1.2.58
 selenium==3.141.0
 peewee==3.14.8
 2captcha-python==1.1.0
+simplegmail==4.0.4
