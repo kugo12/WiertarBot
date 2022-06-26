@@ -24,11 +24,6 @@ thecatapi_headers = {
     "x-api-key": ""
 }
 
-wb_site = {
-    "api_key": "",
-    "add_suggestion_url": "",
-}
-
 stats_api = {
     "headers": {
         "API-KEY": "",
