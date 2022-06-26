@@ -1,9 +1,9 @@
-FROM pypy:3.7-slim-buster
+FROM pypy:3.9-slim
 
 WORKDIR /app
 
 RUN apt -y update &&  \
-    apt install -y chromium zlib1g-dev libjpeg-dev chromium-driver gcc libfreetype6-dev &&  \
+    apt install -y chromium-driver libxml2-dev libxslt-dev zlib1g-dev libjpeg-dev gcc libfreetype6-dev && \
     ln -s /usr/bin/chromium /usr/bin/google-chrome && \
     apt clean -y && \
     useradd -U user && \
