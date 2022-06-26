@@ -448,37 +448,12 @@ async def covid(event: fbchat.MessageEvent) -> Response:
 async def sugestia(event: fbchat.MessageEvent) -> Response:
     """
     Użycie:
-        {command} (tekst, minimum dwa wyrazy)
+        {command}
     Zwraca:
-        link do strony z dodaną sugestią
-    Link do sugestii:
-        https://wiertarbot.pl/sugestie/
+        https://github.com/kugo12/WiertarBot/issues
     """
 
-    msg = sugestia.__doc__
-
-    args = event.message.text.split(' ', 3)
-    if len(args) > 2 and ' ' not in args:
-        txt = ' '.join(args[1:])
-        name = await WiertarBot.client.fetch_thread_info(event.author.id).__anext__()
-        name = name.name
-
-        data = {
-            'api': wb_site['api_key'],
-            'text': txt,
-            'name': name
-        }
-
-        response = requests.post(url=wb_site['add_suggestion_url'], data=data)
-
-        if response.status_code == 200:
-            url = json.loads(response.text)['url']
-            msg = f'Sugestia pomyślnie dodana, znajduje się pod adresem:\nhttps://{ url }'
-
-        else:
-            msg = 'Coś poszło nie tak'
-
-    return Response(event, text=msg)
+    return Response(event, text="https://github.com/kugo12/WiertarBot/issues")
 
 
 translator = Translator()
