@@ -1,13 +1,13 @@
 version: "3.3"
 
 services:
-    bot:
-        build: ./
-        container_name: WiertarBot
-        volumes:
-            - ./WiertarBot:/app/WiertarBot
-            - ./main.py:/app/main.py
-            - ./cookies.json:/app/cookies.json
-            - ./db.sqlite3:/app/db.sqlite3
-            - ./saved:/app/saved
-        
+  bot:
+#    build: ./
+    image: kugo12/wiertarbot
+    container_name: WiertarBot
+    volumes:
+      - ./WiertarBot:/app/WiertarBot:ro
+      - ./main.py:/app/main.py:ro
+      - ./cookies.json:/app/cookies.json
+      - ./db.sqlite3:/app/db.sqlite3
+      - ./saved:/app/saved
