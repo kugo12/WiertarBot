@@ -2,16 +2,19 @@ import fbchat
 import random
 import requests
 import json
+import asyncio
+from decimal import Decimal
 from bs4 import BeautifulSoup
 from datetime import datetime, date
 from io import BytesIO
 from aiogtts import aiogTTS
 from aiogoogletrans import Translator
+from forex_python.converter import CurrencyRates, RatesNotAvailableError
 
 from ..dispatch import MessageEventDispatcher
 from ..response import Response
 from ..bot import WiertarBot
-from ..config import cmd_media_path, wb_site
+from ..config import cmd_media_path
 from .modules import AliPaczka, Fantano
 
 
@@ -60,7 +63,7 @@ async def kostka(event: fbchat.MessageEvent) -> Response:
     """
 
     n = random.randint(1, 6)
-    msg = f'Wyrzuciłeś { n }'
+    msg = f'Wyrzuciłeś {n}'
 
     return Response(event, text=msg)
 
@@ -76,9 +79,9 @@ async def szkaluj(event: fbchat.MessageEvent) -> Response:
 
     text = event.message.text.lower()
     is_group_and_random = (
-        event.thread.id != event.author.id
-        and text.count(' ') == 1
-        and text.endswith(' random')
+            event.thread.id != event.author.id
+            and text.count(' ') == 1
+            and text.endswith(' random')
     )
     if is_group_and_random:
         thread = await WiertarBot.client.fetch_thread_info([event.thread.id]).__anext__()
@@ -205,7 +208,7 @@ __czas_localize_datetime = {
     "Sunday": "Niedziela"
 }
 __czas_timers = [
-        ("Koniec wakacji (1 wrzesnia) za: ", datetime(2021, 9, 1))
+    ("Koniec wakacji (1 wrzesnia) za: ", datetime(2021, 9, 1))
 ]
 
 
@@ -225,7 +228,7 @@ async def czas(event: fbchat.MessageEvent) -> Response:
         if i in now_str:
             now_str = now_str.replace(i, __czas_localize_datetime[i])
 
-    msg = f'Jest: { now_str }'
+    msg = f'Jest: {now_str}'
 
     for timer in __czas_timers:
         timedelta = timer[1] - now
@@ -236,7 +239,7 @@ async def czas(event: fbchat.MessageEvent) -> Response:
             m = (timedelta.seconds // 60) % 60
             s = int(timedelta.seconds % 60)
 
-            msg += f'\n{ timer[0] }: { d }d { h }h { m }min { s }sek'
+            msg += f'\n{timer[0]}: {d}d {h}h {m}min {s}sek'
 
     return Response(event, text=msg)
 
@@ -273,7 +276,7 @@ async def slownik(event: fbchat.MessageEvent) -> Response:
     arg = event.message.text.split(' ', 1)
     if len(arg) == 2:
         arg = arg[1].lower()
-        url = f'https://sjp.pwn.pl/slowniki/{ arg.replace(" ", "-") }'
+        url = f'https://sjp.pwn.pl/slowniki/{arg.replace(" ", "-")}'
 
         response = requests.get(url).text
         parsed = BeautifulSoup(response, 'html.parser')
@@ -300,7 +303,7 @@ async def miejski(event: fbchat.MessageEvent) -> Response:
     arg = event.message.text.split(' ', 1)
     if len(arg) == 2:
         arg = arg[1].lower()
-        url = f'https://www.miejski.pl/slowo-{ arg.replace(" ", "+") }'
+        url = f'https://www.miejski.pl/slowo-{arg.replace(" ", "+")}'
 
         response = requests.get(url)
         if response.status_code == 404:
@@ -312,9 +315,9 @@ async def miejski(event: fbchat.MessageEvent) -> Response:
             definition = main.find('p').get_text()
 
             example = main.find('blockquote')
-            example = f'\n\nPrzyklad/y: { example.get_text() }' if example else ''
+            example = f'\n\nPrzyklad/y: {example.get_text()}' if example else ''
 
-            msg = f'{ arg }\nDefinicja: { definition }{ example }'
+            msg = f'{arg}\nDefinicja: {definition}{example}'
 
     return Response(event, text=msg)
 
@@ -379,25 +382,25 @@ async def mc(event: fbchat.MessageEvent) -> Response:
     if len(args) == 3:
         arg = args[1].lower()
 
-        uuid = requests.get(f'https://api.mojang.com/users/profiles/minecraft/{ args[2] }').text
+        uuid = requests.get(f'https://api.mojang.com/users/profiles/minecraft/{args[2]}').text
         if uuid:
             uuid = json.loads(uuid)["id"]
 
             if arg == 'names':
-                names = requests.get(f'https://api.mojang.com/user/profiles/{ uuid }/names').text
+                names = requests.get(f'https://api.mojang.com/user/profiles/{uuid}/names').text
                 names = json.loads(names)
 
-                msg = f'Oryginalny: { names[0]["name"] }\n'
+                msg = f'Oryginalny: {names[0]["name"]}\n'
                 for name in names[1:]:
-                    date = datetime.fromtimestamp(name['changedToAt']/1000)
-                    msg += f'{ date }: { name["name"] }\n'
+                    date = datetime.fromtimestamp(name['changedToAt'] / 1000)
+                    msg += f'{date}: {name["name"]}\n'
 
             elif arg == 'skin':
                 files = [
-                    f'https://crafatar.com/skins/{ uuid }.png',
-                    f'https://crafatar.com/renders/body/{ uuid }.png?overlay&scale=6',
-                    f'https://crafatar.com/avatars/{ uuid }.png',
-                    f'https://crafatar.com/renders/head/{ uuid }.png?overlay&scale=6'
+                    f'https://crafatar.com/skins/{uuid}.png',
+                    f'https://crafatar.com/renders/body/{uuid}.png?overlay&scale=6',
+                    f'https://crafatar.com/avatars/{uuid}.png',
+                    f'https://crafatar.com/renders/head/{uuid}.png?overlay&scale=6'
                 ]
                 msg = None
 
@@ -425,19 +428,19 @@ async def covid(event: fbchat.MessageEvent) -> Response:
         fields = response["features"][0]["attributes"]
 
         msg = (
-            f'Statystyki COVID19 w Polsce na { fields["DATA_SHOW"] }:\n'
+            f'Statystyki COVID19 w Polsce na {fields["DATA_SHOW"]}:\n'
             'Dziennie:\n'
-            f'{ fields["ZAKAZENIA_DZIENNE"] } zakażonych\n'
-            f'{ fields["ZGONY_DZIENNE"] } zgonów\n'
-            f'{ fields["LICZBA_OZDROWIENCOW"] } ozdrowieńców\n'
-            f'{ fields["TESTY"] } testów\n'
-            f'{ fields["TESTY_POZYTYWNE"] } testów pozytywnych\n'
-            f'{ fields["KWARANTANNA"] } osób na kwarantannie aktualnie\n'
+            f'{fields["ZAKAZENIA_DZIENNE"]} zakażonych\n'
+            f'{fields["ZGONY_DZIENNE"]} zgonów\n'
+            f'{fields["LICZBA_OZDROWIENCOW"]} ozdrowieńców\n'
+            f'{fields["TESTY"]} testów\n'
+            f'{fields["TESTY_POZYTYWNE"]} testów pozytywnych\n'
+            f'{fields["KWARANTANNA"]} osób na kwarantannie aktualnie\n'
 
             '\nOgółem:\n'
-            f'{ fields["LICZBA_ZAKAZEN"] } zakażonych\n'
-            f'{ fields["WSZYSCY_OZDROWIENCY"] } ozdrowieńców\n'
-            f'{ fields["LICZBA_ZGONOW"] } zgonów'
+            f'{fields["LICZBA_ZAKAZEN"]} zakażonych\n'
+            f'{fields["WSZYSCY_OZDROWIENCY"]} ozdrowieńców\n'
+            f'{fields["LICZBA_ZGONOW"]} zgonów'
             # f'szczegółowe dane Polski !covid s\n'
         )
 
@@ -488,7 +491,7 @@ sundays = [
     date(2022, 12, 11),
     date(2022, 12, 18)
 ]
-    
+
 
 @MessageEventDispatcher.register()
 async def niedziela(event: fbchat.MessageEvent) -> Response:
@@ -517,13 +520,14 @@ async def niedziela(event: fbchat.MessageEvent) -> Response:
         if nearest_sunday:
             msg = "Dzisiejsza niedziela jest handlowa"
             if now != nearest_sunday:
-                msg = f"Najbliższa handlowa niedziela: { nearest_sunday.isoformat() }"
+                msg = f"Najbliższa handlowa niedziela: {nearest_sunday.isoformat()}"
 
     elif request[1] == "lista":
         msg = "Niedziele handlowe:\n- " \
-            + "\n- ".join([i.isoformat() for i in sundays if i >= now])
+              + "\n- ".join([i.isoformat() for i in sundays if i >= now])
 
     return Response(event, text=msg)
+
 
 @MessageEventDispatcher.register(aliases=['anthony', 'melon'])
 async def fantano(event: fbchat.MessageEvent) -> Response:
@@ -545,5 +549,40 @@ async def fantano(event: fbchat.MessageEvent) -> Response:
         )
     else:
         msg = fantano.__doc__
+
+    return Response(event, text=msg)
+
+
+def __convert_currency(_from: str, to: str, amount: Decimal) -> Decimal:
+    return CurrencyRates(force_decimal=True) \
+        .convert(_from, to, amount)
+
+
+@MessageEventDispatcher.register(aliases=["przelicz"])
+async def kurs(event: fbchat.MessageEvent) -> Response:
+    f"""
+    Użycie:
+        {{command}} <z waluty> <do waluty> (ilosc=1)
+    Zwraca:
+        Obecny kurs Forex
+    
+    """
+
+    args = event.message.text.split(" ")
+    msg = kurs.__doc__
+
+    if len(args) == 3 or len(args) == 4:
+        try:
+            currency_from = args[1].upper()
+            currency_to = args[2].upper()
+            amount = Decimal(args[3] if len(args) == 4 else 1)
+
+            converted = await asyncio.to_thread(__convert_currency, currency_from, currency_to, amount)
+
+            msg = f"{amount} {currency_from} to {converted:.4f} {currency_to}"
+        except ValueError:
+            msg = "Ostatni argument (ilość) nie jest liczbą"
+        except RatesNotAvailableError:
+            msg = "Nieprawidłowa waluta"
 
     return Response(event, text=msg)
