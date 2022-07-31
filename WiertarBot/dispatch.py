@@ -61,9 +61,9 @@ class MessageEventDispatcher:
                 if func.__doc__:
                     func.__doc__ = inspect.cleandoc(func.__doc__)
                     format_docstr = {
-                        'prefix': config.prefix,
+                        'prefix': config.wiertarbot.prefix,
                         'name': _name,
-                        'command': config.prefix+_name
+                        'command': config.wiertarbot.prefix+_name
                     }
                     func.__doc__ = func.__doc__.format(**format_docstr)
 
@@ -89,9 +89,9 @@ class MessageEventDispatcher:
                 pass
             else:
                 if event.message.text:
-                    if event.message.text.startswith(config.prefix):
+                    if event.message.text.startswith(config.wiertarbot.prefix):
                         # first word without prefix
-                        fw = event.message.text.split(' ', 1)[0][len(config.prefix):].lower()
+                        fw = event.message.text.split(' ', 1)[0][len(config.wiertarbot.prefix):].lower()
                         if fw in MessageEventDispatcher._alias_of:
                             fw = MessageEventDispatcher._alias_of[fw]
 
