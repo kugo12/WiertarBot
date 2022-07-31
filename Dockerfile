@@ -8,14 +8,14 @@ RUN apt -y update &&  \
     apt clean -y && \
     useradd -U user && \
     pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir requests
+    pip install --no-cache-dir requests wheel
 
 COPY requirements.txt ./
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./main.py ./WiertarBot ./tools ./
+COPY ./WiertarBot ./tools ./
 
 USER user
 
-CMD [ "pypy3", "./main.py" ]
+CMD [ "pypy3", "-m", "WiertarBot" ]

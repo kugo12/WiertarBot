@@ -1,7 +1,7 @@
 import asyncio
 
-from WiertarBot import WiertarBot
-from WiertarBot.integrations import sentry
+from .bot import WiertarBot
+from .integrations import sentry
 
 sentry.init()
 bot = WiertarBot()
