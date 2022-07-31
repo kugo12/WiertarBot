@@ -2,9 +2,6 @@ from pathlib import Path
 
 root_dir = Path(__file__).parents[2]
 
-db_path = root_dir / "db.sqlite3"
-db_schema_path = root_dir / "WiertarBot/config/db_schema.sql"
-
 config_path = root_dir / "application.yml"
 
 upload_save_path = root_dir / "WiertarBot/upload"

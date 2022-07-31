@@ -1,8 +1,14 @@
 from peewee import *
 
-from ..config import db_path
+from ..config import database
 
-db = SqliteDatabase(str(db_path))
+db = PostgresqlDatabase(
+    database.name,
+    user=database.user,
+    password=database.password,
+    host=database.host,
+    port=database.port
+)
 
 
 class BaseModel(Model):

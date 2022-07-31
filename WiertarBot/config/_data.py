@@ -11,6 +11,15 @@ class WiertarBotConfig:
     prefix: str = "!"
 
 
+@config.properties("database")
+class DatabaseConfig:
+    name: str
+    user: str
+    password: str
+    host: str
+    port: int = 5432
+
+
 @config.properties("sentry", optional=True)
 class SentryConfig:
     dsn: str
