@@ -2,13 +2,14 @@ import fbchat
 from requests import post, delete
 
 from .config import stats_api
+from .integrations.sentry import capture_exception
 
 
-def post_message(message: str) -> None:
+def post_message(message: str):
     try:
         post(stats_api["message_url"], data=message, headers=stats_api["headers"])
     except Exception as e:
-        print(e)
+        capture_exception(e)
 
 
 def delete_message(unsend: fbchat.UnsendEvent):
@@ -22,4 +23,4 @@ def delete_message(unsend: fbchat.UnsendEvent):
 
         delete(stats_api["message_url"], json=request, headers=stats_api["headers"])
     except Exception as e:
-        print(e)
+        capture_exception(e)

@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from pathlib import Path
 
 root_dir = Path(__file__).parents[2]
@@ -32,9 +33,18 @@ stats_api = {
     "message_url": ""
 }
 
-image_edit_timeout = 5*60
+image_edit_timeout = 5 * 60
 
-time_to_remove_sent_messages = 24*60*60
+time_to_remove_sent_messages = 24 * 60 * 60
+
+sentry = None
+
+
+@dataclass
+class SentryConfig:
+    dsn: str
+    environment: str
+    sample_rate: float
 
 
 def unlock_facebook_account() -> str:
