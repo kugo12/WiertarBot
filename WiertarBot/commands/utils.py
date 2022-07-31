@@ -5,10 +5,9 @@ import asyncio
 from io import BytesIO
 from typing import List, Awaitable, Iterable
 
-from .. import perm
+from .. import perm, config
 from ..dispatch import MessageEventDispatcher
 from ..response import Response
-from ..config import prefix, attachment_save_path
 from ..bot import WiertarBot
 from ..database import FBMessage
 
@@ -23,7 +22,7 @@ async def help(event: fbchat.MessageEvent) -> Response:
         z argumentem informacje o podanej komendzie
     """
 
-    text = event.message.text.lower().replace(prefix, '')
+    text = event.message.text.lower().replace(config.wiertarbot.prefix, '')
     if text.count(' '):
         arg = text.split(' ', 1)[1]
 
@@ -41,7 +40,7 @@ async def help(event: fbchat.MessageEvent) -> Response:
     else:
         cmd = ', '.join(MessageEventDispatcher._commands)
         msg = (
-            f'Prefix: { prefix }\n'
+            f'Prefix: { config.wiertarbot.prefix }\n'
             f'Komendy: { cmd }'
         )
 
@@ -145,7 +144,7 @@ async def ban(event: fbchat.MessageEvent) -> Response:
         status
     """
 
-    base = prefix+'perm add banned wl '
+    base = config.wiertarbot.prefix+'perm add banned wl '
     without_fw = event.message.text.split(' ', 1)[1]
 
     event.message.text = base + without_fw
@@ -163,7 +162,7 @@ async def unban(event: fbchat.MessageEvent) -> Response:
         status
     """
 
-    base = prefix+'perm rem banned wl '
+    base = config.wiertarbot.prefix+'perm rem banned wl '
     without_fw = event.message.text.split(' ', 1)[1]
 
     event.message.text = base + without_fw
@@ -277,14 +276,14 @@ async def see(event: fbchat.MessageEvent) -> Response:
         files = []
         for att in message['attachments']:
             if att['type'] == 'ImageAttachment':
-                p = attachment_save_path / f'{ att["id"] }.{ att["original_extension"] }'
+                p = config.attachment_save_path / f'{ att["id"] }.{ att["original_extension"] }'
                 files.append(str(p))
             elif att['type'] == 'AudioAttachment':
-                p = attachment_save_path / att['filename']
+                p = config.attachment_save_path / att['filename']
                 files.append(str(p))
                 voice_clip = True
             elif att['type'] == 'VideoAttachment':
-                p = attachment_save_path / f'{ att["id"] }.mp4'
+                p = config.attachment_save_path / f'{ att["id"] }.mp4'
                 files.append(str(p))
 
         response = Response(

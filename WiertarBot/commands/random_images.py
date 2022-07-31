@@ -145,20 +145,25 @@ async def wink(event: fbchat.MessageEvent) -> Response:
     return Response(event, files=[image_url])
 
 
-@MessageEventDispatcher.register(aliases=['cat', 'kot'])
-async def catto(event: fbchat.MessageEvent) -> Response:
-    """
-    Użycie:
-        {command}
-    Zwraca:
-        zdjęcie z kotem
-    """
+if config.cat_api is not None:
+    @MessageEventDispatcher.register(aliases=['cat', 'kot'])
+    async def catto(event: fbchat.MessageEvent) -> Response:
+        """
+        Użycie:
+            {command}
+        Zwraca:
+            zdjęcie z kotem
+        """
 
-    response = requests.get('https://api.thecatapi.com/v1/images/search', config.thecatapi_headers)
-    data = json.loads(response.text)
-    image_url = data[0]['url']
+        headers = {
+            "x-api-key": config.cat_api.key
+        }
 
-    return Response(event, files=[image_url])
+        response = requests.get('https://api.thecatapi.com/v1/images/search', headers=headers)
+        data = json.loads(response.text)
+        image_url = data[0]['url']
+
+        return Response(event, files=[image_url])
 
 
 @MessageEventDispatcher.register(aliases=['panda'])

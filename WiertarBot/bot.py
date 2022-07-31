@@ -42,7 +42,7 @@ class WiertarBot:
             config.cookie_path.open('w').close()  # clear session file
 
             if 'account is locked' in e.message or 'Failed loading session' in e.message:
-                config.password = config.unlock_facebook_account()
+                config.unlock_facebook_account()
 
             WiertarBot.session = await self._login()
 
@@ -76,7 +76,7 @@ class WiertarBot:
             except fbchat.FacebookError:
                 print('Error at loading session from cookies')
 
-        return await fbchat.Session.login(config.email, config.password,
+        return await fbchat.Session.login(config.wiertarbot.email, config.wiertarbot.password,
                                           on_2fa_callback=lambda: input('2fa_code: '))
 
     async def run(self):
@@ -106,7 +106,7 @@ class WiertarBot:
         except (fbchat.NotLoggedIn, ValueError) as e:
             print(e)
             if 'account is locked' in e.message:
-                config.password = config.unlock_facebook_account()
+                config.unlock_facebook_account()
                 WiertarBot.session = await self._login()
                 WiertarBot.client = fbchat.Client(session=WiertarBot.session)
                 loop.create_task(self.run())
