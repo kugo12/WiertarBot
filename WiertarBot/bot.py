@@ -76,15 +76,19 @@ class WiertarBot:
             except fbchat.FacebookError:
                 print('Error at loading session from cookies')
 
-        return await fbchat.Session.login(config.wiertarbot.email, config.wiertarbot.password,
-                                          on_2fa_callback=lambda: input('2fa_code: '))
+        return await fbchat.Session.login(
+            config.wiertarbot.email, config.wiertarbot.password,
+            on_2fa_callback=lambda: input('2fa_code: ')
+        )
 
     async def run(self):
         loop = get_event_loop()
 
         try:
-            WiertarBot.listener = fbchat.Listener(session=WiertarBot.session,
-                                                  chat_on=True, foreground=True)
+            WiertarBot.listener = fbchat.Listener(
+                session=WiertarBot.session,
+                chat_on=True, foreground=True
+            )
 
             # funny sequence id fetching
             WiertarBot.client.sequence_id_callback = WiertarBot.listener.set_sequence_id
@@ -95,7 +99,7 @@ class WiertarBot:
             async for event in WiertarBot.listener.listen():
                 await EventDispatcher.send_signal(event)
 
-        except fbchat.NotConnected as e:
+        except fbchat.FacebookError as e:
             print(e)
             if e.message in ['MQTT error: no connection', 'MQTT reconnection failed']:
                 print('Reconnecting mqtt...')
@@ -103,8 +107,6 @@ class WiertarBot:
                 asyncio.get_event_loop().create_task(self.run())
                 return
 
-        except (fbchat.NotLoggedIn, ValueError) as e:
-            print(e)
             if 'account is locked' in e.message:
                 config.unlock_facebook_account()
                 WiertarBot.session = await self._login()
@@ -124,7 +126,7 @@ class WiertarBot:
             elif name == 'ImageAttachment':
                 url = await WiertarBot.client.fetch_image_url(attachment.id)
                 p = str(config.attachment_save_path / f'{attachment.id}.{attachment.original_extension}')
-            elif name == 'VideoAttachment':
+            else:  # 'VideoAttachment'
                 url = attachment.preview_url
                 p = str(config.attachment_save_path / f'{attachment.id}.mp4')
 

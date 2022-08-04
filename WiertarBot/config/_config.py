@@ -50,3 +50,11 @@ class Config:
             raise TypeError(f"Expected type {item} but item was {type(cls)}")
 
         return cls
+
+    def get(self, item: Type[_T]) -> _T:
+        output = self[item]
+
+        if output is None:
+            raise MissingConfigProperties(f"Missing config object {item}")
+
+        return output

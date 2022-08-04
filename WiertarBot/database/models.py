@@ -1,4 +1,4 @@
-from peewee import *
+from peewee import PostgresqlDatabase, Model, CharField, TextField, TimestampField
 
 from ..config import database
 
