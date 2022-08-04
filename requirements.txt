@@ -14,7 +14,7 @@ chardet==3.0.4
 charset-normalizer==2.0.9
 cloudscraper==1.2.58
 dacite==1.6.0
-fbchat-asyncio==0.6.21
+fbchat-asyncio-kvgx12==0.6.24
 forex-python==1.6
 google-api-core==2.8.2
 google-api-python-client==2.51.0
