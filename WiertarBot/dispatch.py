@@ -2,37 +2,40 @@ import fbchat
 import inspect
 import importlib
 from asyncio import get_event_loop, gather
-from typing import Iterable
+from typing import Iterable, Callable, Coroutine, Any, Optional
 from time import time
 
 from . import bot, perm, config
 from .response import Response
 
+EventCallable = Callable[[fbchat.Event], Coroutine[Any, Any, None]]
+
 
 class EventDispatcher:
-    _slots = {}
+    _slots: dict[str, list[EventCallable]] = {}
 
-    @staticmethod
-    def slot(event):
-        def wrap(func):
+    @classmethod
+    def slot(cls, event: type[fbchat.Event]):
+        def wrap(func: EventCallable):
             name = event.__name__
 
-            if name not in EventDispatcher._slots:
-                EventDispatcher._slots[name] = []
+            if name not in cls._slots:
+                cls._slots[name] = []
 
-            EventDispatcher._slots[name].append(func)
+            cls._slots[name].append(func)
             if name == 'MessageEvent':
-                EventDispatcher.slot(fbchat.MessageReplyEvent)(func)
+                cls.slot(fbchat.MessageReplyEvent)(func)
 
             return func
+
         return wrap
 
-    @staticmethod
-    async def send_signal(event):
+    @classmethod
+    async def send_signal(cls, event):
         name = type(event).__name__
-        if name in EventDispatcher._slots:
+        if name in cls._slots:
             loop = get_event_loop()
-            for func in EventDispatcher._slots[name]:
+            for func in cls._slots[name]:
                 loop.create_task(func(event))
 
 
@@ -45,10 +48,10 @@ class MessageEventDispatcher:
     @staticmethod
     def register(
             *,
-            name: str = None,
-            aliases: Iterable[str] = None,
+            name: Optional[str] = None,
+            aliases: Optional[Iterable[str]] = None,
             special: bool = False
-            ):
+    ):
         def wrap(func):
             if special:
                 MessageEventDispatcher._special.append(func)
@@ -63,7 +66,7 @@ class MessageEventDispatcher:
                     format_docstr = {
                         'prefix': config.wiertarbot.prefix,
                         'name': _name,
-                        'command': config.wiertarbot.prefix+_name
+                        'command': config.wiertarbot.prefix + _name
                     }
                     func.__doc__ = func.__doc__.format(**format_docstr)
 
@@ -79,6 +82,7 @@ class MessageEventDispatcher:
                     perm.edit(_name, ['*'])
 
             return func
+
         return wrap
 
     @staticmethod
@@ -106,7 +110,7 @@ class MessageEventDispatcher:
                                     response = await img_edit.check(event)
                                     if response:
                                         # add to queue
-                                        t_u_id = f'{ event.thread.id }_{ event.author.id }'
+                                        t_u_id = f'{event.thread.id}_{event.author.id}'
                                         queue = (int(time()), img_edit)
                                         MessageEventDispatcher._image_edit_queue[t_u_id] = queue
 
@@ -114,7 +118,7 @@ class MessageEventDispatcher:
                     await gather(*[i(event) for i in MessageEventDispatcher._special])
 
                 else:  # if there is no text in message
-                    t_u_id = f'{ event.thread.id }_{ event.author.id }'
+                    t_u_id = f'{event.thread.id}_{event.author.id}'
                     if t_u_id in MessageEventDispatcher._image_edit_queue:
                         t, img_edit = MessageEventDispatcher._image_edit_queue[t_u_id]
 
@@ -126,11 +130,11 @@ class MessageEventDispatcher:
                         else:  # if timed out
                             del MessageEventDispatcher._image_edit_queue[t_u_id]
 
-    @staticmethod
-    def cleanup():
-        MessageEventDispatcher._special = []
-        MessageEventDispatcher._alias_of = {}
-        MessageEventDispatcher._commands = {}
+    @classmethod
+    def cleanup(cls):
+        cls._special = []
+        cls._alias_of = {}
+        cls._commands = {}
 
 
 @MessageEventDispatcher.register()

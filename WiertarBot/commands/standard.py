@@ -1,3 +1,5 @@
+from typing import Optional
+
 import fbchat
 import random
 import requests
@@ -171,7 +173,7 @@ async def barka(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register(aliases=['xd'])
-async def Xd(event: fbchat.MessageEvent) -> Response:
+async def Xd(event: fbchat.MessageEvent) -> Optional[Response]:
     """
     Użycie:
         !Xd
@@ -257,7 +259,7 @@ async def track(event: fbchat.MessageEvent) -> Response:
 
     arg = event.message.text.split(' ', 1)
     if len(arg) == 2:
-        msg = AliPaczka(arg[1])
+        msg = str(AliPaczka(arg[1]))
 
     return Response(event, text=msg)
 

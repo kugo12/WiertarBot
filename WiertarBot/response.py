@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 import fbchat
 
@@ -12,11 +12,11 @@ class Response:
             self,
             event: fbchat.MessageEvent,
             *,
-            text: str = None,
-            files: List[str] = None,
+            text: Optional[str] = None,
+            files: Optional[List[str]] = None,
             voice_clip: bool = False,
-            mentions: List[fbchat.Mention] = None,
-            reply_to_id: str = None
+            mentions: Optional[List[fbchat.Mention]] = None,
+            reply_to_id: Optional[str] = None
             ):
         self.event = event
         self.text = text

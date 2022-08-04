@@ -112,8 +112,7 @@ async def _perm(event: fbchat.MessageEvent) -> Response:
                 if cmd[4][4:] == 'here':
                     tid = event.thread.id
 
-        # whitelist if true else blacklist
-        bl = 0 if cmd[3] == 'wl' else 1
+        bl = cmd[3] != 'wl'
 
         perms = perm.get_permission(cmd[2])
         add = cmd[1] == 'add'

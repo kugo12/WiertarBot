@@ -15,7 +15,6 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./WiertarBot ./WiertarBot
-COPY ./tools ./tools
 RUN chown -R user:user /app
 
 USER user
