@@ -53,7 +53,7 @@ jobs:
 workflows:
   default:
     when:
-      equal: [ ci, << pipeline.git.branch >> ]
+      equal: [ main, << pipeline.git.branch >> ]
 
     jobs:
       - build_and_push:
