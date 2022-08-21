@@ -1,0 +1,66 @@
+version: 2.1
+
+default_context: &context
+  context:
+    - dockerhub
+
+default_machine: &machine
+  machine:
+    docker_layer_caching: true
+    image: ubuntu-2004:current
+
+executors:
+  x86:
+    <<: *machine
+    resource_class: medium
+  arm:
+    <<: *machine
+    resource_class: arm.large
+
+jobs:
+  build_and_push:
+    parameters:
+      executor:
+        type: executor
+    executor: << parameters.executor >>
+
+    steps:
+      - checkout
+      - run:
+          name: Docker login
+          command: docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_TOKEN
+      - run:
+          name: Build and push
+          command: docker buildx build --progress=plain --push -t $DOCKERHUB_USER/wiertarbot:$(uname -m)-${CIRCLE_SHA1} .
+
+  create_manifest:
+    executor: x86
+    steps:
+      - run:
+          name: Docker login
+          command: docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_TOKEN
+      - run:
+          name: Create and push manifest
+          command: |
+            set -eu
+            export DOCKER_CLI_EXPERIMENTAL=enabled
+            docker manifest create $DOCKERHUB_USER/wiertarbot:latest \
+                                   $DOCKERHUB_USER/wiertarbot:aarch64-${CIRCLE_SHA1} \
+                                   $DOCKERHUB_USER/wiertarbot:x86_64-${CIRCLE_SHA1}
+            docker manifest push $DOCKERHUB_USER/wiertarbot:latest
+
+
+workflows:
+  default:
+    when:
+      equal: [ ci, << pipeline.git.branch >> ]
+
+    jobs:
+      - build_and_push:
+          <<: *context
+          matrix:
+            parameters:
+              executor: [x86, arm]
+      - create_manifest:
+          <<: *context
+          requires: [build_and_push]
