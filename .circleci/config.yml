@@ -1,21 +1,20 @@
 version: 2.1
 
-default_context: &context
-  context:
-    - dockerhub
-
-default_machine: &machine
-  machine:
-    docker_layer_caching: true
-    image: ubuntu-2004:current
-
 executors:
   x86:
-    <<: *machine
+    machine: &machine
+      image: ubuntu-2004:current
+      docker_layer_caching: true
     resource_class: medium
+
   arm:
-    <<: *machine
+    machine: *machine
     resource_class: arm.large
+
+  default:
+    docker:
+      - image: cimg/base:current
+
 
 jobs:
   build_and_push:
@@ -34,8 +33,10 @@ jobs:
           command: docker buildx build --progress=plain --push -t $DOCKERHUB_USER/wiertarbot:$(uname -m)-${CIRCLE_SHA1} .
 
   create_manifest:
-    executor: x86
+    executor: default
     steps:
+      - setup_remote_docker:
+          version: 20.10.14
       - run:
           name: Docker login
           command: docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_TOKEN
@@ -49,6 +50,17 @@ jobs:
                                    $DOCKERHUB_USER/wiertarbot:x86_64-${CIRCLE_SHA1}
             docker manifest push $DOCKERHUB_USER/wiertarbot:latest
 
+  trigger_deployment:
+    executor: default
+    steps:
+      - run:
+          name: Trigger deployment
+          command: |
+            curl -fX POST \
+              -F token=$GITLAB_WB_D_TOKEN \
+              -F ref=main \
+              $GITLAB_WB_D_URL > /dev/null
+
 
 workflows:
   default:
@@ -57,10 +69,13 @@ workflows:
 
     jobs:
       - build_and_push:
-          <<: *context
+          context: [dockerhub]
           matrix:
             parameters:
               executor: [x86, arm]
       - create_manifest:
-          <<: *context
+          context: [dockerhub]
           requires: [build_and_push]
+      - trigger_deployment:
+          context: [gitlab]
+          requires: [create_manifest]
