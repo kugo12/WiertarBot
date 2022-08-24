@@ -6,6 +6,7 @@ from PIL import Image, ImageEnhance, ImageOps, ImageFont, ImageDraw
 from .ABCImageEdit import ImageEditABC
 from ..config import cmd_media_path
 from ..dispatch import MessageEventDispatcher
+from ..log import log
 
 
 @MessageEventDispatcher.register()
@@ -166,8 +167,8 @@ class nobody(ImageEditABC):
 
         try:
             font = ImageFont.truetype(self.arial_path, 44)
-        except OSError:
-            print('Wrzuc czcionke arial.ttf do WiertarBot/commands/media')
+        except OSError as e:
+            log.exception(e)
             return None
 
         img = Image.open(fp).convert("RGB")

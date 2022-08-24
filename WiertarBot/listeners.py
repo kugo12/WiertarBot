@@ -8,11 +8,12 @@ from .bot import WiertarBot
 from .dispatch import EventDispatcher
 from .utils import serialize_MessageEvent
 from .database import FBMessage, db
+from .log import log
 
 
 @EventDispatcher.slot(fbchat.Connect)
 async def on_connect(event: fbchat.Connect):
-    print('Connected')
+    log.info('Connected')
 
 
 @EventDispatcher.slot(fbchat.PeopleAdded)

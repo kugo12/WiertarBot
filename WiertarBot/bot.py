@@ -13,6 +13,7 @@ from . import config
 from .dispatch import EventDispatcher
 from .utils import execute_after_delay
 from .database import FBMessage
+from .log import log
 
 
 class WiertarBot:
@@ -32,7 +33,7 @@ class WiertarBot:
         try:
             WiertarBot.session = await self._login()
         except (fbchat.ParseError, fbchat.NotLoggedIn) as e:
-            print(e)
+            log.exception(e)
             config.cookie_path.open('w').close()  # clear session file
 
             if 'account is locked' in e.message or 'Failed loading session' in e.message:
@@ -45,7 +46,7 @@ class WiertarBot:
 
     @staticmethod
     def save_cookies():
-        print('Saving cookies')
+        log.info('Saving cookies')
         with config.cookie_path.open('w') as f:
             json.dump(WiertarBot.session.get_cookies(), f)
 
@@ -63,7 +64,7 @@ class WiertarBot:
             try:
                 return await fbchat.Session.from_cookies(cookies)
             except fbchat.FacebookError:
-                print('Error at loading session from cookies')
+                log.warn('Error at loading session from cookies')
 
         return await fbchat.Session.login(
             config.wiertarbot.email, config.wiertarbot.password,
@@ -91,9 +92,9 @@ class WiertarBot:
             try:
                 await self._listen()
             except fbchat.FacebookError as e:
-                print(e)
+                log.exception(e)
                 if e.message in ['MQTT error: no connection', 'MQTT reconnection failed']:
-                    print('Reconnecting mqtt...')
+                    log.info('Reconnecting mqtt...')
                     self.listener.disconnect()
                     continue
 
@@ -190,7 +191,7 @@ class WiertarBot:
             count = FBMessage.delete() \
                 .where(FBMessage.time < t, FBMessage.deleted_at == None) \
                 .execute()
-            print(f"Deleted {count} messages from db")
+            log.info(f"Deleted {count} messages from db")
 
             del messages
 
