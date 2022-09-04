@@ -75,7 +75,7 @@ class WiertarBot:
     async def _listen(self):
         WiertarBot.listener = fbchat.Listener(
             session=WiertarBot.session,
-            _chat_on=True, _foreground=True
+            chat_on=True, foreground=True
         )
 
         # funny sequence id fetching
