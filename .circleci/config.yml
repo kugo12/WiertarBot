@@ -59,6 +59,7 @@ jobs:
             curl -fX POST \
               -F token=$GITLAB_WB_D_TOKEN \
               -F ref=main \
+              -F "variables[CI_SOURCE]=WiertarBot" \
               $GITLAB_WB_D_URL > /dev/null
 
 
