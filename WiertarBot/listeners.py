@@ -7,12 +7,13 @@ from . import perm, statistics
 from .bot import WiertarBot
 from .dispatch import EventDispatcher
 from .utils import serialize_MessageEvent
-from .database import FBMessage
+from .database import FBMessage, db
+from .log import log
 
 
 @EventDispatcher.slot(fbchat.Connect)
 async def on_connect(event: fbchat.Connect):
-    print('Connected')
+    log.info('Connected')
 
 
 @EventDispatcher.slot(fbchat.PeopleAdded)
@@ -60,14 +61,15 @@ async def save_message(event: fbchat.MessageEvent):
     serialized_message = serialize_MessageEvent(event)
     statistics.post_message(serialized_message)
 
-    FBMessage(
-        message_id=event.message.id,
-        thread_id=event.thread.id,
-        author_id=event.author.id,
-        time=created_at,
-        message=serialized_message,
-        deleted_at=None
-    ).save()
+    with db.atomic():
+        FBMessage.create(
+            message_id=event.message.id,
+            thread_id=event.thread.id,
+            author_id=event.author.id,
+            time=created_at,
+            message=serialized_message,
+            deleted_at=None
+        )
 
     if event.message.attachments:
         await asyncio.gather(*[WiertarBot.save_attachment(i)

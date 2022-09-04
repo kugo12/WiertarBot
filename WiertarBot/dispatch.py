@@ -1,7 +1,7 @@
 import fbchat
 import inspect
 import importlib
-from asyncio import get_event_loop, gather
+from asyncio import get_running_loop, gather
 from typing import Iterable, Callable, Coroutine, Any, Optional
 from time import time
 
@@ -34,7 +34,7 @@ class EventDispatcher:
     async def send_signal(cls, event):
         name = type(event).__name__
         if name in cls._slots:
-            loop = get_event_loop()
+            loop = get_running_loop()
             for func in cls._slots[name]:
                 loop.create_task(func(event))
 

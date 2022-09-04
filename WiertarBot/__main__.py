@@ -1,8 +1,22 @@
 import asyncio
+import atexit
 
 from .bot import WiertarBot
 from .integrations import sentry
 
+
+async def main():
+    bot = WiertarBot()
+
+    await bot.login()
+
+    atexit.register(WiertarBot.save_cookies)
+    asyncio.get_running_loop().create_task(
+        WiertarBot.message_garbage_collector()
+    )
+
+    await bot.run()
+
+
 sentry.init()
-bot = WiertarBot()
-asyncio.get_event_loop().run_forever()
+asyncio.run(main())

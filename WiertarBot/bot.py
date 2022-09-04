@@ -1,14 +1,10 @@
-from pathlib import Path
-
 import fbchat
 import json
-import atexit
 import mimetypes
 import aiohttp
 import aiofiles
-import asyncio
 from os import path
-from asyncio import sleep, get_event_loop
+from asyncio import sleep, get_running_loop
 from typing import Iterable, Optional, Sequence, Tuple
 from io import BytesIO
 from time import time
@@ -17,6 +13,7 @@ from . import config
 from .dispatch import EventDispatcher
 from .utils import execute_after_delay
 from .database import FBMessage
+from .log import log
 
 
 class WiertarBot:
@@ -32,13 +29,11 @@ class WiertarBot:
             WiertarBot.commands = commands
             WiertarBot._initialized = True
 
-        get_event_loop().run_until_complete(self._init())
-
-    async def _init(self):
+    async def login(self):
         try:
             WiertarBot.session = await self._login()
         except (fbchat.ParseError, fbchat.NotLoggedIn) as e:
-            print(e)
+            log.exception(e)
             config.cookie_path.open('w').close()  # clear session file
 
             if 'account is locked' in e.message or 'Failed loading session' in e.message:
@@ -48,15 +43,10 @@ class WiertarBot:
 
         WiertarBot.client = fbchat.Client(session=WiertarBot.session)
 
-        loop = get_event_loop()
-        loop.create_task(self.run())
-
-        loop.create_task(WiertarBot.message_garbage_collector())
-        atexit.register(WiertarBot._save_cookies)
 
     @staticmethod
-    def _save_cookies():
-        print('Saving cookies')
+    def save_cookies():
+        log.info('Saving cookies')
         with config.cookie_path.open('w') as f:
             json.dump(WiertarBot.session.get_cookies(), f)
 
@@ -74,47 +64,47 @@ class WiertarBot:
             try:
                 return await fbchat.Session.from_cookies(cookies)
             except fbchat.FacebookError:
-                print('Error at loading session from cookies')
+                log.warn('Error at loading session from cookies')
 
         return await fbchat.Session.login(
             config.wiertarbot.email, config.wiertarbot.password,
-            on_2fa_callback=lambda: input('2fa_code: ')
+            on_2fa_callback=None
         )
 
+
+    async def _listen(self):
+        WiertarBot.listener = fbchat.Listener(
+            session=WiertarBot.session,
+            _chat_on=True, _foreground=True
+        )
+
+        # funny sequence id fetching
+        WiertarBot.client.sequence_id_callback = WiertarBot.listener.set_sequence_id
+        get_running_loop().create_task(
+            execute_after_delay(5, WiertarBot.client.fetch_threads(limit=1).__anext__())
+        )
+
+        async for event in WiertarBot.listener.listen():
+            await EventDispatcher.send_signal(event)
+
     async def run(self):
-        loop = get_event_loop()
+        while True:
+            try:
+                await self._listen()
+            except fbchat.FacebookError as e:
+                log.exception(e)
+                if e.message in ['MQTT error: no connection', 'MQTT reconnection failed']:
+                    log.info('Reconnecting mqtt...')
+                    self.listener.disconnect()
+                    continue
 
-        try:
-            WiertarBot.listener = fbchat.Listener(
-                session=WiertarBot.session,
-                chat_on=True, foreground=True
-            )
+                # if 'account is locked' in e.message:
+                #     config.unlock_facebook_account()
+                #     WiertarBot.session = await self._login()
+                #     WiertarBot.client = fbchat.Client(session=WiertarBot.session)
+                #     continue
 
-            # funny sequence id fetching
-            WiertarBot.client.sequence_id_callback = WiertarBot.listener.set_sequence_id
-            loop.create_task(
-                execute_after_delay(5, WiertarBot.client.fetch_threads(limit=1).__anext__())
-            )
-
-            async for event in WiertarBot.listener.listen():
-                await EventDispatcher.send_signal(event)
-
-        except fbchat.FacebookError as e:
-            print(e)
-            if e.message in ['MQTT error: no connection', 'MQTT reconnection failed']:
-                print('Reconnecting mqtt...')
-                self.listener.disconnect()
-                asyncio.get_event_loop().create_task(self.run())
-                return
-
-            if 'account is locked' in e.message:
-                config.unlock_facebook_account()
-                WiertarBot.session = await self._login()
-                WiertarBot.client = fbchat.Client(session=WiertarBot.session)
-                loop.create_task(self.run())
-                return
-
-        loop.stop()
+                raise e
 
     @staticmethod
     async def save_attachment(attachment):
@@ -201,7 +191,7 @@ class WiertarBot:
             count = FBMessage.delete() \
                 .where(FBMessage.time < t, FBMessage.deleted_at == None) \
                 .execute()
-            print(f"Deleted {count} messages from db")
+            log.info(f"Deleted {count} messages from db")
 
             del messages
 
