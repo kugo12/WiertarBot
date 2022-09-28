@@ -129,30 +129,3 @@ class MessageEventDispatcher:
                                 del MessageEventDispatcher._image_edit_queue[t_u_id]
                         else:  # if timed out
                             del MessageEventDispatcher._image_edit_queue[t_u_id]
-
-    @classmethod
-    def cleanup(cls):
-        cls._special = []
-        cls._alias_of = {}
-        cls._commands = {}
-
-
-@MessageEventDispatcher.register()
-async def reload(event: fbchat.MessageEvent) -> Response:
-    """
-    Użycie:
-        {command}
-    Zwraca:
-        Status
-    Funkcja:
-        Przeładowywuje komendy
-    """
-
-    importlib.reload(bot.WiertarBot.commands)
-
-    MessageEventDispatcher.cleanup()
-    MessageEventDispatcher.register()(reload)
-
-    bot.WiertarBot.commands.reload()
-
-    return Response(event, text='git')
