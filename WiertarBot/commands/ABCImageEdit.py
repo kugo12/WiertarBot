@@ -19,17 +19,6 @@ class ImageEditABC(ABC):
     async def edit(self, fp: BinaryIO) -> BinaryIO:
         pass
 
-    async def get_profile_picture(self, uid: str) -> Optional[BinaryIO]:
-        url = f'https://graph.facebook.com/v3.1/{ uid }/picture?height=500'
-        f = None
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as r:
-                if r.status == 200:
-                    f = BytesIO(await r.read())
-
-        return f
-
     async def get_image_from_attachments(self, msg: fbchat.MessageData) -> Optional[BinaryIO]:
         f = None
 
@@ -60,21 +49,6 @@ class ImageEditABC(ABC):
 
             f = await self.get_image_from_attachments(replied_to)
             if f:
-                await self.edit_and_send(event, f)
-                return False
-
-        if msg.mentions:
-            mnt = msg.mentions[0]
-            name = msg.text[mnt.offset:mnt.offset+mnt.length].count(' ')
-            del self.args[1: name+1]
-
-            f = await self.get_profile_picture(mnt.thread_id)
-            await self.edit_and_send(event, f)
-            return False
-
-        if len(self.args) == 2:
-            if self.args[1].lower() == '@me':
-                f = await self.get_profile_picture(event.author.id)
                 await self.edit_and_send(event, f)
                 return False
 

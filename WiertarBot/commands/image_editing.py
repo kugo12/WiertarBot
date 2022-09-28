@@ -13,7 +13,7 @@ from ..log import log
 class wypierdalaj(ImageEditABC):
     """
     Użycie:
-        {command} (oznaczenie/@me)
+        {command}
     Zwraca:
         przerobione zdjęcie z WYPIERDALAJ
     Informacje:
@@ -44,7 +44,7 @@ class wypierdalaj(ImageEditABC):
 class _2021(ImageEditABC):
     """
     Użycie:
-        {command} (oznaczenie/@me)
+        {command}
     Zwraca:
         przerobione zdjęcie z templatem 2021
     Informacje:
@@ -85,7 +85,7 @@ class _2021(ImageEditABC):
 class deepfry(ImageEditABC):
     """
     Użycie:
-        {command} (oznaczenie/@me)
+        {command}
     Zwraca:
         usmażone zdjęcie
     Informacje:
@@ -150,7 +150,7 @@ class deepfry(ImageEditABC):
 class nobody(ImageEditABC):
     """
     Użycie:
-        {command} (oznaczenie/@me) (tekst)
+        {command} (tekst)
     Zwraca:
         przerobione zdjęcie z
     Informacje:
