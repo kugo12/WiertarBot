@@ -34,14 +34,6 @@ async def on_reaction(event: fbchat.ReactionEvent):
             await event.message.react(event.reaction)
 
 
-@EventDispatcher.slot(fbchat.NicknameSet)
-async def on_nickname_change(event: fbchat.NicknameSet):
-    if event.author.id != WiertarBot.session.user.id:
-        if perm.check('deletename', event.thread.id, event.subject.id):
-            await event.thread.set_nickname(event.subject, None)
-            # await self.standard_szkaluj(["!szkaluj"], {'author_id':author_id, 'thread_id':thread_id, 'thread_type':thread_type})
-
-
 @EventDispatcher.slot(fbchat.UnsendEvent)
 async def on_unsend(event: fbchat.UnsendEvent):
     deleted_at = int(datetime.timestamp(event.at))
