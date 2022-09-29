@@ -43,7 +43,7 @@ class Config:
 
         return wrap
 
-    def __getitem__(self, item: Type[_T]) -> Optional[_T]:
+    def get(self, item: Type[_T]) -> Optional[_T]:
         cls = self._mapping.get(item)
 
         if cls is not None and not isinstance(cls, item):
@@ -51,8 +51,8 @@ class Config:
 
         return cls
 
-    def get(self, item: Type[_T]) -> _T:
-        output = self[item]
+    def __getitem__(self, item: Type[_T]) -> _T:
+        output = self.get(item)
 
         if output is None:
             raise MissingConfigProperties(f"Missing config object {item}")
