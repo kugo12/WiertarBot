@@ -1,8 +1,8 @@
 import fbchat
 from requests import post, delete
 
-from .config import wiertarbot_stats
-from .integrations.sentry import capture_exception
+from ..config import wiertarbot_stats
+from .sentry import capture_exception
 
 if wiertarbot_stats is not None:
     _headers = {

@@ -3,7 +3,8 @@ from datetime import datetime
 
 import fbchat
 
-from . import perm, statistics
+from . import perm
+from .integrations import statistics
 from .bot import WiertarBot
 from .dispatch import EventDispatcher
 from .utils import serialize_MessageEvent
