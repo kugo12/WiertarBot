@@ -14,6 +14,7 @@ from .dispatch import EventDispatcher
 from .utils import execute_after_delay
 from .database import FBMessage
 from .log import log
+from .integrations.unlock import unlock_account
 
 
 class WiertarBot:
@@ -37,7 +38,7 @@ class WiertarBot:
             config.cookie_path.open('w').close()  # clear session file
 
             if 'account is locked' in e.message or 'Failed loading session' in e.message:
-                config.unlock_facebook_account()
+                unlock_account()
 
             WiertarBot.session = await self._login()
 

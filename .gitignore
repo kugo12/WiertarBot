@@ -3,7 +3,7 @@ mobidziennik/
 __pycache__/
 db.sqlite3-journal
 local_config.py
-unlock.py
+/unlock.py
 .vscode/
 
 upload/
