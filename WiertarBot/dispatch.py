@@ -1,11 +1,11 @@
 import fbchat
 import inspect
-import importlib
 from asyncio import get_running_loop, gather
 from typing import Iterable, Callable, Coroutine, Any, Optional
 from time import time
 
 from . import bot, perm, config
+from .commands.ABCImageEdit import ImageEditABC
 from .response import Response
 
 EventCallable = Callable[[fbchat.Event], Coroutine[Any, Any, None]]
@@ -45,8 +45,9 @@ class MessageEventDispatcher:
     _alias_of = {}
     _image_edit_queue = {}
 
-    @staticmethod
+    @classmethod
     def register(
+            cls,
             *,
             name: Optional[str] = None,
             aliases: Optional[Iterable[str]] = None,
@@ -54,12 +55,12 @@ class MessageEventDispatcher:
     ):
         def wrap(func):
             if special:
-                MessageEventDispatcher._special.append(func)
+                cls._special.append(func)
             else:
                 _name = name if name else func.__name__
 
-                MessageEventDispatcher._commands[_name] = func
-                MessageEventDispatcher._alias_of[_name] = _name
+                cls._commands[_name] = func
+                cls._alias_of[_name] = _name
 
                 if func.__doc__:
                     func.__doc__ = inspect.cleandoc(func.__doc__)
@@ -75,7 +76,7 @@ class MessageEventDispatcher:
                         func.__doc__ += '\nAliasy: ' + ', '.join(aliases)
 
                     for alias in aliases:
-                        MessageEventDispatcher._alias_of[alias] = _name
+                        cls._alias_of[alias] = _name
 
                 # if permission doesn't exist in db, allow all users to use command
                 if not perm.get_permission(_name):
@@ -85,47 +86,46 @@ class MessageEventDispatcher:
 
         return wrap
 
-    @staticmethod
+    @classmethod
     @EventDispatcher.slot(fbchat.MessageEvent)
-    async def dispatch(event: fbchat.MessageEvent):
-        if event.author.id != bot.WiertarBot.session.user.id:
-            if perm.check('banned', event.thread.id, event.author.id):
-                pass
-            else:
-                if event.message.text:
-                    if event.message.text.startswith(config.wiertarbot.prefix):
-                        # first word without prefix
-                        fw = event.message.text.split(' ', 1)[0][len(config.wiertarbot.prefix):].lower()
-                        if fw in MessageEventDispatcher._alias_of:
-                            fw = MessageEventDispatcher._alias_of[fw]
+    async def dispatch(cls, event: fbchat.MessageEvent):
+        if event.author.id != bot.WiertarBot.session.user.id \
+                and not perm.check('banned', event.thread.id, event.author.id):
+            if event.message.text:
+                if event.message.text.startswith(config.wiertarbot.prefix):
+                    # first word without prefix
+                    fw = event.message.text.split(' ', 1)[0][len(config.wiertarbot.prefix):].lower()
+                    fw = cls._alias_of.get(fw)
 
-                            if perm.check(fw, event.thread.id, event.author.id):
-                                command = MessageEventDispatcher._commands[fw]
-                                try:
-                                    response = await command(event)
-                                    if response:
-                                        await response.send()
-                                except TypeError:
-                                    img_edit = command()
-                                    response = await img_edit.check(event)
-                                    if response:
-                                        # add to queue
-                                        t_u_id = f'{event.thread.id}_{event.author.id}'
-                                        queue = (int(time()), img_edit)
-                                        MessageEventDispatcher._image_edit_queue[t_u_id] = queue
+                    if fw and perm.check(fw, event.thread.id, event.author.id):
+                        command = cls._commands[fw]
 
-                    # run all special functions asynchronously
-                    await gather(*[i(event) for i in MessageEventDispatcher._special])
+                        if isinstance(command, type):
+                            if issubclass(command, ImageEditABC):
+                                img_edit = command()
+                                response = await img_edit.check(event)
+                                if response:
+                                    # add to queue
+                                    t_u_id = f'{event.thread.id}_{event.author.id}'
+                                    queue = (int(time()), img_edit)
+                                    cls._image_edit_queue[t_u_id] = queue
+                        else:
+                            response = await command(event)
+                            if response:
+                                await response.send()
 
-                else:  # if there is no text in message
-                    t_u_id = f'{event.thread.id}_{event.author.id}'
-                    if t_u_id in MessageEventDispatcher._image_edit_queue:
-                        t, img_edit = MessageEventDispatcher._image_edit_queue[t_u_id]
+                # run all special functions asynchronously
+                await gather(*[i(event) for i in cls._special])
 
-                        if t + config.image_edit_timeout > time():
-                            img = await img_edit.get_image_from_attachments(event.message)
-                            if img:  # if found an image
-                                await img_edit.edit_and_send(event, img)
-                                del MessageEventDispatcher._image_edit_queue[t_u_id]
-                        else:  # if timed out
-                            del MessageEventDispatcher._image_edit_queue[t_u_id]
+            else:  # if there is no text in message
+                t_u_id = f'{event.thread.id}_{event.author.id}'
+                if t_u_id in cls._image_edit_queue:
+                    t, img_edit = cls._image_edit_queue[t_u_id]
+
+                    if t + config.image_edit_timeout > time():
+                        img = await img_edit.get_image_from_attachments(event.message)
+                        if img:  # if found an image
+                            await img_edit.edit_and_send(event, img)
+                            del cls._image_edit_queue[t_u_id]
+                    else:  # if timed out
+                        del cls._image_edit_queue[t_u_id]
