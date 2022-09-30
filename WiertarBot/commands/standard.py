@@ -562,12 +562,11 @@ def __convert_currency(_from: str, to: str, amount: Decimal) -> Decimal:
 
 @MessageEventDispatcher.register(aliases=["przelicz"])
 async def kurs(event: fbchat.MessageEvent) -> Response:
-    f"""
+    """
     Użycie:
-        {{command}} <z waluty> <do waluty> (ilosc=1)
+        {command} <z waluty> <do waluty> (ilosc=1)
     Zwraca:
         Obecny kurs Forex
-    
     """
 
     args = event.message.text.split(" ")
