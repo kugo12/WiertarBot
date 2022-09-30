@@ -16,7 +16,7 @@ class EventDispatcher:
     _slots: dict[str, list[EventCallable]] = {}
 
     @classmethod
-    def slot(cls, event: type[fbchat.Event]):
+    def on(cls, event: type[fbchat.Event]):
         def wrap(func: EventCallable):
             name = event.__name__
 
@@ -25,14 +25,14 @@ class EventDispatcher:
 
             cls._slots[name].append(func)
             if name == 'MessageEvent':
-                cls.slot(fbchat.MessageReplyEvent)(func)
+                cls.on(fbchat.MessageReplyEvent)(func)
 
             return func
 
         return wrap
 
     @classmethod
-    async def send_signal(cls, event):
+    async def dispatch(cls, event):
         name = type(event).__name__
         if name in cls._slots:
             loop = get_running_loop()
@@ -88,7 +88,7 @@ class MessageEventDispatcher:
         return wrap
 
     @classmethod
-    @EventDispatcher.slot(fbchat.MessageEvent)
+    @EventDispatcher.on(fbchat.MessageEvent)
     async def dispatch(cls, event: fbchat.MessageEvent):
         if event.author.id != bot.WiertarBot.session.user.id \
                 and not perm.check('banned', event.thread.id, event.author.id):

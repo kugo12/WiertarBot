@@ -104,7 +104,7 @@ class WiertarBot:
         )
 
         async for event in self.listener.listen():
-            await EventDispatcher.send_signal(event)
+            await EventDispatcher.dispatch(event)
 
     async def save_attachment(self, attachment):
         name = type(attachment).__name__

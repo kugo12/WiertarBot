@@ -12,30 +12,30 @@ from .database import FBMessage, db, FBMessageRepository
 from .log import log
 
 
-@EventDispatcher.slot(fbchat.Connect)
+@EventDispatcher.on(fbchat.Connect)
 async def on_connect(event: fbchat.Connect):
     log.info('Connected')
 
 
-@EventDispatcher.slot(fbchat.PeopleAdded)
+@EventDispatcher.on(fbchat.PeopleAdded)
 async def on_people_added(event: fbchat.PeopleAdded):
     if WiertarBot.session.user not in event.added:
         await event.thread.send_text('poziom spat')
 
 
-@EventDispatcher.slot(fbchat.PersonRemoved)
+@EventDispatcher.on(fbchat.PersonRemoved)
 async def on_person_removed(event: fbchat.PersonRemoved):
     await event.thread.send_text('poziom wzrus')
 
 
-@EventDispatcher.slot(fbchat.ReactionEvent)
+@EventDispatcher.on(fbchat.ReactionEvent)
 async def on_reaction(event: fbchat.ReactionEvent):
     if event.author.id != WiertarBot.session.user.id:
         if perm.check('doublereact', event.thread.id, event.author.id):
             await event.message.react(event.reaction)
 
 
-@EventDispatcher.slot(fbchat.UnsendEvent)
+@EventDispatcher.on(fbchat.UnsendEvent)
 async def on_unsend(event: fbchat.UnsendEvent):
     deleted_at = int(datetime.timestamp(event.at))
 
@@ -43,7 +43,7 @@ async def on_unsend(event: fbchat.UnsendEvent):
     FBMessageRepository.mark_deleted(event.message.id, deleted_at)
 
 
-@EventDispatcher.slot(fbchat.MessageEvent)
+@EventDispatcher.on(fbchat.MessageEvent)
 async def save_message(event: fbchat.MessageEvent):
     created_at = int(datetime.timestamp(event.message.created_at))
 
