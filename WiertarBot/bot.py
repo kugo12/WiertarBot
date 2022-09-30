@@ -12,7 +12,7 @@ from time import time
 from . import config
 from .dispatch import EventDispatcher
 from .utils import execute_after_delay
-from .database import FBMessage
+from .database import FBMessageRepository
 from .log import log
 from .integrations.unlock import unlock_account
 
@@ -168,10 +168,7 @@ class WiertarBot:
     async def message_garbage_collector():
         while True:
             t = int(time()) - config.time_to_remove_sent_messages
-            messages: Iterable[FBMessage] = FBMessage \
-                .select(FBMessage.message) \
-                .where(FBMessage.time < t, FBMessage.deleted_at == None) \
-                .order_by(FBMessage.time)
+            messages = FBMessageRepository.find_not_deleted_and_time_before(t)
 
             for message in messages:
                 deserialized_message = json.loads(message.message)
@@ -189,9 +186,7 @@ class WiertarBot:
                     if p.exists():
                         p.unlink()
 
-            count = FBMessage.delete() \
-                .where(FBMessage.time < t, FBMessage.deleted_at == None) \
-                .execute()
+            count = FBMessageRepository.remove_not_deleted_and_time_before(t)
             log.info(f"Deleted {count} messages from db")
 
             del messages

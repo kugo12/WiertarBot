@@ -6,6 +6,7 @@ from time import time
 
 from . import bot, perm, config
 from .commands.ABCImageEdit import ImageEditABC
+from .database import PermissionRepository
 from .response import Response
 
 EventCallable = Callable[[fbchat.Event], Coroutine[Any, Any, None]]
@@ -79,7 +80,7 @@ class MessageEventDispatcher:
                         cls._alias_of[alias] = _name
 
                 # if permission doesn't exist in db, allow all users to use command
-                if not perm.get_permission(_name):
+                if not PermissionRepository.find_by_command(_name):
                     perm.edit(_name, ['*'])
 
             return func

@@ -1,18 +1,11 @@
 import json
-from typing import List, Optional
+from typing import List
 
-from .database import Permission, db
-
-
-def get_permission(command: str) -> Optional[Permission]:
-    try:
-        return Permission.get(Permission.command == command)
-    except Permission.DoesNotExist:
-        return None
+from .database import Permission, PermissionRepository
 
 
 def check(name: str, thread_id: str, user_id: str) -> bool:
-    permission = get_permission(name)
+    permission = PermissionRepository.find_by_command(name)
     if permission is None:
         return False
 
@@ -80,9 +73,8 @@ def check(name: str, thread_id: str, user_id: str) -> bool:
     return False
 
 
-@db.atomic()
 def edit(command: str, uids: List[str], bl=False, add=True, tid=False) -> bool:
-    permission = get_permission(command)
+    permission = PermissionRepository.find_by_command(command)
     blacklist = {}
     whitelist = {}
 
@@ -121,6 +113,6 @@ def edit(command: str, uids: List[str], bl=False, add=True, tid=False) -> bool:
 
     permission.whitelist = json.dumps(whitelist)
     permission.blacklist = json.dumps(blacklist)
-    permission.save()
+    PermissionRepository.save(permission)
 
     return True

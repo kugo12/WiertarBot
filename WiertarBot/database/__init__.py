@@ -1,5 +1,5 @@
 from .models import *
-
+from .repositories import *
 
 def init_db():
     db.connect(reuse_if_open=True)

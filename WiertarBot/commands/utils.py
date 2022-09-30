@@ -9,7 +9,7 @@ from .. import perm, config
 from ..dispatch import MessageEventDispatcher
 from ..response import Response
 from ..bot import WiertarBot
-from ..database import FBMessage
+from ..database import PermissionRepository, FBMessageRepository
 
 
 @MessageEventDispatcher.register(aliases=['pomoc'])
@@ -93,7 +93,7 @@ async def _perm(event: fbchat.MessageEvent) -> Response:
     cmd = event.message.text.split(' ')
     if len(cmd) == 3:
         if cmd[1] == 'look':
-            perms = perm.get_permission(cmd[2])
+            perms = PermissionRepository.find_by_command(cmd[2])
             if perms:
                 msg = (
                     f'{ cmd[2] }:\n\n'
@@ -113,8 +113,6 @@ async def _perm(event: fbchat.MessageEvent) -> Response:
                     tid = event.thread.id
 
         bl = cmd[3] != 'wl'
-
-        perms = perm.get_permission(cmd[2])
         add = cmd[1] == 'add'
 
         # if remove from not existing permissions
@@ -253,14 +251,7 @@ async def see(event: fbchat.MessageEvent) -> Response:
     except (IndexError, ValueError):
         n = 1
 
-    messages: Iterable[FBMessage] = FBMessage\
-        .select(FBMessage.message)\
-        .where(
-            FBMessage.deleted_at != None,
-            FBMessage.thread_id == event.thread.id
-        )\
-        .order_by(FBMessage.time.desc())\
-        .limit(n)
+    messages = FBMessageRepository.find_deleted_by_thread_id(event.thread.id, n)
 
     send_responses: List[Awaitable] = []
     for message in messages:

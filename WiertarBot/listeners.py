@@ -8,7 +8,7 @@ from .integrations import statistics
 from .bot import WiertarBot
 from .dispatch import EventDispatcher
 from .utils import serialize_MessageEvent
-from .database import FBMessage, db
+from .database import FBMessage, db, FBMessageRepository
 from .log import log
 
 
@@ -40,11 +40,7 @@ async def on_unsend(event: fbchat.UnsendEvent):
     deleted_at = int(datetime.timestamp(event.at))
 
     statistics.delete_message(event)
-
-    FBMessage\
-        .update(deleted_at=deleted_at)\
-        .where(FBMessage.message_id == event.message.id)\
-        .execute()
+    FBMessageRepository.mark_deleted(event.message.id, deleted_at)
 
 
 @EventDispatcher.slot(fbchat.MessageEvent)
@@ -54,15 +50,17 @@ async def save_message(event: fbchat.MessageEvent):
     serialized_message = serialize_MessageEvent(event)
     statistics.post_message(serialized_message)
 
-    with db.atomic():
-        FBMessage.create(
+    FBMessageRepository.save(
+        FBMessage(
             message_id=event.message.id,
             thread_id=event.thread.id,
             author_id=event.author.id,
             time=created_at,
             message=serialized_message,
             deleted_at=None
-        )
+        ),
+        force_insert=True
+    )
 
     if event.message.attachments:
         await asyncio.gather(*[WiertarBot.save_attachment(i)
