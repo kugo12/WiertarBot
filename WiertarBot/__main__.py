@@ -6,11 +6,9 @@ from .integrations import sentry
 
 
 async def main():
-    bot = WiertarBot()
+    bot = await WiertarBot.create()
 
-    await bot.login()
-
-    atexit.register(WiertarBot.save_cookies)
+    atexit.register(bot.save_cookies)
     asyncio.get_running_loop().create_task(
         WiertarBot.message_garbage_collector()
     )

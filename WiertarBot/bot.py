@@ -18,75 +18,19 @@ from .integrations.unlock import unlock_account
 
 
 class WiertarBot:
-    _initialized: bool = False
+    session: fbchat.Session
+    client: fbchat.Client
+    listener: fbchat.Listener
 
-    session: fbchat.Session = None
-    client: fbchat.Client = None
-    listener: fbchat.Listener = None
+    @classmethod
+    async def create(cls) -> 'WiertarBot':
+        # noinspection PyUnresolvedReferences
+        from . import commands, listeners  # avoid circular import
 
-    def __init__(self):
-        if not WiertarBot._initialized:
-            from . import commands, listeners  # avoid circular import
-            WiertarBot.commands = commands
-            WiertarBot._initialized = True
+        self = cls()
+        await self.login()
 
-    async def login(self):
-        try:
-            WiertarBot.session = await self._login()
-        except (fbchat.ParseError, fbchat.NotLoggedIn) as e:
-            log.exception(e)
-            config.cookie_path.open('w').close()  # clear session file
-
-            if 'account is locked' in e.message or 'Failed loading session' in e.message:
-                unlock_account()
-
-            WiertarBot.session = await self._login()
-
-        WiertarBot.client = fbchat.Client(session=WiertarBot.session)
-
-
-    @staticmethod
-    def save_cookies():
-        log.info('Saving cookies')
-        with config.cookie_path.open('w') as f:
-            json.dump(WiertarBot.session.get_cookies(), f)
-
-    @staticmethod
-    def _load_cookies() -> Optional[dict]:
-        try:
-            with config.cookie_path.open() as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return None
-
-    async def _login(self) -> fbchat.Session:
-        cookies = WiertarBot._load_cookies()
-        if cookies:
-            try:
-                return await fbchat.Session.from_cookies(cookies)
-            except fbchat.FacebookError:
-                log.warn('Error at loading session from cookies')
-
-        return await fbchat.Session.login(
-            config.wiertarbot.email, config.wiertarbot.password,
-            on_2fa_callback=None
-        )
-
-
-    async def _listen(self):
-        WiertarBot.listener = fbchat.Listener(
-            session=WiertarBot.session,
-            chat_on=True, foreground=True
-        )
-
-        # funny sequence id fetching
-        WiertarBot.client.sequence_id_callback = WiertarBot.listener.set_sequence_id
-        get_running_loop().create_task(
-            execute_after_delay(5, WiertarBot.client.fetch_threads(limit=1).__anext__())
-        )
-
-        async for event in WiertarBot.listener.listen():
-            await EventDispatcher.send_signal(event)
+        return self
 
     async def run(self):
         while True:
@@ -99,38 +43,88 @@ class WiertarBot:
                     self.listener.disconnect()
                     continue
 
-                # if 'account is locked' in e.message:
-                #     config.unlock_facebook_account()
-                #     WiertarBot.session = await self._login()
-                #     WiertarBot.client = fbchat.Client(session=WiertarBot.session)
-                #     continue
+                if 'account is locked' in e.message:
+                    unlock_account()
+                    self.session = await self._login()
+                    self.client = fbchat.Client(session=self.session)
+                    continue
 
                 raise e
 
+    async def login(self):
+        try:
+            self.session = await self._login()
+        except (fbchat.ParseError, fbchat.NotLoggedIn) as e:
+            log.exception(e)
+            config.cookie_path.open('w').close()  # clear session file
+
+            if 'account is locked' in e.message or 'Failed loading session' in e.message:
+                unlock_account()
+
+            self.session = await self._login()
+
+        self.client = fbchat.Client(session=self.session)
+
+    def save_cookies(self):
+        log.info('Saving cookies')
+        with config.cookie_path.open('w') as f:
+            json.dump(self.session.get_cookies(), f)
+
     @staticmethod
-    async def save_attachment(attachment):
+    def _load_cookies() -> Optional[dict]:
+        try:
+            with config.cookie_path.open() as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return None
+
+    async def _login(self) -> fbchat.Session:
+        cookies = self._load_cookies()
+        if cookies:
+            try:
+                return await fbchat.Session.from_cookies(cookies)
+            except fbchat.FacebookError:
+                log.warn('Error at loading session from cookies')
+
+        return await fbchat.Session.login(
+            config.wiertarbot.email, config.wiertarbot.password,
+            on_2fa_callback=None
+        )
+
+    async def _listen(self):
+        self.listener = fbchat.Listener(
+            session=self.session,
+            chat_on=True, foreground=True
+        )
+
+        # funny sequence id fetching
+        self.client.sequence_id_callback = self.listener.set_sequence_id
+        get_running_loop().create_task(
+            execute_after_delay(5, self.client.fetch_threads(limit=1).__anext__())
+        )
+
+        async for event in self.listener.listen():
+            await EventDispatcher.send_signal(event)
+
+    async def save_attachment(self, attachment):
         name = type(attachment).__name__
         if name in ['AudioAttachment', 'ImageAttachment', 'VideoAttachment']:
             if name == 'AudioAttachment':
                 url = attachment.url
                 p = str(config.attachment_save_path / attachment.filename)
             elif name == 'ImageAttachment':
-                url = await WiertarBot.client.fetch_image_url(attachment.id)
+                url = await self.client.fetch_image_url(attachment.id)
                 p = str(config.attachment_save_path / f'{attachment.id}.{attachment.original_extension}')
             else:  # 'VideoAttachment'
                 url = attachment.preview_url
                 p = str(config.attachment_save_path / f'{attachment.id}.mp4')
 
-            async with WiertarBot.session._session.get(url) as r:
+            async with self.session._session.get(url) as r:
                 if r.status == 200:
                     async with aiofiles.open(p, mode='wb') as f:
                         await f.write(await r.read())
 
-    @staticmethod
-    async def upload(
-            files: Iterable[str], voice_clip=False
-    ) -> Optional[Sequence[Tuple[str, str]]]:
-
+    async def upload(self, files: Iterable[str], voice_clip=False) -> Optional[Sequence[Tuple[str, str]]]:
         final_files = []
         for fn in files:
             if fn.startswith(('http://', 'https://')):
@@ -150,7 +144,6 @@ class WiertarBot:
                     final_files.append((true_fn, f, mime))
 
                 elif fn.startswith(('http://', 'https://')):
-
                     async with aiohttp.ClientSession() as session:
                         async with session.get(fn) as r:
                             if r.status == 200:
@@ -158,7 +151,7 @@ class WiertarBot:
                                 final_files.append((true_fn, f, mime))
 
         if final_files:
-            uploaded = await WiertarBot.client.upload(final_files, voice_clip)
+            uploaded = await self.client.upload(final_files, voice_clip)
         else:
             return None
 

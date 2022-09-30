@@ -1,2 +1,2 @@
 def unlock_account():
-    pass
+    raise NotImplementedError("Unlocking account not implemented yet")
