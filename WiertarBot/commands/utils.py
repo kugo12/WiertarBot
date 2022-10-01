@@ -203,34 +203,6 @@ async def uptime(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def prof(event: fbchat.MessageEvent) -> Response:
-    """
-    Użycie:
-        {command} (oznaczenie)
-    Zwraca:
-        twoje zdjęcie profilowe lub oznaczonej osoby
-    """
-
-    if event.message.mentions:
-        uid = event.message.mentions[0].thread_id
-    else:
-        uid = event.author.id
-
-    url = f'https://graph.facebook.com/v3.1/{ uid }/picture?height=500'
-    mime = 'image/jpeg'
-    fn = 'prof.jpg'
-
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as r:
-            if r.status == 200:
-                f = BytesIO(await r.read())
-
-    files = await WiertarBot.client.upload([(fn, f, mime)])
-
-    return Response(event, files=files)
-
-
-@MessageEventDispatcher.register()
 async def see(event: fbchat.MessageEvent) -> Response:
     """
     Użycie:
