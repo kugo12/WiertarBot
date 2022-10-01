@@ -57,7 +57,7 @@ def attachment_to_dict(att: fbchat.Attachment) -> dict:
     elif att_type == 'ShareAttachment':
         out['url'] = att.url
         out['original_url'] = att.original_url
-    elif att_type in ['LocationAttachment', 'LiveLocationAttachment']:
+    elif att_type in ('LocationAttachment', 'LiveLocationAttachment'):
         out['latitude'] = att.latitude
         out['longitude'] = att.longitude
         out['url'] = att.url

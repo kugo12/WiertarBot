@@ -3,7 +3,7 @@ import fbchat
 import json
 import asyncio
 from io import BytesIO
-from typing import List, Awaitable, Iterable
+from typing import List, Awaitable
 
 from .. import perm, config
 from ..dispatch import MessageEventDispatcher
@@ -26,19 +26,16 @@ async def help(event: fbchat.MessageEvent) -> Response:
     if text.count(' '):
         arg = text.split(' ', 1)[1]
 
-        if arg in MessageEventDispatcher._alias_of:
-            arg = MessageEventDispatcher._alias_of[arg]
-
-        if arg in MessageEventDispatcher._commands:
-            msg = MessageEventDispatcher._commands[arg].__doc__
+        command = MessageEventDispatcher.command(arg)
+        if command:
+            msg = command.__doc__
             if not msg:
                 msg = 'Podana komenda nie posiada dokumentacji'
-
         else:
             msg = 'Nie znaleziono podanej komendy'
 
     else:
-        cmd = ', '.join(MessageEventDispatcher._commands)
+        cmd = ', '.join(MessageEventDispatcher.commands())
         msg = (
             f'Prefix: { config.wiertarbot.prefix }\n'
             f'Komendy: { cmd }'

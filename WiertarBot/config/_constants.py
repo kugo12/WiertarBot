@@ -10,7 +10,7 @@ cmd_media_path = root_dir / "WiertarBot/commands/media"
 
 cookie_path = root_dir / "cookies.json"
 
-for directory in [upload_save_path, attachment_save_path]:
+for directory in (upload_save_path, attachment_save_path):
     if not directory.exists():
         directory.mkdir()
 

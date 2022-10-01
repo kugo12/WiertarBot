@@ -47,6 +47,16 @@ class MessageEventDispatcher:
     _image_edit_queue = {}
 
     @classmethod
+    def command(cls, name: str) -> Optional[Callable]:
+        real_name = cls._alias_of.get(name)
+
+        return cls._commands.get(real_name) if real_name else None
+
+    @classmethod
+    def commands(cls):
+        return cls._commands
+
+    @classmethod
     def register(
             cls,
             *,
@@ -58,7 +68,7 @@ class MessageEventDispatcher:
             if special:
                 cls._special.append(func)
             else:
-                _name = name if name else func.__name__
+                _name = name or func.__name__
 
                 cls._commands[_name] = func
                 cls._alias_of[_name] = _name

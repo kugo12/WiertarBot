@@ -13,62 +13,48 @@ def check(name: str, thread_id: str, user_id: str) -> bool:
     blacklist = json.loads(permission.blacklist)
 
     if "*" in blacklist:
-        if user_id != thread_id:
-            if thread_id in whitelist:
-                if user_id in whitelist[thread_id]:
-                    return True
-                if "*" in whitelist[thread_id]:
-                    if user_id in blacklist:
-                        return False
-                    if thread_id in blacklist:
-                        if user_id in blacklist[thread_id]:
-                            return False
-                    return True
+        if user_id != thread_id and thread_id in whitelist:
+            if user_id in whitelist[thread_id]:
+                return True
+            if "*" in whitelist[thread_id]:
+                if user_id in blacklist or (thread_id in blacklist and user_id in blacklist[thread_id]):
+                    return False
+                return True
         if user_id in whitelist:
-            if user_id != thread_id:
-                if thread_id in blacklist:
-                    if user_id in blacklist[thread_id]:
-                        return False
-                    if "*" in blacklist[thread_id]:
-                        return False
+            if user_id != thread_id and thread_id in blacklist and (
+                    user_id in blacklist[thread_id] or "*" in blacklist[thread_id]):
+                return False
             return True
         return False
 
     if "*" in whitelist:
-        if user_id != thread_id:
-            if thread_id in blacklist:
-                if "*" in blacklist[thread_id]:
-                    if user_id in whitelist:
-                        return True
-                    if thread_id in whitelist:
-                        if user_id in whitelist[thread_id]:
-                            return True
-                    return False
-                if user_id in blacklist[thread_id]:
-                    return False
+        if user_id != thread_id and thread_id in blacklist:
+            if "*" in blacklist[thread_id]:
+                if user_id in whitelist or (thread_id in whitelist and user_id in whitelist[thread_id]):
+                    return True
+                return False
+            if user_id in blacklist[thread_id]:
+                return False
         if user_id in blacklist:
-            if user_id != thread_id:
-                if thread_id in whitelist:
-                    if user_id in whitelist[thread_id]:
-                        return True
-                    if "*" in whitelist[thread_id]:
-                        return True
+            if user_id != thread_id and thread_id in whitelist:
+                if user_id in whitelist[thread_id]:
+                    return True
+                if "*" in whitelist[thread_id]:
+                    return True
             return False
         return True
 
-    if user_id != thread_id:
-        if thread_id in whitelist:
-            if "*" in whitelist[thread_id]:
-                if thread_id in blacklist:
-                    if user_id in blacklist[thread_id]:
-                        return False
-                return True
-            if user_id in whitelist[thread_id]:
-                return True
-
-    if user_id in whitelist:
-        if whitelist[user_id] == 0:  # {'uid': {'uid': 0}} bug fix
+    if user_id != thread_id and thread_id in whitelist:
+        if "*" in whitelist[thread_id]:
+            if thread_id in blacklist and user_id in blacklist[thread_id]:
+                return False
             return True
+        if user_id in whitelist[thread_id]:
+            return True
+
+    if user_id in whitelist and whitelist[user_id] == 0:
+        # {'uid': {'uid': 0}} bug fix
+        return True
 
     return False
 

@@ -572,7 +572,7 @@ async def kurs(event: fbchat.MessageEvent) -> Response:
     args = event.message.text.split(" ")
     msg = kurs.__doc__
 
-    if len(args) == 3 or len(args) == 4:
+    if len(args) in (3, 4):
         try:
             currency_from = args[1].upper()
             currency_to = args[2].upper()

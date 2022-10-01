@@ -3,7 +3,7 @@ from json import loads
 from datetime import datetime
 
 
-class AliPaczka():
+class AliPaczka:
     __slots__ = ['tracking', 'number']
 
     def __init__(self, number: str):
@@ -14,10 +14,9 @@ class AliPaczka():
         p = cloudscraper.create_scraper().post(f'https://api.alipaczka.pl/track/{ self.number }/',
                                                data={"uid": "2222", "ver": "22"})
         p = loads(p.text)
-        if 'error' in p:
-            return p
-        for i in p['DataEntry']:
-            i['time'] = datetime.fromtimestamp(int(i['time']))
+        if 'error' not in p:
+            for i in p['DataEntry']:
+                i['time'] = datetime.fromtimestamp(int(i['time']))
         return p
 
     def __str__(self):

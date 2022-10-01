@@ -38,7 +38,7 @@ class WiertarBot:
                 await self._listen()
             except fbchat.FacebookError as e:
                 log.exception(e)
-                if e.message in ['MQTT error: no connection', 'MQTT reconnection failed']:
+                if e.message in ('MQTT error: no connection', 'MQTT reconnection failed'):
                     log.info('Reconnecting mqtt...')
                     self.listener.disconnect()
                     continue
@@ -108,7 +108,7 @@ class WiertarBot:
 
     async def save_attachment(self, attachment):
         name = type(attachment).__name__
-        if name in ['AudioAttachment', 'ImageAttachment', 'VideoAttachment']:
+        if name in ('AudioAttachment', 'ImageAttachment', 'VideoAttachment'):
             if name == 'AudioAttachment':
                 url = attachment.url
                 p = str(config.attachment_save_path / attachment.filename)

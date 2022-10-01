@@ -8,7 +8,8 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 BASE_URL = "https://theneedledrop.com/"
 MBDTF_REVIEW_URL = "https://www.theneedledrop.com/articles/2020/1/kanye-west-my-beautiful-dark-twisted-fantasy"
 
-class Fantano():
+
+class Fantano:
     def __init__(self) -> None:
         self.s = requests.Session()
         self.s.headers.update({"User-Agent": USER_AGENT})

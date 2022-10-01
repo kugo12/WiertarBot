@@ -118,9 +118,6 @@ class deepfry(ImageEditABC):
                 xy = (i*coile, j*coile)
                 if img.getpixel(xy) == (240, 53, 36):
                     a.append(xy)
-        # for i in a:
-        #     pos = (i[0]-off[0], i[1]-off[1])
-        #     img.paste(fl, pos, fl)
 
         img = ImageOps.posterize(img, 4)
 
@@ -165,11 +162,7 @@ class nobody(ImageEditABC):
         else:
             text = 'Nobody:\n\nMe:   '
 
-        try:
-            font = ImageFont.truetype(self.arial_path, 44)
-        except OSError as e:
-            log.exception(e)
-            return None
+        font = ImageFont.truetype(self.arial_path, 44)
 
         img = Image.open(fp).convert("RGB")
         draw = ImageDraw.Draw(img)

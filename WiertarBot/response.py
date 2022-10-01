@@ -26,9 +26,8 @@ class Response:
         self.reply_to_id = reply_to_id
 
     async def send(self) -> str:
-        if self.files:
-            if isinstance(self.files[0], str):
-                self.files = await bot.WiertarBot.upload(self.files, self.voice_clip)
+        if self.files and isinstance(self.files[0], str):
+            self.files = await bot.WiertarBot.upload(self.files, self.voice_clip)
 
         return await self.event.thread.send_text(text=self.text, mentions=self.mentions,
                                                  files=self.files, reply_to_id=self.reply_to_id)

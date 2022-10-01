@@ -17,7 +17,7 @@ class Config:
     _mapping: dict[type, Any]
 
     def __init__(self, path: Union[str, PathLike]):
-        self._mapping = dict()
+        self._mapping = {}
 
         with open(path, "r") as f:
             self._raw = yaml.safe_load(f)
@@ -27,12 +27,12 @@ class Config:
         mapping = self._raw
 
         for key in keys:
-            if mapping is not None and len(key) != 0:
+            if mapping and key:
                 mapping = mapping.get(key)
 
         if mapping is None:
             if optional:
-                return lambda cls: dataclass(cls)
+                return dataclass
             else:
                 raise MissingConfigProperties(f"Missing config properties {prefix}")
 
