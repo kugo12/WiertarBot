@@ -1,15 +1,11 @@
-import aiohttp
-import fbchat
 import json
 import asyncio
-from io import BytesIO
 from typing import List, Awaitable, Optional
 
 from .. import perm, config
 from ..dispatch import MessageEventDispatcher
 from ..events import MessageEvent, Mention
 from ..response import Response
-from ..bot import WiertarBot
 from ..database import PermissionRepository, FBMessageRepository
 
 
@@ -42,7 +38,7 @@ async def help(event: MessageEvent) -> Response:
             f'Komendy: { cmd }'
         )
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -54,7 +50,7 @@ async def tid(event: MessageEvent) -> Response:
         id aktualnego wątku
     """
 
-    return Response(event, text=event.thread_id)
+    return event.response(text=event.thread_id)
 
 
 @MessageEventDispatcher.register()
@@ -71,7 +67,7 @@ async def uid(event: MessageEvent) -> Response:
     else:
         msg = event.author_id
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 # TODO: rewrite it in future XD
@@ -115,7 +111,7 @@ async def _perm(event: MessageEvent) -> Response:
 
         # if remove from not existing permissions
         if not add and not cmd:
-            return Response(event, text='Podana permisja nie istnieje')
+            return event.response(text='Podana permisja nie istnieje')
 
         uids = cmd[3:]
         for mention in event.mentions:
@@ -127,7 +123,7 @@ async def _perm(event: MessageEvent) -> Response:
 
         perm.edit(cmd[2], uids, bl, add, tid)
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -147,7 +143,7 @@ async def ban(event: MessageEvent) -> Response:
         MessageEvent.copy_with_different_text(event, base + without_fw)
     )
 
-    return Response(event, text='Pomyślnie zbanowano')
+    return event.response(text='Pomyślnie zbanowano')
 
 
 @MessageEventDispatcher.register()
@@ -166,7 +162,7 @@ async def unban(event: MessageEvent) -> Response:
         MessageEvent.copy_with_different_text(event, base + without_fw)
     )
 
-    return Response(event, text='Pomyślnie odbanowano')
+    return event.response(text='Pomyślnie odbanowano')
 
 
 @MessageEventDispatcher.register()
@@ -182,7 +178,7 @@ async def ile(event: MessageEvent) -> Response:
 
     msg = f'Odkąd tutaj jestem napisano tu { thread.message_count } wiadomości.'
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -203,7 +199,7 @@ async def uptime(event: MessageEvent) -> Response:
 
     msg = f'Serwer jest uruchomiony od { d }d { h }h { m }m'
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -249,8 +245,7 @@ async def see(event: MessageEvent) -> Optional[Response]:
                 p = config.attachment_save_path / f'{ att["id"] }.mp4'
                 files.append(str(p))
 
-        response = Response(
-            event,
+        response = event.response(
             text=message['text'],
             mentions=mentions,
             files=files,
@@ -262,4 +257,4 @@ async def see(event: MessageEvent) -> Optional[Response]:
         await asyncio.gather(*send_responses)
         return None
     else:
-        return Response(event, text='Nie ma żadnych zapisanych usuniętych wiadomości w tym wątku')
+        return event.response(text='Nie ma żadnych zapisanych usuniętych wiadomości w tym wątku')

@@ -1,4 +1,3 @@
-import fbchat
 import requests
 import random
 import json
@@ -10,7 +9,6 @@ from ..dispatch import MessageEventDispatcher
 from ..events import MessageEvent
 from ..response import Response
 from .. import config
-from ..bot import WiertarBot
 
 
 @MessageEventDispatcher.register()
@@ -26,7 +24,7 @@ async def suchar(event: MessageEvent) -> Response:
     parsed = BeautifulSoup(response.text, 'html.parser')
     image_url: str = parsed.find('div', 'file-container').a.img['src']  # type: ignore
 
-    return Response(event, files=[image_url])
+    return event.response(files=[image_url])
 
 
 @MessageEventDispatcher.register(aliases=['jeż'])
@@ -44,7 +42,7 @@ async def jez(event: MessageEvent) -> Response:
     h = bs.find_all('a', {'title': True})
     image_url = random.choice(h).img['src']  # type: ignore
 
-    return Response(event, files=[image_url])
+    return event.response(files=[image_url])
 
 
 __zolw_pages = 1000
@@ -98,7 +96,7 @@ async def doggo(event: MessageEvent) -> Response:
     data = json.loads(response.text)
     image_url = data['message']
 
-    return Response(event, files=[image_url])
+    return event.response(files=[image_url])
 
 
 @MessageEventDispatcher.register()
@@ -114,7 +112,7 @@ async def beagle(event: MessageEvent) -> Response:
     data = json.loads(response.text)
     image_url = data['message']
 
-    return Response(event, files=[image_url])
+    return event.response(files=[image_url])
 
 
 @MessageEventDispatcher.register()
@@ -130,7 +128,7 @@ async def birb(event: MessageEvent) -> Response:
     data = json.loads(response.text)
     image_url = data['link']
 
-    return Response(event, files=[image_url])
+    return event.response(files=[image_url])
 
 
 @MessageEventDispatcher.register()
@@ -146,7 +144,7 @@ async def wink(event: MessageEvent) -> Response:
     data = json.loads(response.text)
     image_url = data['link']
 
-    return Response(event, files=[image_url])
+    return event.response(files=[image_url])
 
 
 if config.cat_api:
@@ -169,7 +167,7 @@ if config.cat_api:
         data = json.loads(response.text)
         image_url = data[0]['url']
 
-        return Response(event, files=[image_url])
+        return event.response(files=[image_url])
 
 
 @MessageEventDispatcher.register(aliases=['panda'])
@@ -185,7 +183,7 @@ async def pandka(event: MessageEvent) -> Response:
     data = json.loads(response.text)
     image_url = data['link']
 
-    return Response(event, files=[image_url])
+    return event.response(files=[image_url])
 
 
 @MessageEventDispatcher.register()
@@ -210,7 +208,7 @@ async def shiba(event: MessageEvent) -> Response:
     response = requests.get(url)
     image_urls = json.loads(response.text)
 
-    return Response(event, files=image_urls)
+    return event.response(files=image_urls)
 
 
 def random_from_media_dir(directory: str) -> str:
@@ -230,7 +228,7 @@ async def konon(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/konon')
 
-    return Response(event, files=[image_path])
+    return event.response(files=[image_path])
 
 
 @MessageEventDispatcher.register()
@@ -244,7 +242,7 @@ async def papaj(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/papaj')
 
-    return Response(event, files=[image_path])
+    return event.response(files=[image_path])
 
 
 @MessageEventDispatcher.register()
@@ -258,7 +256,7 @@ async def bmw(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/bmw')
 
-    return Response(event, files=[image_path])
+    return event.response(files=[image_path])
 
 
 @MessageEventDispatcher.register()
@@ -272,7 +270,7 @@ async def audi(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/audi')
 
-    return Response(event, files=[image_path])
+    return event.response(files=[image_path])
 
 
 @MessageEventDispatcher.register()
@@ -286,7 +284,7 @@ async def mikser(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/mikser')
 
-    return Response(event, files=[image_path])
+    return event.response(files=[image_path])
 
 
 @MessageEventDispatcher.register(aliases=['meme'])
@@ -307,7 +305,7 @@ async def mem(event: MessageEvent) -> Response:
     msg = data['title']
     files = [data['url']]
 
-    return Response(event, text=msg, files=files)
+    return event.response(text=msg, files=files)
 
 
 @MessageEventDispatcher.register()
@@ -321,7 +319,7 @@ async def hug(event: MessageEvent) -> Response:
 
     response = requests.get("https://some-random-api.ml/animu/hug").json()
 
-    return Response(event, files=[response["link"]])
+    return event.response(files=[response["link"]])
 
 
 @MessageEventDispatcher.register()
@@ -335,4 +333,4 @@ async def jabol(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/jabol')
 
-    return Response(event, files=[image_path])
+    return event.response(files=[image_path])

@@ -2,11 +2,9 @@ import fbchat
 import aiohttp
 from abc import ABC, abstractmethod
 from io import BytesIO
-from typing import BinaryIO, Optional, final, Final
+from typing import BinaryIO, Optional, final
 
-from .. import bot
 from ..events import MessageEvent
-from ..response import Response
 
 
 class ImageEditABC(ABC):

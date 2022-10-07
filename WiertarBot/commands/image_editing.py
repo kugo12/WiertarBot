@@ -1,4 +1,3 @@
-import os
 from io import BytesIO
 from typing import BinaryIO
 from PIL import Image, ImageEnhance, ImageOps, ImageFont, ImageDraw
@@ -6,7 +5,6 @@ from PIL import Image, ImageEnhance, ImageOps, ImageFont, ImageDraw
 from .ABCImageEdit import ImageEditABC
 from ..config import cmd_media_path
 from ..dispatch import MessageEventDispatcher
-from ..log import log
 
 
 @MessageEventDispatcher.register()

@@ -43,7 +43,10 @@ class MessageEvent:
         await self.context.react_to_message(self, reaction)
 
     async def send_response(self, **kwargs):
-        await Response(event=self, **kwargs).send()
+        await self.response(**kwargs).send()
+
+    def response(self, **kwargs) -> Response:
+        return Response(event=self, **kwargs)
 
     @classmethod
     def from_fb_event(cls, context: Context, event: FBMessageEvent) -> 'MessageEvent':

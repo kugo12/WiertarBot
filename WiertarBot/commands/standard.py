@@ -16,7 +16,6 @@ from forex_python.converter import CurrencyRates, RatesNotAvailableError
 from ..dispatch import MessageEventDispatcher
 from ..events import MessageEvent, Mention
 from ..response import Response
-from ..bot import WiertarBot
 from ..config import cmd_media_path
 from .modules import AliPaczka, Fantano
 
@@ -36,7 +35,7 @@ async def wybierz(event: MessageEvent) -> Response:
         m = m[1].split(",")
         txt = random.choice(m)
 
-    return Response(event, text=txt)
+    return event.response(text=txt)
 
 
 @MessageEventDispatcher.register()
@@ -53,7 +52,7 @@ async def moneta(event: MessageEvent) -> Response:
     else:
         msg = 'Reszka!'
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -68,7 +67,7 @@ async def kostka(event: MessageEvent) -> Response:
     n = random.randint(1, 6)
     msg = f'Wyrzuciłeś {n}'
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -111,7 +110,7 @@ async def szkaluj(event: MessageEvent) -> Response:
         mentions.append(mention)
         msg = msg.replace('%on%', name, 1)
 
-    return Response(event, text=msg, mentions=mentions)
+    return event.response(text=msg, mentions=mentions)
 
 
 @MessageEventDispatcher.register()
@@ -128,7 +127,7 @@ async def donate(event: MessageEvent) -> Response:
         'z góry dzięki'
     )
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -142,7 +141,7 @@ async def changelog(event: MessageEvent) -> Response:
 
     msg = 'https://wiertarbot.pl/changelog'
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -156,7 +155,7 @@ async def kod(event: MessageEvent) -> Response:
 
     msg = 'https://github.com/kugo12/WiertarBot'
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -170,7 +169,7 @@ async def barka(event: MessageEvent) -> Response:
 
     msg = 'Pan kiedyś stanął nad brzegiem\nSzukał ludzi gotowych pójść za Nim\nBy łowić serca\nSłów Bożych prawdą.\n\nRef.:\nO Panie, to Ty na mnie spojrzałeś,\nTwoje usta dziś wyrzekły me imię.\nSwoją barkę pozostawiam na brzegu,\nRazem z Tobą nowy zacznę dziś łów.\n\n2.\nJestem ubogim człowiekiem,\nMoim skarbem są ręce gotowe\nDo pracy z Tobą\nI czyste serce.\n\n3.\nTy, potrzebujesz mych dłoni,\nMego serca młodego zapałem\nMych kropli potu\nI samotności.\n\n4.\nDziś wypłyniemy już razem\nŁowić serca na morzach dusz ludzkich\nTwej prawdy siecią\nI słowem życia.\n\n\nBy Papież - https://www.youtube.com/watch?v=fimrULqiExA\nZ tekstem - https://www.youtube.com/watch?v=_o9mZ_DVTKA'
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 __Xd_message = 'Serio, mało rzeczy mnie triggeruje tak jak to chore \"Xd\". Kombinacji x i d można używać na wiele wspaniałych sposobów. Coś cię śmieszy? Stawiasz \"xD\". Coś się bardzo śmieszy? Śmiało: \"XD\"! Coś doprowadza Cię do płaczu ze śmiechu? \"XDDD\" i załatwione. Uśmiechniesz się pod nosem? \"xd\". Po kłopocie. A co ma do tego ten bękart klawiaturowej ewolucji, potwór i zakała ludzkiej estetyki - \"Xd\"? Co to w ogóle ma wyrażać? Martwego człowieka z wywalonym jęzorem? Powiem Ci, co to znaczy. To znaczy, że masz w telefonie włączone zaczynanie zdań dużą literą, ale szkoda Ci klikać capsa na jedno \"d\" później. Korona z głowy spadnie? Nie sondze. \"Xd\" to symptom tego, że masz mnie, jako rozmówcę, gdzieś, bo Ci się nawet kliknąć nie chce, żeby mi wysłać poprawny emotikon. Szanujesz mnie? Używaj \"xd\", \"xD\", \"XD\", do wyboru. Nie szanujesz mnie? Okaż to. Wystarczy, że wstawisz to zjebane \"Xd\" w choć jednej wiadomości. Nie pozdrawiam'
@@ -185,7 +184,7 @@ async def Xd(event: MessageEvent) -> Optional[Response]:
         copypaste o Xd
     """
 
-    return Response(event, text=__Xd_message) if event.text == '!Xd' else None
+    return event.response(text=__Xd_message) if event.text == '!Xd' else None
 
 
 # constants
@@ -244,7 +243,7 @@ async def czas(event: MessageEvent) -> Response:
 
             msg += f'\n{timer[0]}: {d}d {h}h {m}min {s}sek'
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -262,7 +261,7 @@ async def track(event: MessageEvent) -> Response:
     if len(arg) == 2:
         msg = str(AliPaczka(arg[1]))
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register(aliases=['słownik'])
@@ -289,7 +288,7 @@ async def slownik(event: MessageEvent) -> Response:
         else:
             msg = 'Coś poszło nie tak, jak nie użyłeś polskich liter, to dobry moment'
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -322,7 +321,7 @@ async def miejski(event: MessageEvent) -> Response:
 
             msg = f'{arg}\nDefinicja: {definition}{example}'
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 # constants
@@ -350,7 +349,7 @@ async def tts(event: MessageEvent) -> Response:
         lang = 'pl'
         if arg[1].startswith('lang='):
             if len(arg) == 2:
-                return Response(event, text=msg)
+                return event.response(text=msg)
 
             lang = arg[1].replace('lang=', '')
             arg[1] = ''
@@ -366,7 +365,7 @@ async def tts(event: MessageEvent) -> Response:
         files = await event.context.upload_raw([(fn, f, mime)], voice_clip=False)
         msg = None
 
-    return Response(event, text=msg, files=files)
+    return event.response(text=msg, files=files)
 
 
 @MessageEventDispatcher.register()
@@ -410,7 +409,7 @@ async def mc(event: MessageEvent) -> Response:
         else:
             msg = 'Podany nick nie istnieje'
 
-    return Response(event, text=msg, files=files)
+    return event.response(text=msg, files=files)
 
 
 @MessageEventDispatcher.register()
@@ -447,7 +446,7 @@ async def covid(event: MessageEvent) -> Response:
             # f'szczegółowe dane Polski !covid s\n'
         )
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -459,7 +458,7 @@ async def sugestia(event: MessageEvent) -> Response:
         https://github.com/kugo12/WiertarBot/issues
     """
 
-    return Response(event, text="https://github.com/kugo12/WiertarBot/issues")
+    return event.response(text="https://github.com/kugo12/WiertarBot/issues")
 
 
 translator = Translator()
@@ -485,7 +484,7 @@ async def tlumacz(event: MessageEvent) -> Response:
         except ValueError:
             msg = 'Zły docelowy język'
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 sundays = [
@@ -529,7 +528,7 @@ async def niedziela(event: MessageEvent) -> Response:
         msg = "Niedziele handlowe:\n- " \
               + "\n- ".join([i.isoformat() for i in sundays if i >= now])
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 @MessageEventDispatcher.register(aliases=['anthony', 'melon'])
@@ -553,7 +552,7 @@ async def fantano(event: MessageEvent) -> Response:
     else:
         msg = fantano.__doc__
 
-    return Response(event, text=msg)
+    return event.response(text=msg)
 
 
 def __convert_currency(_from: str, to: str, amount: Decimal) -> Decimal:
@@ -587,4 +586,4 @@ async def kurs(event: MessageEvent) -> Response:
         except RatesNotAvailableError:
             msg = "Nieprawidłowa waluta"
 
-    return Response(event, text=msg)
+    return event.response(text=msg)

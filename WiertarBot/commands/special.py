@@ -5,7 +5,6 @@ import fbchat
 from .. import perm
 from ..dispatch import MessageEventDispatcher
 from ..events import Mention, MessageEvent
-from ..response import Response
 
 
 @MessageEventDispatcher.register(special=True)
@@ -19,17 +18,13 @@ async def everyone(event: MessageEvent):
             for participant in group.participants
         ]
 
-        await Response(
-            event=event,
-            text="@everyone",
-            mentions=mentions
-        ).send()
+        await event.send_response(text="@everyone", mentions=mentions)
 
 
 @MessageEventDispatcher.register(special=True)
 async def thinking(event: MessageEvent):
     if event.text == '🤔':
-        await Response(event=event, text='🤔').send()
+        await event.send_response(text='🤔')
 
 
 @MessageEventDispatcher.register(special=True)
@@ -37,12 +32,12 @@ async def grek(event: MessageEvent):
     text = event.text.lower()
     if text == 'grek':
         if event.text == 'Grek':
-            await Response(event=event, text="grek*").send()
-        await Response(event=event, text="to pedał").send()
+            await event.send_response(text="grek*")
+        await event.send_response(text="to pedał")
     elif text == 'pedał':
-        await Response(event=event, text="sam jesteś grek").send()
+        await event.send_response(text="sam jesteś grek")
     elif text == 'pedał to':
-        await Response(event=event, text="grek").send()
+        await event.send_response(text="grek")
 
 
 @MessageEventDispatcher.register(special=True)
@@ -50,13 +45,13 @@ async def leet(event: MessageEvent):
     if '1337' in event.text:
         p = perm.check('leet', event.thread_id, event.author_id)
 
-        await Response(event=event, text="Jesteś elitą" if p else "Nie jesteś elitą").send()
+        await event.send_response(text="Jesteś elitą" if p else "Nie jesteś elitą")
 
 
 @MessageEventDispatcher.register(special=True)
 async def papiezowa_liczba(event: MessageEvent):
     if '2137' in event.text:
-        await Response(event=event, text='haha toż to papieżowa liczba').send()
+        await event.send_response(text='haha toż to papieżowa liczba')
 
 
 @MessageEventDispatcher.register(special=True)
@@ -70,16 +65,12 @@ async def spierwyp(event: MessageEvent, word: str):
     msg = 'sam '
 
     if text.startswith('sam') and text.endswith(word):
-
         t = text.replace(' ', '').replace('sam', '').replace(word, '')
         if t == '' and text.count(word) == 1:
             msg = 'sam ' * (text.count('sam') + 1)
 
     if word in text:
-        await Response(
-            event=event,
-            text=msg + word
-        ).send()
+        await event.send_response(text=msg + word)
         await event.react('😠')  # angry reaction
 
 
