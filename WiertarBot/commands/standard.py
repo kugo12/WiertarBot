@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, cast
 
 import fbchat
 import random
@@ -14,6 +14,7 @@ from aiogoogletrans import Translator
 from forex_python.converter import CurrencyRates, RatesNotAvailableError
 
 from ..dispatch import MessageEventDispatcher
+from ..events import MessageEvent, Mention
 from ..response import Response
 from ..bot import WiertarBot
 from ..config import cmd_media_path
@@ -21,7 +22,7 @@ from .modules import AliPaczka, Fantano
 
 
 @MessageEventDispatcher.register()
-async def wybierz(event: fbchat.MessageEvent) -> Response:
+async def wybierz(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} <opcje do wyboru po przecinku>
@@ -30,7 +31,7 @@ async def wybierz(event: fbchat.MessageEvent) -> Response:
     """
 
     txt = "Brak opcji do wyboru"
-    m = event.message.text.split(" ", 1)
+    m = event.text.split(" ", 1)
     if len(m) > 1:
         m = m[1].split(",")
         txt = random.choice(m)
@@ -39,7 +40,7 @@ async def wybierz(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def moneta(event: fbchat.MessageEvent) -> Response:
+async def moneta(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -56,7 +57,7 @@ async def moneta(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def kostka(event: fbchat.MessageEvent) -> Response:
+async def kostka(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -71,7 +72,7 @@ async def kostka(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def szkaluj(event: fbchat.MessageEvent) -> Response:
+async def szkaluj(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} (oznaczenie/random)
@@ -79,22 +80,22 @@ async def szkaluj(event: fbchat.MessageEvent) -> Response:
         tekst szkalujący osobę
     """
 
-    text = event.message.text.lower()
+    text = event.text.lower()
     is_group_and_random = (
-            event.thread.id != event.author.id
+            event.is_group
             and text.count(' ') == 1
             and text.endswith(' random')
     )
     if is_group_and_random:
-        thread = await WiertarBot.client.fetch_thread_info([event.thread.id]).__anext__()
-        uid = random.choice(thread.participants).id
-    elif event.message.mentions:
-        uid = event.message.mentions[0].thread_id
+        thread = cast(fbchat.GroupData, await event.context.fetch_thread(event.thread_id))
+        uid = random.choice(list(thread.participants)).id
+    elif event.mentions:
+        uid = event.mentions[0].thread_id
     else:
-        uid = event.author.id
+        uid = event.author_id
 
-    user = await WiertarBot.client.fetch_thread_info([uid]).__anext__()
-    name = user.name
+    user = await event.context.fetch_thread(uid)
+    name = str(user.name)
 
     path = cmd_media_path / 'random/szkaluj.txt'
     with path.open('r', encoding='utf-8') as f:
@@ -106,7 +107,7 @@ async def szkaluj(event: fbchat.MessageEvent) -> Response:
 
     mentions = []
     while '%on%' in msg:
-        mention = fbchat.Mention(thread_id=uid, offset=msg.find('%on%'), length=len(name))
+        mention = Mention(thread_id=uid, offset=msg.find('%on%'), length=len(name))
         mentions.append(mention)
         msg = msg.replace('%on%', name, 1)
 
@@ -114,7 +115,7 @@ async def szkaluj(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def donate(event: fbchat.MessageEvent) -> Response:
+async def donate(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -131,7 +132,7 @@ async def donate(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def changelog(event: fbchat.MessageEvent) -> Response:
+async def changelog(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -145,7 +146,7 @@ async def changelog(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def kod(event: fbchat.MessageEvent) -> Response:
+async def kod(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -159,7 +160,7 @@ async def kod(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def barka(event: fbchat.MessageEvent) -> Response:
+async def barka(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -172,8 +173,11 @@ async def barka(event: fbchat.MessageEvent) -> Response:
     return Response(event, text=msg)
 
 
+__Xd_message = 'Serio, mało rzeczy mnie triggeruje tak jak to chore \"Xd\". Kombinacji x i d można używać na wiele wspaniałych sposobów. Coś cię śmieszy? Stawiasz \"xD\". Coś się bardzo śmieszy? Śmiało: \"XD\"! Coś doprowadza Cię do płaczu ze śmiechu? \"XDDD\" i załatwione. Uśmiechniesz się pod nosem? \"xd\". Po kłopocie. A co ma do tego ten bękart klawiaturowej ewolucji, potwór i zakała ludzkiej estetyki - \"Xd\"? Co to w ogóle ma wyrażać? Martwego człowieka z wywalonym jęzorem? Powiem Ci, co to znaczy. To znaczy, że masz w telefonie włączone zaczynanie zdań dużą literą, ale szkoda Ci klikać capsa na jedno \"d\" później. Korona z głowy spadnie? Nie sondze. \"Xd\" to symptom tego, że masz mnie, jako rozmówcę, gdzieś, bo Ci się nawet kliknąć nie chce, żeby mi wysłać poprawny emotikon. Szanujesz mnie? Używaj \"xd\", \"xD\", \"XD\", do wyboru. Nie szanujesz mnie? Okaż to. Wystarczy, że wstawisz to zjebane \"Xd\" w choć jednej wiadomości. Nie pozdrawiam'
+
+
 @MessageEventDispatcher.register(aliases=['xd'])
-async def Xd(event: fbchat.MessageEvent) -> Optional[Response]:
+async def Xd(event: MessageEvent) -> Optional[Response]:
     """
     Użycie:
         !Xd
@@ -181,10 +185,7 @@ async def Xd(event: fbchat.MessageEvent) -> Optional[Response]:
         copypaste o Xd
     """
 
-    if event.message.text == '!Xd':
-        msg = 'Serio, mało rzeczy mnie triggeruje tak jak to chore \"Xd\". Kombinacji x i d można używać na wiele wspaniałych sposobów. Coś cię śmieszy? Stawiasz \"xD\". Coś się bardzo śmieszy? Śmiało: \"XD\"! Coś doprowadza Cię do płaczu ze śmiechu? \"XDDD\" i załatwione. Uśmiechniesz się pod nosem? \"xd\". Po kłopocie. A co ma do tego ten bękart klawiaturowej ewolucji, potwór i zakała ludzkiej estetyki - \"Xd\"? Co to w ogóle ma wyrażać? Martwego człowieka z wywalonym jęzorem? Powiem Ci, co to znaczy. To znaczy, że masz w telefonie włączone zaczynanie zdań dużą literą, ale szkoda Ci klikać capsa na jedno \"d\" później. Korona z głowy spadnie? Nie sondze. \"Xd\" to symptom tego, że masz mnie, jako rozmówcę, gdzieś, bo Ci się nawet kliknąć nie chce, żeby mi wysłać poprawny emotikon. Szanujesz mnie? Używaj \"xd\", \"xD\", \"XD\", do wyboru. Nie szanujesz mnie? Okaż to. Wystarczy, że wstawisz to zjebane \"Xd\" w choć jednej wiadomości. Nie pozdrawiam'
-
-        return Response(event, text=msg)
+    return Response(event, text=__Xd_message) if event.text == '!Xd' else None
 
 
 # constants
@@ -215,7 +216,7 @@ __czas_timers = [
 
 
 @MessageEventDispatcher.register()
-async def czas(event: fbchat.MessageEvent) -> Response:
+async def czas(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -247,7 +248,7 @@ async def czas(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def track(event: fbchat.MessageEvent) -> Response:
+async def track(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} <numer śledzenia>
@@ -257,7 +258,7 @@ async def track(event: fbchat.MessageEvent) -> Response:
 
     msg = track.__doc__
 
-    arg = event.message.text.split(' ', 1)
+    arg = event.text.split(' ', 1)
     if len(arg) == 2:
         msg = str(AliPaczka(arg[1]))
 
@@ -265,7 +266,7 @@ async def track(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register(aliases=['słownik'])
-async def slownik(event: fbchat.MessageEvent) -> Response:
+async def slownik(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} <wyraz>
@@ -275,14 +276,14 @@ async def slownik(event: fbchat.MessageEvent) -> Response:
 
     msg = slownik.__doc__
 
-    arg = event.message.text.split(' ', 1)
-    if len(arg) == 2:
-        arg = arg[1].lower()
+    args = event.text.split(' ', 1)
+    if len(args) == 2:
+        arg = args[1].lower()
         url = f'https://sjp.pwn.pl/slowniki/{arg.replace(" ", "-")}'
 
         response = requests.get(url).text
         parsed = BeautifulSoup(response, 'html.parser')
-        text = parsed.body.find('div', {'class': 'ribbon-element type-187126'})
+        text = parsed.body.find('div', {'class': 'ribbon-element type-187126'})  # type: ignore
         if text:
             msg = text.get_text().strip()
         else:
@@ -292,7 +293,7 @@ async def slownik(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def miejski(event: fbchat.MessageEvent) -> Response:
+async def miejski(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} <wyraz>
@@ -302,9 +303,9 @@ async def miejski(event: fbchat.MessageEvent) -> Response:
 
     msg = miejski.__doc__
 
-    arg = event.message.text.split(' ', 1)
-    if len(arg) == 2:
-        arg = arg[1].lower()
+    args = event.text.split(' ', 1)
+    if len(args) == 2:
+        arg = args[1].lower()
         url = f'https://www.miejski.pl/slowo-{arg.replace(" ", "+")}'
 
         response = requests.get(url)
@@ -312,12 +313,12 @@ async def miejski(event: fbchat.MessageEvent) -> Response:
             msg = 'Nie znaleziono takiego słowa'
         else:
             parsed = BeautifulSoup(response.text, 'html.parser')
-            main = parsed.body.find('main')
+            main = parsed.body.find('main')  # type: ignore
 
-            definition = main.find('p').get_text()
+            definition = main.find('p').get_text()  # type: ignore
 
-            example = main.find('blockquote')
-            example = f'\n\nPrzyklad/y: {example.get_text()}' if example else ''
+            example = main.find('blockquote')  # type: ignore
+            example = f'\n\nPrzyklad/y: {example.get_text()}' if example else ''  # type: ignore
 
             msg = f'{arg}\nDefinicja: {definition}{example}'
 
@@ -329,7 +330,7 @@ __tts_gtts = aiogTTS()
 
 
 @MessageEventDispatcher.register()
-async def tts(event: fbchat.MessageEvent) -> Response:
+async def tts(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} (lang=kod) <tekst>
@@ -344,7 +345,7 @@ async def tts(event: fbchat.MessageEvent) -> Response:
     msg = tts.__doc__
     files = None
 
-    arg = event.message.text.split(' ', 2)
+    arg = event.text.split(' ', 2)
     if len(arg) > 1:
         lang = 'pl'
         if arg[1].startswith('lang='):
@@ -362,14 +363,14 @@ async def tts(event: fbchat.MessageEvent) -> Response:
 
         fn = 'tts.mp3'
         mime = 'audio/mp3'
-        files = await WiertarBot.client.upload([(fn, f, mime)], voice_clip=True)
+        files = await event.context.upload_raw([(fn, f, mime)], voice_clip=False)
         msg = None
 
     return Response(event, text=msg, files=files)
 
 
 @MessageEventDispatcher.register()
-async def mc(event: fbchat.MessageEvent) -> Response:
+async def mc(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} <names/skin> <nick>
@@ -380,7 +381,7 @@ async def mc(event: fbchat.MessageEvent) -> Response:
     msg = mc.__doc__
     files = None
 
-    args = event.message.text.split(' ', 2)
+    args = event.text.split(' ', 2)
     if len(args) == 3:
         arg = args[1].lower()
 
@@ -392,10 +393,10 @@ async def mc(event: fbchat.MessageEvent) -> Response:
                 names = requests.get(f'https://api.mojang.com/user/profiles/{uuid}/names').text
                 names = json.loads(names)
 
-                msg = f'Oryginalny: {names[0]["name"]}\n'
+                msg = f'Oryginalny: {names[0]["name"]}\n'  # type: ignore
                 for name in names[1:]:
-                    date = datetime.fromtimestamp(name['changedToAt'] / 1000)
-                    msg += f'{date}: {name["name"]}\n'
+                    date = datetime.fromtimestamp(int(name['changedToAt']) / 1000)  # type: ignore
+                    msg += f'{date}: {name["name"]}\n'  # type: ignore
 
             elif arg == 'skin':
                 files = [
@@ -413,7 +414,7 @@ async def mc(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def covid(event: fbchat.MessageEvent) -> Response:
+async def covid(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -423,7 +424,7 @@ async def covid(event: fbchat.MessageEvent) -> Response:
 
     msg = covid.__doc__
 
-    args = event.message.text.split(' ', 1)
+    args = event.text.split(' ', 1)
     if len(args) == 1:
         url = "https://services-eu1.arcgis.com/zk7YlClTgerl62BY/arcgis/rest/services/global_corona_actual_widok3/FeatureServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=1&where=1%3D1&outFields=*"
         response = requests.get(url).json()
@@ -450,7 +451,7 @@ async def covid(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def sugestia(event: fbchat.MessageEvent) -> Response:
+async def sugestia(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -465,7 +466,7 @@ translator = Translator()
 
 
 @MessageEventDispatcher.register(aliases=['tłumacz'])
-async def tlumacz(event: fbchat.MessageEvent) -> Response:
+async def tlumacz(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} <docelowy język> <tekst>
@@ -476,7 +477,7 @@ async def tlumacz(event: fbchat.MessageEvent) -> Response:
 
     msg = tlumacz.__doc__
 
-    args = event.message.text.split(' ', 2)
+    args = event.text.split(' ', 2)
     if len(args) == 3:
         try:
             t = await translator.translate(args[2], dest=args[1])
@@ -496,7 +497,7 @@ sundays = [
 
 
 @MessageEventDispatcher.register()
-async def niedziela(event: fbchat.MessageEvent) -> Response:
+async def niedziela(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} [lista]
@@ -510,7 +511,7 @@ async def niedziela(event: fbchat.MessageEvent) -> Response:
     now = date.today()
     msg = niedziela.__doc__
 
-    request = event.message.text.split(" ", 2)
+    request = event.text.split(" ", 2)
     if len(request) == 1:
         nearest_sunday = None
 
@@ -532,7 +533,7 @@ async def niedziela(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register(aliases=['anthony', 'melon'])
-async def fantano(event: fbchat.MessageEvent) -> Response:
+async def fantano(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} <nazwa albumu>
@@ -541,7 +542,7 @@ async def fantano(event: fbchat.MessageEvent) -> Response:
         Treść: <Treść recenzji>
         Ocena: <Końcowa ocena>
     """
-    args = event.message.text.split(' ', 1)
+    args = event.text.split(' ', 1)
     if len(args) == 2:
         review = Fantano().get_rate(args[1])
         msg = (
@@ -561,7 +562,7 @@ def __convert_currency(_from: str, to: str, amount: Decimal) -> Decimal:
 
 
 @MessageEventDispatcher.register(aliases=["przelicz"])
-async def kurs(event: fbchat.MessageEvent) -> Response:
+async def kurs(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} <z waluty> <do waluty> (ilosc=1)
@@ -569,7 +570,7 @@ async def kurs(event: fbchat.MessageEvent) -> Response:
         Obecny kurs Forex
     """
 
-    args = event.message.text.split(" ")
+    args = event.text.split(" ")
     msg = kurs.__doc__
 
     if len(args) in (3, 4):

@@ -4,39 +4,39 @@ from datetime import datetime
 import fbchat
 
 from . import perm
+from .context import Context
 from .integrations import statistics
-from .bot import WiertarBot
 from .dispatch import EventDispatcher
 from .utils import serialize_MessageEvent
-from .database import FBMessage, db, FBMessageRepository
+from .database import FBMessage, FBMessageRepository
 from .log import log
 
 
 @EventDispatcher.on(fbchat.Connect)
-async def on_connect(event: fbchat.Connect):
+async def on_connect(event, **kwargs):
     log.info('Connected')
 
 
 @EventDispatcher.on(fbchat.PeopleAdded)
-async def on_people_added(event: fbchat.PeopleAdded):
-    if WiertarBot.session.user not in event.added:
+async def on_people_added(event: fbchat.PeopleAdded, *, context: Context, **kwargs):
+    if context.bot_id not in (u.id for u in event.added):
         await event.thread.send_text('poziom spat')
 
 
 @EventDispatcher.on(fbchat.PersonRemoved)
-async def on_person_removed(event: fbchat.PersonRemoved):
+async def on_person_removed(event: fbchat.PersonRemoved, **kwargs):
     await event.thread.send_text('poziom wzrus')
 
 
 @EventDispatcher.on(fbchat.ReactionEvent)
-async def on_reaction(event: fbchat.ReactionEvent):
-    if event.author.id != WiertarBot.session.user.id:
-        if perm.check('doublereact', event.thread.id, event.author.id):
-            await event.message.react(event.reaction)
+async def on_reaction(event: fbchat.ReactionEvent, *, context: Context, **kwargs):
+    if event.author.id != context.bot_id \
+            and perm.check('doublereact', event.thread.id, event.author.id):
+        await event.message.react(event.reaction)
 
 
 @EventDispatcher.on(fbchat.UnsendEvent)
-async def on_unsend(event: fbchat.UnsendEvent):
+async def on_unsend(event: fbchat.UnsendEvent, **kwargs):
     deleted_at = int(datetime.timestamp(event.at))
 
     statistics.delete_message(event)
@@ -44,7 +44,7 @@ async def on_unsend(event: fbchat.UnsendEvent):
 
 
 @EventDispatcher.on(fbchat.MessageEvent)
-async def save_message(event: fbchat.MessageEvent):
+async def save_message(event: fbchat.MessageEvent, *, context: Context, **kwargs):
     created_at = int(datetime.timestamp(event.message.created_at))
 
     serialized_message = serialize_MessageEvent(event)
@@ -63,5 +63,5 @@ async def save_message(event: fbchat.MessageEvent):
     )
 
     if event.message.attachments:
-        await asyncio.gather(*[WiertarBot.save_attachment(i)
+        await asyncio.gather(*[context.save_attachment(i)
                                for i in event.message.attachments])

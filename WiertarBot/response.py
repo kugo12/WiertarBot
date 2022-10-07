@@ -1,8 +1,6 @@
-from typing import List, Optional
+from typing import Optional, Union
 
-import fbchat
-
-from WiertarBot import bot
+from WiertarBot.events import MessageEvent, Mention
 
 
 class Response:
@@ -10,12 +8,12 @@ class Response:
 
     def __init__(
             self,
-            event: fbchat.MessageEvent,
+            event: MessageEvent,
             *,
             text: Optional[str] = None,
-            files: Optional[List[str]] = None,
+            files: Optional[Union[list[str], list[tuple[str, str]]]] = None,
             voice_clip: bool = False,
-            mentions: Optional[List[fbchat.Mention]] = None,
+            mentions: Optional[list[Mention]] = None,
             reply_to_id: Optional[str] = None
             ):
         self.event = event
@@ -25,9 +23,5 @@ class Response:
         self.mentions = mentions
         self.reply_to_id = reply_to_id
 
-    async def send(self) -> str:
-        if self.files and isinstance(self.files[0], str):
-            self.files = await bot.WiertarBot.upload(self.files, self.voice_clip)
-
-        return await self.event.thread.send_text(text=self.text, mentions=self.mentions,
-                                                 files=self.files, reply_to_id=self.reply_to_id)
+    async def send(self):
+        await self.event.context.send_response(self)

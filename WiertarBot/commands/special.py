@@ -1,66 +1,72 @@
+from typing import cast
+
 import fbchat
 
 from .. import perm
 from ..dispatch import MessageEventDispatcher
-from ..bot import WiertarBot
+from ..events import Mention, MessageEvent
+from ..response import Response
 
 
 @MessageEventDispatcher.register(special=True)
-async def everyone(event: fbchat.MessageEvent):
-    if '@everyone' in event.message.text:
-        if perm.check('everyone', event.thread.id, event.author.id):
-            if isinstance(event.thread, fbchat.Group):
-                group = await WiertarBot.client.fetch_thread_info([event.thread.id]).__anext__()
-                mentions = [
-                    fbchat.Mention(thread_id=participant.id, offset=0, length=9)
-                    for participant in group.participants
-                ]
+async def everyone(event: MessageEvent):
+    if '@everyone' in event.text \
+            and perm.check('everyone', event.thread_id, event.author_id) \
+            and event.is_group:
+        group = cast(fbchat.GroupData, await event.context.fetch_thread(event.thread_id))
+        mentions = [
+            Mention(thread_id=participant.id, offset=0, length=9)
+            for participant in group.participants
+        ]
 
-                await event.thread.send_text('@everyone', mentions=mentions)
-
-
-@MessageEventDispatcher.register(special=True)
-async def thinking(event: fbchat.MessageEvent):
-    if event.message.text == '🤔':
-        await event.thread.send_text('🤔')
+        await Response(
+            event=event,
+            text="@everyone",
+            mentions=mentions
+        ).send()
 
 
 @MessageEventDispatcher.register(special=True)
-async def grek(event: fbchat.MessageEvent):
-    text = event.message.text.lower()
+async def thinking(event: MessageEvent):
+    if event.text == '🤔':
+        await Response(event=event, text='🤔').send()
+
+
+@MessageEventDispatcher.register(special=True)
+async def grek(event: MessageEvent):
+    text = event.text.lower()
     if text == 'grek':
-        if event.message.text == 'Grek':
-            await event.thread.send_text('grek*')
-        await event.thread.send_text('to pedał')
+        if event.text == 'Grek':
+            await Response(event=event, text="grek*").send()
+        await Response(event=event, text="to pedał").send()
     elif text == 'pedał':
-        await event.thread.send_text('sam jesteś grek')
+        await Response(event=event, text="sam jesteś grek").send()
     elif text == 'pedał to':
-        await event.thread.send_text('grek')
+        await Response(event=event, text="grek").send()
 
 
 @MessageEventDispatcher.register(special=True)
-async def leet(event: fbchat.MessageEvent):
-    if '1337' in event.message.text:
-        if perm.check('leet', event.thread.id, event.author.id):
-            await event.thread.send_text('Jesteś elitą')
-        else:
-            await event.thread.send_text('Nie jesteś elitą')
+async def leet(event: MessageEvent):
+    if '1337' in event.text:
+        p = perm.check('leet', event.thread_id, event.author_id)
+
+        await Response(event=event, text="Jesteś elitą" if p else "Nie jesteś elitą").send()
 
 
 @MessageEventDispatcher.register(special=True)
-async def papiezowa_liczba(event: fbchat.MessageEvent):
-    if '2137' in event.message.text:
-        await event.thread.send_text('haha toż to papieżowa liczba')
+async def papiezowa_liczba(event: MessageEvent):
+    if '2137' in event.text:
+        await Response(event=event, text='haha toż to papieżowa liczba').send()
 
 
 @MessageEventDispatcher.register(special=True)
-async def Xd_reaction(event: fbchat.MessageEvent):
-    if 'Xd' in event.message.text:
-        await event.message.react('😠')  # angry reaction
+async def Xd_reaction(event: MessageEvent):
+    if 'Xd' in event.text:
+        await event.react('😠')  # angry reaction
 
 
-async def spierwyp(event: fbchat.MessageEvent, word: str):
-    text = event.message.text.lower()
+async def spierwyp(event: MessageEvent, word: str):
+    text = event.text.lower()
     msg = 'sam '
 
     if text.startswith('sam') and text.endswith(word):
@@ -70,15 +76,18 @@ async def spierwyp(event: fbchat.MessageEvent, word: str):
             msg = 'sam ' * (text.count('sam') + 1)
 
     if word in text:
-        await event.thread.send_text(msg + word)
-        await event.message.react('😠')  # angry reaction
+        await Response(
+            event=event,
+            text=msg + word
+        ).send()
+        await event.react('😠')  # angry reaction
 
 
 @MessageEventDispatcher.register(special=True)
-async def spier(event: fbchat.MessageEvent):
+async def spier(event: MessageEvent):
     await spierwyp(event, 'spierdalaj')
 
 
 @MessageEventDispatcher.register(special=True)
-async def wyp(event: fbchat.MessageEvent):
+async def wyp(event: MessageEvent):
     await spierwyp(event, 'wypierdalaj')

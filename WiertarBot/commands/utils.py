@@ -3,17 +3,18 @@ import fbchat
 import json
 import asyncio
 from io import BytesIO
-from typing import List, Awaitable
+from typing import List, Awaitable, Optional
 
 from .. import perm, config
 from ..dispatch import MessageEventDispatcher
+from ..events import MessageEvent, Mention
 from ..response import Response
 from ..bot import WiertarBot
 from ..database import PermissionRepository, FBMessageRepository
 
 
 @MessageEventDispatcher.register(aliases=['pomoc'])
-async def help(event: fbchat.MessageEvent) -> Response:
+async def help(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} (komenda)
@@ -22,7 +23,7 @@ async def help(event: fbchat.MessageEvent) -> Response:
         z argumentem informacje o podanej komendzie
     """
 
-    text = event.message.text.lower().replace(config.wiertarbot.prefix, '')
+    text = event.text.lower().replace(config.wiertarbot.prefix, '')
     if text.count(' '):
         arg = text.split(' ', 1)[1]
 
@@ -45,7 +46,7 @@ async def help(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def tid(event: fbchat.MessageEvent) -> Response:
+async def tid(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -53,11 +54,11 @@ async def tid(event: fbchat.MessageEvent) -> Response:
         id aktualnego wątku
     """
 
-    return Response(event, text=event.thread.id)
+    return Response(event, text=event.thread_id)
 
 
 @MessageEventDispatcher.register()
-async def uid(event: fbchat.MessageEvent) -> Response:
+async def uid(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} (oznaczenie)
@@ -65,10 +66,10 @@ async def uid(event: fbchat.MessageEvent) -> Response:
         twoje id lub oznaczonej osoby
     """
 
-    if event.message.mentions:
-        msg = event.message.mentions[0].thread_id
+    if event.mentions:
+        msg = event.mentions[0].thread_id
     else:
-        msg = event.author.id
+        msg = event.author_id
 
     return Response(event, text=msg)
 
@@ -76,7 +77,7 @@ async def uid(event: fbchat.MessageEvent) -> Response:
 # TODO: rewrite it in future XD
 # TODO: real status instead of always positive
 @MessageEventDispatcher.register(name='perm')
-async def _perm(event: fbchat.MessageEvent) -> Response:
+async def _perm(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} look <nazwa>
@@ -87,27 +88,27 @@ async def _perm(event: fbchat.MessageEvent) -> Response:
 
     msg = _perm.__doc__
 
-    cmd = event.message.text.split(' ')
+    cmd = event.text.split(' ')
     if len(cmd) == 3:
         if cmd[1] == 'look':
             perms = PermissionRepository.find_by_command(cmd[2])
             if perms:
                 msg = (
                     f'{ cmd[2] }:\n\n'
-                    f'whitelist: { perms[0] }\n'
-                    f'blacklist: { perms[1] }'
+                    f'whitelist: { perms.whitelist }\n'
+                    f'blacklist: { perms.blacklist }'
                 )
             else:
                 msg = 'Podana permisja nie istnieje'
 
     elif len(cmd) > 4:
-        tid = False
+        tid = None
         if cmd[4].startswith('tid='):
             try:
                 tid = str(int(cmd[4][4:]))
             except ValueError:
                 if cmd[4][4:] == 'here':
-                    tid = event.thread.id
+                    tid = event.thread_id
 
         bl = cmd[3] != 'wl'
         add = cmd[1] == 'add'
@@ -117,7 +118,7 @@ async def _perm(event: fbchat.MessageEvent) -> Response:
             return Response(event, text='Podana permisja nie istnieje')
 
         uids = cmd[3:]
-        for mention in event.message.mentions:
+        for mention in event.mentions:
             uids.append(mention.thread_id)
 
         msg = 'Pomyślnie '
@@ -130,7 +131,7 @@ async def _perm(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def ban(event: fbchat.MessageEvent) -> Response:
+async def ban(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} <oznaczenie/uid>
@@ -139,16 +140,18 @@ async def ban(event: fbchat.MessageEvent) -> Response:
     """
 
     base = config.wiertarbot.prefix+'perm add banned wl '
-    without_fw = event.message.text.split(' ', 1)[1]
+    without_fw = event.text.split(' ', 1)[1]
 
-    event.message.text = base + without_fw
-    await _perm(event)
+    # fixme
+    await _perm(
+        MessageEvent.copy_with_different_text(event, base + without_fw)
+    )
 
     return Response(event, text='Pomyślnie zbanowano')
 
 
 @MessageEventDispatcher.register()
-async def unban(event: fbchat.MessageEvent) -> Response:
+async def unban(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} <oznaczenie/uid>
@@ -157,16 +160,17 @@ async def unban(event: fbchat.MessageEvent) -> Response:
     """
 
     base = config.wiertarbot.prefix+'perm rem banned wl '
-    without_fw = event.message.text.split(' ', 1)[1]
+    without_fw = event.text.split(' ', 1)[1]
 
-    event.message.text = base + without_fw
-    await _perm(event)
+    await _perm(
+        MessageEvent.copy_with_different_text(event, base + without_fw)
+    )
 
     return Response(event, text='Pomyślnie odbanowano')
 
 
 @MessageEventDispatcher.register()
-async def ile(event: fbchat.MessageEvent) -> Response:
+async def ile(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -174,7 +178,7 @@ async def ile(event: fbchat.MessageEvent) -> Response:
         ilość napisanych wiadomości od dodania bota
     """
 
-    thread = await WiertarBot.client.fetch_thread_info([event.thread.id]).__anext__()
+    thread = await event.context.fetch_thread(event.thread_id)
 
     msg = f'Odkąd tutaj jestem napisano tu { thread.message_count } wiadomości.'
 
@@ -182,7 +186,7 @@ async def ile(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def uptime(event: fbchat.MessageEvent) -> Response:
+async def uptime(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -203,7 +207,7 @@ async def uptime(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def see(event: fbchat.MessageEvent) -> Response:
+async def see(event: MessageEvent) -> Optional[Response]:
     """
     Użycie:
         {command} (ilosc<=10)
@@ -212,7 +216,7 @@ async def see(event: fbchat.MessageEvent) -> Response:
     """
 
     try:
-        n = int(event.message.text.split(' ', 1)[1])
+        n = int(event.text.split(' ', 1)[1])
         if n > 10:
             n = 10
         elif n < 1:
@@ -220,14 +224,14 @@ async def see(event: fbchat.MessageEvent) -> Response:
     except (IndexError, ValueError):
         n = 1
 
-    messages = FBMessageRepository.find_deleted_by_thread_id(event.thread.id, n)
+    messages = FBMessageRepository.find_deleted_by_thread_id(event.thread_id, n)
 
     send_responses: List[Awaitable] = []
-    for message in messages:
-        message = json.loads(message.message)
+    for it in messages:
+        message = json.loads(it.message)
 
         mentions = [
-            fbchat.Mention(**mention)
+            Mention(**mention)
             for mention in message['mentions']
         ]
 
@@ -256,5 +260,6 @@ async def see(event: fbchat.MessageEvent) -> Response:
 
     if send_responses:
         await asyncio.gather(*send_responses)
+        return None
     else:
         return Response(event, text='Nie ma żadnych zapisanych usuniętych wiadomości w tym wątku')

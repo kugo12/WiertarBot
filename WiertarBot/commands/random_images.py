@@ -7,13 +7,14 @@ from bs4 import BeautifulSoup
 from io import BytesIO
 
 from ..dispatch import MessageEventDispatcher
+from ..events import MessageEvent
 from ..response import Response
 from .. import config
 from ..bot import WiertarBot
 
 
 @MessageEventDispatcher.register()
-async def suchar(event: fbchat.MessageEvent) -> Response:
+async def suchar(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -23,13 +24,13 @@ async def suchar(event: fbchat.MessageEvent) -> Response:
 
     response = requests.get('http://www.suchary.com/random.html')
     parsed = BeautifulSoup(response.text, 'html.parser')
-    image_url = parsed.body.find('div', 'file-container').a.img['src']
+    image_url: str = parsed.find('div', 'file-container').a.img['src']  # type: ignore
 
     return Response(event, files=[image_url])
 
 
 @MessageEventDispatcher.register(aliases=['jeż'])
-async def jez(event: fbchat.MessageEvent) -> Response:
+async def jez(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -37,17 +38,20 @@ async def jez(event: fbchat.MessageEvent) -> Response:
         zdjęcie z jeżykiem
     """
 
-    url = f'http://www.cutestpaw.com/tag/hedgehogs/page/{ random.randint(1, 10) }/'
+    url = f'http://www.cutestpaw.com/tag/hedgehogs/page/{random.randint(1, 10)}/'
     response = requests.get(url)
-    h = BeautifulSoup(response.text, 'html.parser')
-    h = h.find_all('a', {'title': True})
-    image_url = random.choice(h).img['src']
+    bs = BeautifulSoup(response.text, 'html.parser')
+    h = bs.find_all('a', {'title': True})
+    image_url = random.choice(h).img['src']  # type: ignore
 
     return Response(event, files=[image_url])
 
 
+__zolw_pages = 1000
+
+
 @MessageEventDispatcher.register(aliases=['żółw'])
-async def zolw(event: fbchat.MessageEvent):
+async def zolw(event: MessageEvent):
     """
     Użycie:
         {command}
@@ -55,16 +59,17 @@ async def zolw(event: fbchat.MessageEvent):
         zdjęcie z żółwikiem
     """
 
-    random_page = random.randint(1, zolw.pages)
+    global __zolw_pages
+
+    random_page = random.randint(1, __zolw_pages)
     data = {
         "query": "turtle",
-        "per_page": 1,
-        "page": random_page
+        "per_page": "1",
+        "page": str(random_page)
     }
 
-    response = requests.get("https://unsplash.com/napi/search/photos", params=data).text
-    response = json.loads(response)
-    zolw.pages = response["total_pages"]
+    response = requests.get("https://unsplash.com/napi/search/photos", params=data).json()
+    __zolw_pages = int(response["total_pages"])
 
     image_url = response["results"][0]["urls"]["regular"]
 
@@ -73,16 +78,15 @@ async def zolw(event: fbchat.MessageEvent):
     )
 
     files_to_upload = [
-        (f"turtle{ random_page }.jpg", image, "image/jpeg")
+        (f"turtle{random_page}.jpg", image, "image/jpeg")
     ]
 
-    uploaded_files = await WiertarBot.client.upload(files_to_upload, False)
-    await event.thread.send_files(uploaded_files)
-zolw.pages = 1000
+    uploaded_files = await event.context.upload_raw(files_to_upload, False)
+    await event.send_response(files=uploaded_files)
 
 
 @MessageEventDispatcher.register(aliases=['dog', 'pies'])
-async def doggo(event: fbchat.MessageEvent) -> Response:
+async def doggo(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -98,7 +102,7 @@ async def doggo(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def beagle(event: fbchat.MessageEvent) -> Response:
+async def beagle(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -114,7 +118,7 @@ async def beagle(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def birb(event: fbchat.MessageEvent) -> Response:
+async def birb(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -130,7 +134,7 @@ async def birb(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def wink(event: fbchat.MessageEvent) -> Response:
+async def wink(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -145,9 +149,11 @@ async def wink(event: fbchat.MessageEvent) -> Response:
     return Response(event, files=[image_url])
 
 
-if config.cat_api is not None:
+if config.cat_api:
+    __cat_api_key = config.cat_api.key
+
     @MessageEventDispatcher.register(aliases=['cat', 'kot'])
-    async def catto(event: fbchat.MessageEvent) -> Response:
+    async def catto(event: MessageEvent) -> Response:
         """
         Użycie:
             {command}
@@ -156,7 +162,7 @@ if config.cat_api is not None:
         """
 
         headers = {
-            "x-api-key": config.cat_api.key
+            "x-api-key": __cat_api_key
         }
 
         response = requests.get('https://api.thecatapi.com/v1/images/search', headers=headers)
@@ -167,7 +173,7 @@ if config.cat_api is not None:
 
 
 @MessageEventDispatcher.register(aliases=['panda'])
-async def pandka(event: fbchat.MessageEvent) -> Response:
+async def pandka(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -183,7 +189,7 @@ async def pandka(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def shiba(event: fbchat.MessageEvent) -> Response:
+async def shiba(event: MessageEvent) -> Response:
     """
     Użycie:
         {command} (ilosc<=10)
@@ -192,7 +198,7 @@ async def shiba(event: fbchat.MessageEvent) -> Response:
     """
 
     try:
-        count = int(event.message.text.split(' ', 1)[1])
+        count = int(event.text.split(' ', 1)[1])
         if count > 10:
             count = 10
         elif count < 1:
@@ -200,7 +206,7 @@ async def shiba(event: fbchat.MessageEvent) -> Response:
     except (IndexError, ValueError):
         count = 1
 
-    url = f'https://shibe.online/api/shibes?count={ count }&urls=true&httpsUrls=true'
+    url = f'https://shibe.online/api/shibes?count={count}&urls=true&httpsUrls=true'
     response = requests.get(url)
     image_urls = json.loads(response.text)
 
@@ -214,7 +220,7 @@ def random_from_media_dir(directory: str) -> str:
 
 
 @MessageEventDispatcher.register()
-async def konon(event: fbchat.MessageEvent) -> Response:
+async def konon(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -228,7 +234,7 @@ async def konon(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def papaj(event: fbchat.MessageEvent) -> Response:
+async def papaj(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -242,7 +248,7 @@ async def papaj(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def bmw(event: fbchat.MessageEvent) -> Response:
+async def bmw(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -254,8 +260,9 @@ async def bmw(event: fbchat.MessageEvent) -> Response:
 
     return Response(event, files=[image_path])
 
+
 @MessageEventDispatcher.register()
-async def audi(event: fbchat.MessageEvent) -> Response:
+async def audi(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -267,8 +274,9 @@ async def audi(event: fbchat.MessageEvent) -> Response:
 
     return Response(event, files=[image_path])
 
+
 @MessageEventDispatcher.register()
-async def mikser(event: fbchat.MessageEvent) -> Response:
+async def mikser(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -282,7 +290,7 @@ async def mikser(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register(aliases=['meme'])
-async def mem(event: fbchat.MessageEvent) -> Response:
+async def mem(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -303,7 +311,7 @@ async def mem(event: fbchat.MessageEvent) -> Response:
 
 
 @MessageEventDispatcher.register()
-async def hug(event: fbchat.MessageEvent) -> Response:
+async def hug(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}
@@ -315,8 +323,9 @@ async def hug(event: fbchat.MessageEvent) -> Response:
 
     return Response(event, files=[response["link"]])
 
+
 @MessageEventDispatcher.register()
-async def jabol(event: fbchat.MessageEvent) -> Response:
+async def jabol(event: MessageEvent) -> Response:
     """
     Użycie:
         {command}

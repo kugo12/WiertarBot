@@ -53,19 +53,19 @@ class _2021(ImageEditABC):
     template_path = str(cmd_media_path / 'templates/2021.jpg')
 
     async def edit(self, fp: BinaryIO) -> BinaryIO:
-        tps = [500, 179]
+        tps = (500, 179)
         img = Image.open(fp)
-        ims = [img.width, img.height]
+        ims = (img.width, img.height)
         tmpl = Image.open(self.template_path)
 
         if tps[0] >= ims[0]:
             h = round(500*ims[1]/ims[0])
             ims = (500, h)
-            new = Image.new("RGB", [500, h+179])
+            new = Image.new("RGB", (500, h+179))
             sz = (0, tps[1])
         else:
             h = round(ims[0]*tps[1]/tps[0])
-            new = Image.new("RGB", [ims[0], ims[1]+h])
+            new = Image.new("RGB", (ims[0], ims[1]+h))
             tmpl = tmpl.resize((ims[0], h))
             ims = (ims[0], ims[1])
             sz = (0, h)
@@ -124,15 +124,16 @@ class deepfry(ImageEditABC):
         r = img.split()[0]
         r = ImageEnhance.Contrast(r).enhance(2.0)
         r = ImageEnhance.Brightness(r).enhance(1.5)
-        r = ImageOps.colorize(r, (254, 0, 2), (255, 255, 15))
+        r = ImageOps.colorize(r, (254, 0, 2), (255, 255, 15))  # type: ignore
         img = Image.blend(img, r, 0.6)
 
-        for i in a:
-            pos = (i[0]-off[0], i[1]-off[1])
+        for bruh in a:
+            pos = (bruh[0]-off[0], bruh[1]-off[1])
             img.paste(fl, pos, fl)
-        for i in a:
-            pos = (i[0]-off[0], i[1]-off[1])
+        for bruh in a:
+            pos = (bruh[0]-off[0], bruh[1]-off[1])
             img.paste(fl2, pos, fl2)
+
         img = ImageEnhance.Sharpness(img).enhance(10.0)
         img = ImageEnhance.Contrast(img).enhance(1.5)
 
@@ -169,20 +170,20 @@ class nobody(ImageEditABC):
         w, h = draw.textsize(text, font=font)
         h = h+22
         w = round(w*1.7)
-        tps = [w, h]
+        tps = (w, h)
         tmpl = Image.new("RGB", tps, "#fff")
         draw = ImageDraw.Draw(tmpl)
         draw.text((0, 0), text, font=font, fill="#000")
-        ims = [img.width, img.height]
+        ims = (img.width, img.height)
 
         if tps[0] >= ims[0]:
             h = round(tps[0]*ims[1]/ims[0])
             ims = (tps[0], h)
-            new = Image.new("RGB", [tps[0], h+tps[1]])
+            new = Image.new("RGB", (tps[0], h+tps[1]))
             sz = (0, tps[1])
         else:
             h = round(ims[0]*tps[1]/tps[0])
-            new = Image.new("RGB", [ims[0], ims[1]+h])
+            new = Image.new("RGB", (ims[0], ims[1]+h))
             tmpl = tmpl.resize((ims[0], h))
             ims = (ims[0], ims[1])
             sz = (0, h)

@@ -1,23 +1,23 @@
 import fbchat
 import inspect
 from asyncio import get_running_loop, gather
-from typing import Iterable, Callable, Coroutine, Any, Optional
+from typing import Iterable, Optional, Type, Callable, cast
 from time import time
 
 from . import bot, perm, config
 from .commands.ABCImageEdit import ImageEditABC
+from .context import Context
 from .database import PermissionRepository
-from .response import Response
-
-EventCallable = Callable[[fbchat.Event], Coroutine[Any, Any, None]]
+from .events import MessageEvent
+from .typing import EventCallable, MessageEventCallable, MessageEventConsumer, EventConsumer, FBEvent
 
 
 class EventDispatcher:
-    _slots: dict[str, list[EventCallable]] = {}
+    _slots: dict[str, list[EventConsumer]] = {}
 
     @classmethod
-    def on(cls, event: type[fbchat.Event]):
-        def wrap(func: EventCallable):
+    def on(cls, event: Type[FBEvent]):
+        def wrap(func: EventConsumer) -> EventConsumer:
             name = event.__name__
 
             if name not in cls._slots:
@@ -32,22 +32,22 @@ class EventDispatcher:
         return wrap
 
     @classmethod
-    async def dispatch(cls, event):
+    async def dispatch(cls, event, **kwargs):
         name = type(event).__name__
         if name in cls._slots:
             loop = get_running_loop()
             for func in cls._slots[name]:
-                loop.create_task(func(event))
+                loop.create_task(func(event, **kwargs))
 
 
 class MessageEventDispatcher:
-    _commands = {}
-    _special = []
-    _alias_of = {}
-    _image_edit_queue = {}
+    _commands: dict[str, MessageEventConsumer] = {}
+    _special: list[MessageEventCallable] = []
+    _alias_of: dict[str, str] = {}
+    _image_edit_queue: dict[str, tuple[int, ImageEditABC]] = {}
 
     @classmethod
-    def command(cls, name: str) -> Optional[Callable]:
+    def command(cls, name: str) -> Optional[MessageEventConsumer]:
         real_name = cls._alias_of.get(name)
 
         return cls._commands.get(real_name) if real_name else None
@@ -64,8 +64,8 @@ class MessageEventDispatcher:
             aliases: Optional[Iterable[str]] = None,
             special: bool = False
     ):
-        def wrap(func):
-            if special:
+        def wrap(func: MessageEventConsumer):
+            if special and not isinstance(func, type):
                 cls._special.append(func)
             else:
                 _name = name or func.__name__
@@ -99,44 +99,46 @@ class MessageEventDispatcher:
 
     @classmethod
     @EventDispatcher.on(fbchat.MessageEvent)
-    async def dispatch(cls, event: fbchat.MessageEvent):
-        if event.author.id != bot.WiertarBot.session.user.id \
+    async def dispatch(cls, event: fbchat.MessageEvent, *, context: Context, **kwargs):
+        if event.author.id != context.bot_id \
                 and not perm.check('banned', event.thread.id, event.author.id):
             if event.message.text:
-                if event.message.text.startswith(config.wiertarbot.prefix):
-                    # first word without prefix
-                    fw = event.message.text.split(' ', 1)[0][len(config.wiertarbot.prefix):].lower()
-                    fw = cls._alias_of.get(fw)
+                g_event = MessageEvent.from_fb_event(context, event)
 
-                    if fw and perm.check(fw, event.thread.id, event.author.id):
-                        command = cls._commands[fw]
+                if g_event.text.startswith(config.wiertarbot.prefix):
+                    # first word without prefix
+                    fw = g_event.text.split(' ', 1)[0][len(config.wiertarbot.prefix):].lower()
+                    command_name = cls._alias_of.get(fw)
+
+                    if command_name and perm.check(command_name, g_event.thread_id, g_event.author_id):
+                        command = cls._commands[command_name]
 
                         if isinstance(command, type):
-                            if issubclass(command, ImageEditABC):
-                                img_edit = command()
-                                response = await img_edit.check(event)
-                                if response:
-                                    # add to queue
-                                    t_u_id = f'{event.thread.id}_{event.author.id}'
-                                    queue = (int(time()), img_edit)
-                                    cls._image_edit_queue[t_u_id] = queue
+                            img_edit = command(g_event.text)
+                            if await img_edit.check(g_event):
+                                # add to queue
+                                t_u_id = f'{g_event.thread_id}_{g_event.author_id}'
+                                queue = (int(time()), img_edit)
+                                cls._image_edit_queue[t_u_id] = queue
                         else:
-                            response = await command(event)
+                            response = await command(g_event, **kwargs)
                             if response:
                                 await response.send()
 
                 # run all special functions asynchronously
-                await gather(*[i(event) for i in cls._special])
+                await gather(*[i(g_event, **kwargs) for i in cls._special])
 
             else:  # if there is no text in message
                 t_u_id = f'{event.thread.id}_{event.author.id}'
                 if t_u_id in cls._image_edit_queue:
                     t, img_edit = cls._image_edit_queue[t_u_id]
 
+                    g_event = MessageEvent.from_fb_event(context, event)
+
                     if t + config.image_edit_timeout > time():
-                        img = await img_edit.get_image_from_attachments(event.message)
+                        img = await img_edit.get_image_from_attachments(g_event, event.message)
                         if img:  # if found an image
-                            await img_edit.edit_and_send(event, img)
+                            await img_edit.edit_and_send(g_event, img)
                             del cls._image_edit_queue[t_u_id]
                     else:  # if timed out
                         del cls._image_edit_queue[t_u_id]

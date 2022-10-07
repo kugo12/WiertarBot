@@ -1,1 +1,8 @@
-pyright==1.1.264
+mypy==0.982
+types-requests==2.26.0
+types-PyYAML==6.0
+types-aiofiles==0.7.0
+types-Pillow==9.0.1
+types-peewee==3.15.0.0
+types-beautifulsoup4==4.10.0
+types-urllib3==1.26.7

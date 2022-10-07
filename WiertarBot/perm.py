@@ -1,7 +1,8 @@
 import json
-from typing import List
+from typing import List, Optional
 
 from .database import Permission, PermissionRepository
+from .typing import QueriedPermission
 
 
 def check(name: str, thread_id: str, user_id: str) -> bool:
@@ -59,15 +60,14 @@ def check(name: str, thread_id: str, user_id: str) -> bool:
     return False
 
 
-def edit(command: str, uids: List[str], bl=False, add=True, tid=False) -> bool:
+def edit(command: str, uids: List[str], bl=False, add=True, tid: Optional[str] = None) -> bool:
     permission = PermissionRepository.find_by_command(command)
     blacklist = {}
     whitelist = {}
 
-    if permission is None and not add:
-        return False
-    elif permission is None:
-        permission = Permission(command=command)
+    if permission is None:
+        if not add:
+            return False
     else:
         blacklist = json.loads(permission.blacklist)
         whitelist = json.loads(permission.whitelist)
@@ -97,8 +97,11 @@ def edit(command: str, uids: List[str], bl=False, add=True, tid=False) -> bool:
             else:
                 currently_edited.pop(uid)
 
-    permission.whitelist = json.dumps(whitelist)
-    permission.blacklist = json.dumps(blacklist)
+    if permission:
+        permission.whitelist = json.dumps(whitelist)
+        permission.blacklist = json.dumps(blacklist)
+    else:
+        permission = QueriedPermission(command=command, whitelist=json.dumps(whitelist), blacklist=json.dumps(blacklist))
     PermissionRepository.save(permission)
 
     return True

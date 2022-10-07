@@ -1,7 +1,7 @@
 from typing import Optional, Iterable
 
 from .models import db, Permission, FBMessage
-
+from ..typing import QueriedFBMessage, QueriedPermission
 
 # noinspection PyComparisonWithNone
 class FBMessageRepository:
@@ -21,7 +21,7 @@ class FBMessageRepository:
         )
 
     @staticmethod
-    def find_not_deleted_and_time_before(time: int) -> Iterable[FBMessage]:
+    def find_not_deleted_and_time_before(time: int) -> Iterable[QueriedFBMessage]:
         return (
             FBMessage
             .select(FBMessage.message)
@@ -39,7 +39,7 @@ class FBMessageRepository:
         )
 
     @staticmethod
-    def find_deleted_by_thread_id(thread_id: str, limit: int) -> Iterable[FBMessage]:
+    def find_deleted_by_thread_id(thread_id: str, limit: int) -> Iterable[QueriedFBMessage]:
         return (
             FBMessage
             .select(FBMessage.message)
@@ -54,7 +54,7 @@ class FBMessageRepository:
 
 class PermissionRepository:
     @staticmethod
-    def find_by_command(command: str) -> Optional[Permission]:
+    def find_by_command(command: str) -> Optional[QueriedPermission]:
         return Permission.get_or_none(Permission.command == command)
 
     @staticmethod

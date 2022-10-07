@@ -1,7 +1,7 @@
 import fbchat
 import json
 import asyncio
-from typing import Awaitable
+from typing import Awaitable, Any
 from datetime import datetime
 
 
@@ -36,28 +36,27 @@ def serialize_MessageEvent(event: fbchat.MessageEvent) -> str:
 
 
 def attachment_to_dict(att: fbchat.Attachment) -> dict:
-    att_type = type(att).__name__
-    out = {
+    out: dict[str, Any] = {
         'id': att.id,
-        'type': att_type
+        'type': type(att).__name__
     }
 
-    if att_type == 'ImageAttachment':
+    if isinstance(att, fbchat.ImageAttachment):
         out['original_extension'] = att.original_extension
-    elif att_type == 'AudioAttachment':
+    elif isinstance(att, fbchat.AudioAttachment):
         out['filename'] = att.filename
         out['audio_type'] = att.audio_type
         out['url'] = att.url
-    elif att_type == 'VideoAttachment':
+    elif isinstance(att, fbchat.VideoAttachment):
         out['preview_url'] = att.preview_url
-    elif att_type == 'FileAttachment':
+    elif isinstance(att, fbchat.FileAttachment):
         out['url'] = att.url
         out['name'] = att.name
         out['is_malicious'] = att.is_malicious
-    elif att_type == 'ShareAttachment':
+    elif isinstance(att, fbchat.ShareAttachment):
         out['url'] = att.url
         out['original_url'] = att.original_url
-    elif att_type in ('LocationAttachment', 'LiveLocationAttachment'):
+    elif isinstance(att, fbchat.LocationAttachment) or isinstance(att, fbchat.LiveLocationAttachment):
         out['latitude'] = att.latitude
         out['longitude'] = att.longitude
         out['url'] = att.url
