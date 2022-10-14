@@ -139,9 +139,7 @@ async def changelog(event: MessageEvent) -> Response:
         link do spisu zmian bota
     """
 
-    msg = 'https://wiertarbot.pl/changelog'
-
-    return event.response(text=msg)
+    return event.response(text='https://github.com/kugo12/WiertarBot/commits/main')
 
 
 @MessageEventDispatcher.register()
