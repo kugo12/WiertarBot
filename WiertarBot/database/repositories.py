@@ -1,18 +1,20 @@
-from typing import Optional, Iterable
+from typing import Optional, Iterable, TYPE_CHECKING
 
 from .models import db, Permission, FBMessage
-from ..typing import QueriedFBMessage, QueriedPermission
+
+if TYPE_CHECKING:
+    from ..typing import QueriedFBMessage, QueriedPermission
 
 # noinspection PyComparisonWithNone
 class FBMessageRepository:
     @staticmethod
     @db.atomic()
-    def save(obj: FBMessage, *, force_insert=False):
+    def save(obj: FBMessage, *, force_insert=False) -> None:
         obj.save(force_insert=force_insert)
 
     @staticmethod
     @db.atomic()
-    def mark_deleted(mid: str, timestamp: int):
+    def mark_deleted(mid: str, timestamp: int) -> None:
         (
             FBMessage
             .update(deleted_at=timestamp)
@@ -21,7 +23,7 @@ class FBMessageRepository:
         )
 
     @staticmethod
-    def find_not_deleted_and_time_before(time: int) -> Iterable[QueriedFBMessage]:
+    def find_not_deleted_and_time_before(time: int) -> Iterable['QueriedFBMessage']:
         return (
             FBMessage
             .select(FBMessage.message)
@@ -39,7 +41,7 @@ class FBMessageRepository:
         )
 
     @staticmethod
-    def find_deleted_by_thread_id(thread_id: str, limit: int) -> Iterable[QueriedFBMessage]:
+    def find_deleted_by_thread_id(thread_id: str, limit: int) -> Iterable['QueriedFBMessage']:
         return (
             FBMessage
             .select(FBMessage.message)
@@ -54,10 +56,10 @@ class FBMessageRepository:
 
 class PermissionRepository:
     @staticmethod
-    def find_by_command(command: str) -> Optional[QueriedPermission]:
+    def find_by_command(command: str) -> Optional['QueriedPermission']:
         return Permission.get_or_none(Permission.command == command)
 
     @staticmethod
     @db.atomic()
-    def save(obj: Permission, *, force_insert=False):
+    def save(obj: Permission, *, force_insert=False) -> None:
         obj.save(force_insert=force_insert)

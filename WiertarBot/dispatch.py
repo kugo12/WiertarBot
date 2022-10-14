@@ -1,16 +1,17 @@
 import fbchat
 import inspect
 from asyncio import get_running_loop, gather
-from typing import Iterable, Optional, Type, Callable, cast
+from typing import Iterable, Optional, Type, TYPE_CHECKING
 from time import time
 
-from . import bot, perm, config
-from .commands.ABCImageEdit import ImageEditABC
+from . import perm, config
 from .context import Context
 from .database import PermissionRepository
 from .events import MessageEvent
-from .typing import EventCallable, MessageEventCallable, MessageEventConsumer, EventConsumer, FBEvent
+from .typing import MessageEventCallable, MessageEventConsumer, EventConsumer, FBEvent
 
+if TYPE_CHECKING:
+    from .commands.ABCImageEdit import ImageEditABC
 
 class EventDispatcher:
     _slots: dict[str, list[EventConsumer]] = {}
@@ -32,7 +33,7 @@ class EventDispatcher:
         return wrap
 
     @classmethod
-    async def dispatch(cls, event, **kwargs):
+    async def dispatch(cls, event, **kwargs) -> None:
         name = type(event).__name__
         if name in cls._slots:
             loop = get_running_loop()
@@ -44,7 +45,7 @@ class MessageEventDispatcher:
     _commands: dict[str, MessageEventConsumer] = {}
     _special: list[MessageEventCallable] = []
     _alias_of: dict[str, str] = {}
-    _image_edit_queue: dict[str, tuple[int, ImageEditABC]] = {}
+    _image_edit_queue: dict[str, tuple[int, 'ImageEditABC']] = {}
 
     @classmethod
     def command(cls, name: str) -> Optional[MessageEventConsumer]:
@@ -53,7 +54,7 @@ class MessageEventDispatcher:
         return cls._commands.get(real_name) if real_name else None
 
     @classmethod
-    def commands(cls):
+    def commands(cls) -> dict[str, MessageEventConsumer]:
         return cls._commands
 
     @classmethod
@@ -99,7 +100,7 @@ class MessageEventDispatcher:
 
     @classmethod
     @EventDispatcher.on(fbchat.MessageEvent)
-    async def dispatch(cls, event: fbchat.MessageEvent, *, context: Context, **kwargs):
+    async def dispatch(cls, event: fbchat.MessageEvent, *, context: Context, **kwargs) -> None:
         if event.author.id != context.bot_id \
                 and not perm.check('banned', event.thread.id, event.author.id):
             if event.message.text:

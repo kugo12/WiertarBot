@@ -2,10 +2,11 @@ import asyncio
 import atexit
 
 from .bot import WiertarBot
-from .integrations import sentry
+from .config import config
 
 
-async def main():
+async def main() -> None:
+    await config.init()
     # bot = await WiertarBot.create()
 
     # atexit.register(bot.save_cookies)
@@ -16,6 +17,4 @@ async def main():
     # await bot.run()
     pass
 
-
-sentry.init()
 asyncio.run(main())

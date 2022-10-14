@@ -10,7 +10,7 @@ class QueriedPermission(models.Permission):
     blacklist: str  # type: ignore[assignment]
 
     @classmethod
-    def new(cls, command: str, whitelist: str, blacklist: str):
+    def new(cls, command: str, whitelist: str, blacklist: str) -> 'QueriedPermission':
         return cls(command=command, whitelist=whitelist, blacklist=blacklist)
 
 
@@ -32,7 +32,7 @@ class QueriedFBMessage(models.FBMessage):
             time: int,
             message: str,
             deleted_at: str,
-    ):
+    ) -> 'QueriedFBMessage':
         return cls(
             message_id=message_id,
             thread_id=thread_id,

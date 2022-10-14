@@ -1,20 +1,17 @@
 import mimetypes
 from io import BytesIO
 from os import path
-from typing import Optional, Sequence, Tuple, Iterable, BinaryIO, Protocol, Union, Final, cast
+from typing import Optional, Sequence, Tuple, Iterable, BinaryIO, Union, Final, cast, TYPE_CHECKING
 
 import aiofiles
 import aiohttp
 import fbchat
 
 from . import config
-from .events import MessageEvent
-from .response import Response
 
-
-class ThreadConstructor(Protocol):
-    def __init__(self, *, session: fbchat.Session, id: str):
-        pass
+if TYPE_CHECKING:
+    from .response import Response
+    from .events import MessageEvent
 
 ThreadData = Union[fbchat.UserData, fbchat.GroupData, fbchat.PageData]
 
@@ -22,7 +19,7 @@ ThreadData = Union[fbchat.UserData, fbchat.GroupData, fbchat.PageData]
 class Context:
     __client: fbchat.Client
 
-    def __init__(self, client: fbchat.Client):
+    def __init__(self, client: fbchat.Client) -> None:
         self.__client = client
 
     @property
@@ -30,22 +27,22 @@ class Context:
         return self.__client.session.user.id
 
     @property
-    def __session(self):
+    def __session(self) -> fbchat.Session:
         return self.__client.session
 
-    def _get_event_thread(self, event: MessageEvent) -> fbchat.ThreadABC:
+    def _get_event_thread(self, event: 'MessageEvent') -> fbchat.ThreadABC:
         t: type[Union[fbchat.Group, fbchat.User]] = fbchat.Group if event.is_group else fbchat.User
 
         return t(session=self.__session, id=event.thread_id)
 
-    async def _resolve_response_files(self, response: Response) -> Optional[Sequence[tuple[str, str]]]:
+    async def _resolve_response_files(self, response: 'Response') -> Optional[Sequence[tuple[str, str]]]:
         if response.files:
             if isinstance(response.files[0], str):
                 return await self.upload(cast(list[str], response.files), response.voice_clip)
             return cast(list[tuple[str, str]], response.files)
         return None
 
-    async def send_response(self, response: Response):
+    async def send_response(self, response: 'Response') -> None:
         files: Final = await self._resolve_response_files(response)
 
         thread = self._get_event_thread(response.event)
@@ -73,15 +70,15 @@ class Context:
     async def fetch_image_url(self, image_id: str) -> str:
         return await self.__client.fetch_image_url(image_id)
 
-    async def send_text(self, event: MessageEvent, text: str):
+    async def send_text(self, event: 'MessageEvent', text: str) -> None:
         thread = self._get_event_thread(event)
         await thread.send_text(text=text)
 
-    async def react_to_message(self, event: MessageEvent, reaction: Optional[str]):
+    async def react_to_message(self, event: 'MessageEvent', reaction: Optional[str]) -> None:
         thread = self._get_event_thread(event)
         await fbchat.Message(thread=thread, id=event.external_id).react(reaction)
 
-    async def fetch_replied_to(self, event: MessageEvent) -> Optional[fbchat.MessageData]:
+    async def fetch_replied_to(self, event: 'MessageEvent') -> Optional[fbchat.MessageData]:
         if event.reply_to_id is None:
             return None
 
@@ -89,7 +86,7 @@ class Context:
 
         return await fbchat.Message(thread=thread, id=event.reply_to_id).fetch()
 
-    async def save_attachment(self, attachment):
+    async def save_attachment(self, attachment) -> None:
         name = type(attachment).__name__
         if name in ('AudioAttachment', 'ImageAttachment', 'VideoAttachment'):
             if name == 'AudioAttachment':

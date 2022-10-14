@@ -8,3 +8,4 @@ database: Final = config[DatabaseConfig]
 sentry: Final = config.get(SentryConfig)
 wiertarbot_stats: Final = config.get(WiertarBotStatsConfig)
 cat_api: Final = config.get(CatApiConfig)
+rabbitmq: Final = config.get(RabbitMQConfig)

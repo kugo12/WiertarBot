@@ -11,7 +11,7 @@ from datetime import datetime, date
 from io import BytesIO
 from aiogtts import aiogTTS
 from aiogoogletrans import Translator
-from forex_python.converter import CurrencyRates, RatesNotAvailableError
+from forex_python.converter import convert as currency_convert, RatesNotAvailableError
 
 from ..dispatch import MessageEventDispatcher
 from ..events import MessageEvent, Mention
@@ -556,8 +556,7 @@ async def fantano(event: MessageEvent) -> Response:
 
 
 def __convert_currency(_from: str, to: str, amount: Decimal) -> Decimal:
-    return CurrencyRates(force_decimal=True) \
-        .convert(_from, to, amount)
+    return cast(Decimal, currency_convert(_from, to, amount))
 
 
 @MessageEventDispatcher.register(aliases=["przelicz"])

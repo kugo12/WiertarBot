@@ -32,7 +32,20 @@ class WiertarBotStatsConfig:
     key: str
     message_url: str
 
+    @property
+    def headers(self) -> dict[str, str]:
+        return {
+            "Content-Type": "application/json",
+            "API-KEY": self.key
+        }
+
 
 @config.properties("wiertarbot.cat_api", optional=True)
 class CatApiConfig:
     key: str
+
+
+@config.properties("rabbitmq", optional=True)
+class RabbitMQConfig:
+    url: str
+    exchange_name: str = "bot.default"

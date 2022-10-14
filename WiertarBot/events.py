@@ -1,13 +1,15 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, Callable
+from returns.curry import partial
 
 import attr
 import fbchat
 
-from WiertarBot.context import Context
-from WiertarBot.response import Response
-from WiertarBot.typing import FBMessageEvent
+from .response import Response
+from .typing import FBMessageEvent
 
+if TYPE_CHECKING:
+    from .context import Context
 
 @attr.s(frozen=True, init=True, auto_attribs=True)
 class Mention:
@@ -26,7 +28,7 @@ class Mention:
 
 @attr.s(frozen=True, init=True, auto_attribs=True)
 class MessageEvent:
-    context: Context
+    context: 'Context'
     text: str
     author_id: str
     thread_id: str
@@ -36,20 +38,21 @@ class MessageEvent:
     reply_to_id: Optional[str]
 
     @property
-    def is_group(self):
+    def is_group(self) -> bool:
         return self.thread_id != self.author_id
 
-    async def react(self, reaction: str):
+    async def react(self, reaction: str) -> None:
         await self.context.react_to_message(self, reaction)
 
-    async def send_response(self, **kwargs):
+    async def send_response(self, **kwargs) -> None:
         await self.response(**kwargs).send()
 
-    def response(self, **kwargs) -> Response:
-        return Response(event=self, **kwargs)
+    @property
+    def response(self) -> Callable[..., Response]:
+        return partial(Response, event=self)
 
     @classmethod
-    def from_fb_event(cls, context: Context, event: FBMessageEvent) -> 'MessageEvent':
+    def from_fb_event(cls, context: 'Context', event: FBMessageEvent) -> 'MessageEvent':
         text: str = event.message.text or ""
 
         return cls(

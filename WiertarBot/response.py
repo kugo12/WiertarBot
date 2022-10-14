@@ -1,6 +1,7 @@
-from typing import Optional, Union
+from typing import Optional, Union, TYPE_CHECKING
 
-from WiertarBot.events import MessageEvent, Mention
+if TYPE_CHECKING:
+    from .events import MessageEvent, Mention
 
 
 class Response:
@@ -8,14 +9,14 @@ class Response:
 
     def __init__(
             self,
-            event: MessageEvent,
+            event: 'MessageEvent',
             *,
             text: Optional[str] = None,
             files: Optional[Union[list[str], list[tuple[str, str]]]] = None,
             voice_clip: bool = False,
-            mentions: Optional[list[Mention]] = None,
+            mentions: Optional[list['Mention']] = None,
             reply_to_id: Optional[str] = None
-            ):
+            ) -> None:
         self.event = event
         self.text = text
         self.files = files
@@ -23,5 +24,5 @@ class Response:
         self.mentions = mentions
         self.reply_to_id = reply_to_id
 
-    async def send(self):
+    async def send(self) -> None:
         await self.event.context.send_response(self)

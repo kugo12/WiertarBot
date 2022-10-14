@@ -13,30 +13,30 @@ from .log import log
 
 
 @EventDispatcher.on(fbchat.Connect)
-async def on_connect(event, **kwargs):
+async def on_connect(event, **kwargs) -> None:
     log.info('Connected')
 
 
 @EventDispatcher.on(fbchat.PeopleAdded)
-async def on_people_added(event: fbchat.PeopleAdded, *, context: Context, **kwargs):
+async def on_people_added(event: fbchat.PeopleAdded, *, context: Context, **kwargs) -> None:
     if context.bot_id not in (u.id for u in event.added):
         await event.thread.send_text('poziom spat')
 
 
 @EventDispatcher.on(fbchat.PersonRemoved)
-async def on_person_removed(event: fbchat.PersonRemoved, **kwargs):
+async def on_person_removed(event: fbchat.PersonRemoved, **kwargs) -> None:
     await event.thread.send_text('poziom wzrus')
 
 
 @EventDispatcher.on(fbchat.ReactionEvent)
-async def on_reaction(event: fbchat.ReactionEvent, *, context: Context, **kwargs):
+async def on_reaction(event: fbchat.ReactionEvent, *, context: Context, **kwargs) -> None:
     if event.author.id != context.bot_id \
             and perm.check('doublereact', event.thread.id, event.author.id):
         await event.message.react(event.reaction)
 
 
 @EventDispatcher.on(fbchat.UnsendEvent)
-async def on_unsend(event: fbchat.UnsendEvent, **kwargs):
+async def on_unsend(event: fbchat.UnsendEvent, **kwargs) -> None:
     deleted_at = int(datetime.timestamp(event.at))
 
     statistics.delete_message(event)
@@ -44,7 +44,7 @@ async def on_unsend(event: fbchat.UnsendEvent, **kwargs):
 
 
 @EventDispatcher.on(fbchat.MessageEvent)
-async def save_message(event: fbchat.MessageEvent, *, context: Context, **kwargs):
+async def save_message(event: fbchat.MessageEvent, *, context: Context, **kwargs) -> None:
     created_at = int(datetime.timestamp(event.message.created_at))
 
     serialized_message = serialize_MessageEvent(event)

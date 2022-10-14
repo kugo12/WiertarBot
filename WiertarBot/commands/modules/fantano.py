@@ -10,7 +10,7 @@ MBDTF_REVIEW_URL = "https://www.theneedledrop.com/articles/2020/1/kanye-west-my-
 
 
 class Fantano:
-    def __init__(self):
+    def __init__(self) -> None:
         self.s = requests.Session()
         self.s.headers.update({"User-Agent": USER_AGENT})
 

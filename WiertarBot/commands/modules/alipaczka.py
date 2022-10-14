@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import cast
 
 import requests
 
@@ -6,7 +7,7 @@ import requests
 class AliPaczka:
     __slots__ = ['tracking', 'number']
 
-    def __init__(self, number: str):
+    def __init__(self, number: str) -> None:
         self.number = number
         self.tracking = self.get_tracking()
 
@@ -18,7 +19,7 @@ class AliPaczka:
         if 'error' not in p:
             for i in p['DataEntry']:
                 i['time'] = datetime.fromtimestamp(int(i['time']))
-        return p
+        return cast(dict, p)
 
     def __str__(self):
         out = ''

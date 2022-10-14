@@ -1,40 +1,30 @@
 import fbchat
 from requests import post, delete
 
-from ..config import wiertarbot_stats
+from ..config import config, WiertarBotStatsConfig
 from .sentry import capture_exception
 
-if wiertarbot_stats:
-    _cfg = wiertarbot_stats
-
-    _headers = {
-        "Content-Type": "application/json",
-        "API-KEY": _cfg.key
-    }
-
-    def post_message(message: str):
-        try:
-            post(_cfg.message_url, data=message, headers=_headers)
-        except Exception as e:
-            capture_exception(e)
+_on = config.on(WiertarBotStatsConfig)
 
 
-    def delete_message(unsend: fbchat.UnsendEvent):
-        try:
-            request = {
-                "message_id": unsend.message.id,
-                "thread_id": unsend.thread.id,
-                "author_id": unsend.author.id,
-                "at": unsend.at.timestamp()
-            }
+@_on
+def post_message(config: WiertarBotStatsConfig, message: str) -> None:
+    try:
+        post(config.message_url, data=message, headers=config.headers)
+    except Exception as e:
+        capture_exception(e)
 
-            delete(_cfg.message_url, json=request, headers=_headers)
-        except Exception as e:
-            capture_exception(e)
 
-else:
-    def post_message(message: str):
-        pass
+@_on
+def delete_message(config: WiertarBotStatsConfig, unsend: fbchat.UnsendEvent) -> None:
+    try:
+        request = {
+            "message_id": unsend.message.id,
+            "thread_id": unsend.thread.id,
+            "author_id": unsend.author.id,
+            "at": unsend.at.timestamp()
+        }
 
-    def delete_message(unsend: fbchat.UnsendEvent):
-        pass
+        delete(config.message_url, json=request, headers=config.headers)
+    except Exception as e:
+        capture_exception(e)

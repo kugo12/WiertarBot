@@ -1,7 +1,7 @@
 import fbchat
 import json
 from asyncio import sleep, get_running_loop
-from typing import Optional
+from typing import Optional, NoReturn, Any
 from time import time
 
 from . import config
@@ -28,7 +28,7 @@ class WiertarBot:
 
         return self
 
-    async def run(self):
+    async def run(self) -> NoReturn:
         while True:
             try:
                 await self._listen()
@@ -47,7 +47,7 @@ class WiertarBot:
 
                 raise e
 
-    async def login(self):
+    async def login(self) -> None:
         try:
             self.__session = await self._login()
         except (fbchat.ParseError, fbchat.NotLoggedIn) as e:
@@ -61,13 +61,13 @@ class WiertarBot:
 
         self.__client = fbchat.Client(session=self.__session)
 
-    def save_cookies(self):
+    def save_cookies(self) -> None:
         log.info('Saving cookies')
         with config.cookie_path.open('w') as f:
             json.dump(self.__session.get_cookies(), f)
 
     @staticmethod
-    def _load_cookies() -> Optional[dict]:
+    def _load_cookies() -> Optional[Any]:
         try:
             with config.cookie_path.open() as f:
                 return json.load(f)
@@ -87,7 +87,7 @@ class WiertarBot:
             on_2fa_callback=self._2fa_callback
         )
 
-    async def _listen(self):
+    async def _listen(self) -> None:
         self.__listener = fbchat.Listener(
             session=self.__session,
             chat_on=True, foreground=True
@@ -104,11 +104,11 @@ class WiertarBot:
         async for event in self.__listener.listen():
             await EventDispatcher.dispatch(event, context=context)
 
-    async def _2fa_callback(self):
+    async def _2fa_callback(self) -> NoReturn:
         raise NotImplementedError()
 
     @staticmethod
-    async def message_garbage_collector():
+    async def message_garbage_collector() -> NoReturn:
         while True:
             t = int(time()) - config.time_to_remove_sent_messages
             messages = FBMessageRepository.find_not_deleted_and_time_before(t)

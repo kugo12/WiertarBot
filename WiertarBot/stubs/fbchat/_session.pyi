@@ -1,5 +1,8 @@
 import aiohttp
 import datetime
+
+from fbchat import _threads
+
 from ._common import log as log, req_log as req_log
 from _typeshed import Incomplete
 from typing import Any, Awaitable, Callable, Dict, List, Mapping, NamedTuple, Optional
@@ -35,8 +38,10 @@ def prefix_url(domain: str, path: str) -> URL: ...
 
 class Session:
     domain: str
+    _session: aiohttp.ClientSession
+
     @property
-    def user(self): ...
+    def user(self) -> _threads.User: ...
     @classmethod
     async def login(cls, email: str, password: str, on_2fa_callback: Callable[[], Awaitable[int]] = ..., user_agent: Optional[str] = ...) -> Session: ...
     async def is_logged_in(self) -> bool: ...
