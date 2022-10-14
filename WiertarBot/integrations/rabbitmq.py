@@ -22,7 +22,7 @@ def message(data: str) -> aio_pika.Message:
 
 @config.register_init
 @_on
-async def init(config: RabbitMQConfig) -> None:
+async def _init(config: RabbitMQConfig) -> None:
     global _connection, _channel, _exchange
 
     _connection = await aio_pika.connect(config.url)

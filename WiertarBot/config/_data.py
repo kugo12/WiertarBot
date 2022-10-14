@@ -36,3 +36,10 @@ class CatApiConfig:
 class RabbitMQConfig:
     url: str
     exchange_name: str = "bot.default"
+
+
+@config.properties("health", optional=True)
+class HealthConfig:
+    port: int
+    host: str = "0.0.0.0"
+    access_log: bool = False

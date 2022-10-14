@@ -3,9 +3,12 @@ import atexit
 
 from .bot import WiertarBot
 from .config import config
+from .log import log
+from .integrations.health import startup_complete
 
 
 async def main() -> None:
+    log.info("Starting initialization...")
     await config.init()
     # bot = await WiertarBot.create()
 
@@ -13,8 +16,13 @@ async def main() -> None:
     # asyncio.get_running_loop().create_task(
     #     WiertarBot.message_garbage_collector()
     # )
-    #
+
+    startup_complete()
+    log.info("Initialization complete")
+
     # await bot.run()
-    pass
+
+    while True:
+        await asyncio.sleep(3600)
 
 asyncio.run(main())

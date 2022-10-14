@@ -142,7 +142,7 @@ class Config:
 
     async def init(self) -> None:
         returns = [it() for it in self._init]
-        await asyncio.gather(it for it in returns if it)
+        await asyncio.gather(*[it for it in returns if it])
         self._init = []
 
     def register_init(self, func: InitType) -> None:

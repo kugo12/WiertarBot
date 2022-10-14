@@ -1,1 +1,1 @@
-from . import sentry, rabbitmq
+from . import sentry, rabbitmq, health
