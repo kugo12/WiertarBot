@@ -1,6 +1,8 @@
-from returns.curry import partial
-
+import json
+import fbchat
 import aio_pika
+
+from returns.curry import partial
 
 from ..config import config, RabbitMQConfig
 
@@ -34,5 +36,17 @@ async def publish_message_event(event: str) -> None:
 
 
 @_on
-async def publish_message_delete(event: str) -> None:
-    await _exchange.publish(message(event), routing_key="bot.fb.event.message.delete")
+async def publish_message_delete(event: fbchat.UnsendEvent) -> None:
+    data = {
+        "message_id": event.message.id,
+        "thread_id": event.thread.id,
+        "author_id": event.author.id,
+        "at": event.at.timestamp()
+    }
+
+    await _exchange.publish(message(json.dumps(data)), routing_key="bot.fb.event.message.delete")
+
+
+@_on
+async def publish_account_locked() -> None:
+    await _exchange.publish(message(""), routing_key="bot.fb.event.account.locked")

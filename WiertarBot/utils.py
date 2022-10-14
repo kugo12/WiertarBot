@@ -10,7 +10,7 @@ async def execute_after_delay(delay: int, async_function: Awaitable):
     await async_function
 
 
-def serialize_MessageEvent(event: fbchat.MessageEvent) -> str:
+def serialize_message_event(event: fbchat.MessageEvent) -> str:
     out = {
         'thread_id': event.thread.id,
         'message_id': event.message.id,

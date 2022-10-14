@@ -5,9 +5,9 @@ import fbchat
 
 from . import perm
 from .context import Context
-from .integrations import statistics
+from .integrations.rabbitmq import publish_message_delete, publish_message_event
 from .dispatch import EventDispatcher
-from .utils import serialize_MessageEvent
+from .utils import serialize_message_event
 from .database import FBMessage, FBMessageRepository
 from .log import log
 
@@ -39,7 +39,7 @@ async def on_reaction(event: fbchat.ReactionEvent, *, context: Context, **kwargs
 async def on_unsend(event: fbchat.UnsendEvent, **kwargs) -> None:
     deleted_at = int(datetime.timestamp(event.at))
 
-    statistics.delete_message(event)
+    await publish_message_delete(event)
     FBMessageRepository.mark_deleted(event.message.id, deleted_at)
 
 
@@ -47,8 +47,9 @@ async def on_unsend(event: fbchat.UnsendEvent, **kwargs) -> None:
 async def save_message(event: fbchat.MessageEvent, *, context: Context, **kwargs) -> None:
     created_at = int(datetime.timestamp(event.message.created_at))
 
-    serialized_message = serialize_MessageEvent(event)
-    statistics.post_message(serialized_message)
+    serialized_message = serialize_message_event(event)
+
+    await publish_message_event(serialized_message)
 
     FBMessageRepository.save(
         FBMessage(

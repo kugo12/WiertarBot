@@ -4,6 +4,7 @@ from ..config import config, SentryConfig
 
 _on = config.on(SentryConfig)
 
+
 @config.register_init
 @_on
 def init(sentry: SentryConfig) -> None:

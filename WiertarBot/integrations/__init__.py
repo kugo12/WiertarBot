@@ -1,1 +1,1 @@
-from . import sentry, statistics, unlock, rabbitmq
+from . import sentry, rabbitmq

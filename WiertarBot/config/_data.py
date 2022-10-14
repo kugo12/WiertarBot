@@ -27,19 +27,6 @@ class SentryConfig:
     sample_rate: float = 1.0
 
 
-@config.properties("wiertarbot.stats_api", optional=True)
-class WiertarBotStatsConfig:
-    key: str
-    message_url: str
-
-    @property
-    def headers(self) -> dict[str, str]:
-        return {
-            "Content-Type": "application/json",
-            "API-KEY": self.key
-        }
-
-
 @config.properties("wiertarbot.cat_api", optional=True)
 class CatApiConfig:
     key: str

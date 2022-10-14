@@ -10,7 +10,7 @@ from .dispatch import EventDispatcher
 from .utils import execute_after_delay
 from .database import FBMessageRepository
 from .log import log
-from .integrations.unlock import unlock_account
+from .integrations.rabbitmq import publish_account_locked
 
 
 class WiertarBot:
@@ -40,7 +40,7 @@ class WiertarBot:
                     continue
 
                 if 'account is locked' in e.message:
-                    unlock_account()
+                    await publish_account_locked()
                     self.__session = await self._login()
                     self.__client = fbchat.Client(session=self.__session)
                     continue
@@ -55,7 +55,7 @@ class WiertarBot:
             config.cookie_path.open('w').close()  # clear session file
 
             if 'account is locked' in e.message or 'Failed loading session' in e.message:
-                unlock_account()
+                await publish_account_locked()
 
             self.__session = await self._login()
 
