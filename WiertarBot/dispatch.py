@@ -98,9 +98,9 @@ class MessageEventDispatcher:
 
         return wrap
 
-    @classmethod
     @EventDispatcher.on(fbchat.MessageEvent)
-    async def dispatch(cls, event: fbchat.MessageEvent, *, context: Context, **kwargs) -> None:
+    async def dispatch(event: fbchat.MessageEvent, *, context: Context, **kwargs) -> None:
+        cls = MessageEventDispatcher
         if event.author.id != context.bot_id \
                 and not perm.check('banned', event.thread.id, event.author.id):
             if event.message.text:
