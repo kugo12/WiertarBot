@@ -11,6 +11,7 @@ from .typing import FBMessageEvent
 if TYPE_CHECKING:
     from .context import Context
 
+
 @attr.s(frozen=True, init=True, auto_attribs=True)
 class Mention:
     thread_id: str
@@ -79,4 +80,3 @@ class MessageEvent:
             external_id=event.external_id,
             reply_to_id=event.reply_to_id
         )
-

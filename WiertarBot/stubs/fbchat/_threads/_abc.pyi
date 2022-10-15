@@ -3,7 +3,11 @@ import datetime
 from .. import _models, _session
 from .._common import attrs_default as attrs_default, log as log
 from _typeshed import Incomplete
-from typing import AsyncGenerator, AsyncIterator, Iterable, Mapping, Optional, Tuple
+from typing import AsyncGenerator, AsyncIterator, Iterable, Mapping, Optional, Tuple, Union
+
+from ._group import GroupData
+from ._page import PageData
+from ._user import UserData
 
 DEFAULT_COLOR: str
 SETABLE_COLORS: Incomplete
@@ -15,7 +19,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def id(self) -> str: ...
-    async def fetch(self) -> None: ...
+    async def fetch(self) -> Union[GroupData, PageData, UserData]: ...
     async def wave(self, first: bool = ...) -> str: ...
     async def send_text(self, text: str, mentions: Iterable['_models.Mention'] = ..., files: Iterable[Tuple[str, str]] = ..., reply_to_id: str = ...) -> str: ...
     async def send_emoji(self, emoji: str, size: _models.EmojiSize) -> str: ...

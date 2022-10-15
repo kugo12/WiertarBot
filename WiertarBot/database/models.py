@@ -1,4 +1,4 @@
-from peewee import PostgresqlDatabase, Model, CharField, TextField, TimestampField
+from peewee import PostgresqlDatabase, Model, CharField, TextField, TimestampField, IntegerField
 
 from ..config import database
 
@@ -29,3 +29,8 @@ class FBMessage(BaseModel):
     time = TimestampField()
     message = TextField()
     deleted_at = TimestampField(null=True)
+
+
+class MessageCountMilestone(BaseModel):
+    thread_id = CharField(unique=True)
+    count = IntegerField()

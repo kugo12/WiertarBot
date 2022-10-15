@@ -1,9 +1,9 @@
 from typing import Optional, Iterable, TYPE_CHECKING
 
-from .models import db, Permission, FBMessage
+from .models import db, Permission, FBMessage, MessageCountMilestone
 
 if TYPE_CHECKING:
-    from ..typing import QueriedFBMessage, QueriedPermission
+    from ..typing import QueriedFBMessage, QueriedPermission, QueriedMessageCountMilestone
 
 # noinspection PyComparisonWithNone
 class FBMessageRepository:
@@ -62,4 +62,15 @@ class PermissionRepository:
     @staticmethod
     @db.atomic()
     def save(obj: Permission, *, force_insert=False) -> None:
+        obj.save(force_insert=force_insert)
+
+
+class MilestoneMessageCountRepository:
+    @staticmethod
+    def find_by_thread_id(thread_id: str) -> Optional['QueriedMessageCountMilestone']:
+        return MessageCountMilestone.get_or_none(MessageCountMilestone.thread_id == thread_id)
+
+    @staticmethod
+    @db.atomic()
+    def save(obj: MessageCountMilestone, *, force_insert=False):
         obj.save(force_insert=force_insert)

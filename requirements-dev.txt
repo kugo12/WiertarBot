@@ -6,3 +6,4 @@ types-Pillow==9.0.1
 types-peewee==3.15.0.0
 types-beautifulsoup4==4.10.0
 types-urllib3==1.26.7
+pytest==7.1.3

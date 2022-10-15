@@ -1,2 +1,6 @@
 from .dispatch import *
-from .models import QueriedFBMessage as QueriedFBMessage, QueriedPermission as QueriedPermission
+from .models import (
+    FBMessage as QueriedFBMessage,
+    Permission as QueriedPermission,
+    MessageCountMilestone as QueriedMessageCountMilestone
+)

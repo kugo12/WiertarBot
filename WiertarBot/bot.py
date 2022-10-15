@@ -20,9 +20,6 @@ class WiertarBot:
 
     @classmethod
     async def create(cls) -> 'WiertarBot':
-        # noinspection PyUnresolvedReferences
-        from . import commands, listeners  # avoid circular import
-
         self = cls()
         await self.login()
 

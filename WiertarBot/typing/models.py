@@ -3,18 +3,18 @@ from typing import Optional
 from ..database import models
 
 
-class QueriedPermission(models.Permission):
+class Permission(models.Permission):
     id: Optional[int]
     command: str  # type: ignore[assignment]
     whitelist: str  # type: ignore[assignment]
     blacklist: str  # type: ignore[assignment]
 
     @classmethod
-    def new(cls, command: str, whitelist: str, blacklist: str) -> 'QueriedPermission':
+    def new(cls, command: str, whitelist: str, blacklist: str) -> 'Permission':
         return cls(command=command, whitelist=whitelist, blacklist=blacklist)
 
 
-class QueriedFBMessage(models.FBMessage):
+class FBMessage(models.FBMessage):
     id: Optional[int]
     message_id: str  # type: ignore[assignment]
     thread_id: str  # type: ignore[assignment]
@@ -32,7 +32,7 @@ class QueriedFBMessage(models.FBMessage):
             time: int,
             message: str,
             deleted_at: str,
-    ) -> 'QueriedFBMessage':
+    ) -> 'FBMessage':
         return cls(
             message_id=message_id,
             thread_id=thread_id,
@@ -40,4 +40,17 @@ class QueriedFBMessage(models.FBMessage):
             time=time,
             message=message,
             deleted_at=deleted_at,
+        )
+
+
+class MessageCountMilestone(models.MessageCountMilestone):
+    id: Optional[int]
+    thread_id: str  # type: ignore[assignment]
+    count: int  # type: ignore[assignment]
+
+    @classmethod
+    def new(cls, thread_id: str, count: int) -> 'MessageCountMilestone':
+        return cls(
+            thread_id=thread_id,
+            count=count
         )
