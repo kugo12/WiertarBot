@@ -1,0 +1,9 @@
+wiertarbot:
+  email: ""
+  password: ""
+
+database:
+  name: postgres
+  user: postgres
+  password: postgres
+  host: db

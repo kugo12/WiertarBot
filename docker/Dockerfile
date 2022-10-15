@@ -14,8 +14,12 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ./WiertarBot ./WiertarBot
-RUN chown -R user:user /app
+COPY ./docker/init.sh /usr/local/bin/init.sh
+COPY ./data ./static-data
+
+RUN chown -R user:user /app && \
+    chmod +x /usr/local/bin/init.sh
 
 USER user
 
-CMD [ "pypy3", "-m", "WiertarBot" ]
+CMD [ "init.sh" ]
