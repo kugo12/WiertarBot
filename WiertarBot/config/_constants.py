@@ -1,14 +1,16 @@
 from pathlib import Path
+from os import getcwd
 
-root_dir = Path(__file__).parents[2]
+root_dir = Path(getcwd())
 
 config_path = root_dir / "application.yml"
 
-upload_save_path = root_dir / "WiertarBot/upload"
-attachment_save_path = root_dir / "saved"
-cmd_media_path = root_dir / "WiertarBot/commands/media"
+_runtime_data = root_dir / "data"
+upload_save_path = _runtime_data / "upload"
+attachment_save_path = _runtime_data / "saved"
+cmd_media_path = _runtime_data / "media"
 
-cookie_path = root_dir / "cookies.json"
+cookie_path = _runtime_data / "cookies.json"
 
 for directory in (upload_save_path, attachment_save_path):
     if not directory.exists():

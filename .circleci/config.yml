@@ -30,7 +30,7 @@ jobs:
           command: docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_TOKEN
       - run:
           name: Build and push
-          command: docker buildx build --progress=plain --push -t $DOCKERHUB_USER/wiertarbot:$(uname -m)-${CIRCLE_SHA1} .
+          command: docker buildx build --progress=plain --push -f ./docker/Dockerfile -t $DOCKERHUB_USER/wiertarbot:$(uname -m)-${CIRCLE_SHA1} .
 
   create_manifest:
     executor: default
@@ -48,6 +48,11 @@ jobs:
             docker manifest create $DOCKERHUB_USER/wiertarbot:latest \
                                    $DOCKERHUB_USER/wiertarbot:aarch64-${CIRCLE_SHA1} \
                                    $DOCKERHUB_USER/wiertarbot:x86_64-${CIRCLE_SHA1}
+            
+            docker manifest create $DOCKERHUB_USER/wiertarbot:${CIRCLE_SHA1} \
+                                   $DOCKERHUB_USER/wiertarbot:aarch64-${CIRCLE_SHA1} \
+                                   $DOCKERHUB_USER/wiertarbot:x86_64-${CIRCLE_SHA1}
+            
             docker manifest push $DOCKERHUB_USER/wiertarbot:latest
 
   trigger_deployment:
