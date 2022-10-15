@@ -55,7 +55,7 @@ def _get_first_arg_type(func: Callable) -> Optional[type[object]]:
 
     try:
         return cast(type[object], spec.annotations[spec.args[0]])
-    except KeyError:
+    except (KeyError, IndexError):
         return None
 
 
