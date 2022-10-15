@@ -3,8 +3,7 @@ FROM pypy:3.9-slim
 WORKDIR /app
 
 RUN apt -y update &&  \
-    apt install -y chromium-driver libxml2-dev libxslt-dev zlib1g-dev libjpeg-dev gcc libfreetype6-dev libpq-dev && \
-    ln -s /usr/bin/chromium /usr/bin/google-chrome && \
+    apt install -y libxml2-dev libxslt-dev zlib1g-dev libjpeg-dev gcc libfreetype6-dev libpq-dev && \
     apt clean -y && \
     useradd -U user && \
     pip install --no-cache-dir --upgrade pip && \

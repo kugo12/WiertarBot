@@ -1,0 +1,2 @@
+BASE: str
+TRANSLATE: str

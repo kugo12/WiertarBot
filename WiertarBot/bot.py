@@ -1,57 +1,70 @@
 import fbchat
 import json
-import mimetypes
-import aiohttp
-import aiofiles
-from os import path
 from asyncio import sleep, get_running_loop
-from typing import Iterable, Optional, Sequence, Tuple
-from io import BytesIO
+from typing import Optional, NoReturn, Any
 from time import time
 
 from . import config
+from .context import Context
 from .dispatch import EventDispatcher
 from .utils import execute_after_delay
-from .database import FBMessage
+from .database import FBMessageRepository
 from .log import log
+from .integrations.rabbitmq import publish_account_locked
 
 
 class WiertarBot:
-    _initialized: bool = False
+    __session: fbchat.Session
+    __client: fbchat.Client
+    __listener: fbchat.Listener
 
-    session: fbchat.Session = None
-    client: fbchat.Client = None
-    listener: fbchat.Listener = None
+    @classmethod
+    async def create(cls) -> 'WiertarBot':
+        self = cls()
+        await self.login()
 
-    def __init__(self):
-        if not WiertarBot._initialized:
-            from . import commands, listeners  # avoid circular import
-            WiertarBot.commands = commands
-            WiertarBot._initialized = True
+        return self
 
-    async def login(self):
+    async def run(self) -> NoReturn:
+        while True:
+            try:
+                await self._listen()
+            except fbchat.FacebookError as e:
+                log.exception(e)
+                if e.message in ('MQTT error: no connection', 'MQTT reconnection failed'):
+                    log.info('Reconnecting mqtt...')
+                    self.__listener.disconnect()
+                    continue
+
+                if 'account is locked' in e.message:
+                    await publish_account_locked()
+                    self.__session = await self._login()
+                    self.__client = fbchat.Client(session=self.__session)
+                    continue
+
+                raise e
+
+    async def login(self) -> None:
         try:
-            WiertarBot.session = await self._login()
+            self.__session = await self._login()
         except (fbchat.ParseError, fbchat.NotLoggedIn) as e:
             log.exception(e)
             config.cookie_path.open('w').close()  # clear session file
 
             if 'account is locked' in e.message or 'Failed loading session' in e.message:
-                config.unlock_facebook_account()
+                await publish_account_locked()
 
-            WiertarBot.session = await self._login()
+            self.__session = await self._login()
 
-        WiertarBot.client = fbchat.Client(session=WiertarBot.session)
+        self.__client = fbchat.Client(session=self.__session)
 
-
-    @staticmethod
-    def save_cookies():
+    def save_cookies(self) -> None:
         log.info('Saving cookies')
         with config.cookie_path.open('w') as f:
-            json.dump(WiertarBot.session.get_cookies(), f)
+            json.dump(self.__session.get_cookies(), f)
 
     @staticmethod
-    def _load_cookies() -> Optional[dict]:
+    def _load_cookies() -> Optional[Any]:
         try:
             with config.cookie_path.open() as f:
                 return json.load(f)
@@ -59,7 +72,7 @@ class WiertarBot:
             return None
 
     async def _login(self) -> fbchat.Session:
-        cookies = WiertarBot._load_cookies()
+        cookies = self._load_cookies()
         if cookies:
             try:
                 return await fbchat.Session.from_cookies(cookies)
@@ -68,109 +81,34 @@ class WiertarBot:
 
         return await fbchat.Session.login(
             config.wiertarbot.email, config.wiertarbot.password,
-            on_2fa_callback=None
+            on_2fa_callback=self._2fa_callback
         )
 
-
-    async def _listen(self):
-        WiertarBot.listener = fbchat.Listener(
-            session=WiertarBot.session,
+    async def _listen(self) -> None:
+        self.__listener = fbchat.Listener(
+            session=self.__session,
             chat_on=True, foreground=True
         )
 
+        context = Context(self.__client)
+
         # funny sequence id fetching
-        WiertarBot.client.sequence_id_callback = WiertarBot.listener.set_sequence_id
+        self.__client.sequence_id_callback = self.__listener.set_sequence_id
         get_running_loop().create_task(
-            execute_after_delay(5, WiertarBot.client.fetch_threads(limit=1).__anext__())
+            execute_after_delay(5, self.__client.fetch_threads(limit=1).__anext__())
         )
 
-        async for event in WiertarBot.listener.listen():
-            await EventDispatcher.send_signal(event)
+        async for event in self.__listener.listen():
+            await EventDispatcher.dispatch(event, context=context)
 
-    async def run(self):
-        while True:
-            try:
-                await self._listen()
-            except fbchat.FacebookError as e:
-                log.exception(e)
-                if e.message in ['MQTT error: no connection', 'MQTT reconnection failed']:
-                    log.info('Reconnecting mqtt...')
-                    self.listener.disconnect()
-                    continue
-
-                # if 'account is locked' in e.message:
-                #     config.unlock_facebook_account()
-                #     WiertarBot.session = await self._login()
-                #     WiertarBot.client = fbchat.Client(session=WiertarBot.session)
-                #     continue
-
-                raise e
+    async def _2fa_callback(self) -> NoReturn:
+        raise NotImplementedError()
 
     @staticmethod
-    async def save_attachment(attachment):
-        name = type(attachment).__name__
-        if name in ['AudioAttachment', 'ImageAttachment', 'VideoAttachment']:
-            if name == 'AudioAttachment':
-                url = attachment.url
-                p = str(config.attachment_save_path / attachment.filename)
-            elif name == 'ImageAttachment':
-                url = await WiertarBot.client.fetch_image_url(attachment.id)
-                p = str(config.attachment_save_path / f'{attachment.id}.{attachment.original_extension}')
-            else:  # 'VideoAttachment'
-                url = attachment.preview_url
-                p = str(config.attachment_save_path / f'{attachment.id}.mp4')
-
-            async with WiertarBot.session._session.get(url) as r:
-                if r.status == 200:
-                    async with aiofiles.open(p, mode='wb') as f:
-                        await f.write(await r.read())
-
-    @staticmethod
-    async def upload(
-            files: Iterable[str], voice_clip=False
-    ) -> Optional[Sequence[Tuple[str, str]]]:
-
-        final_files = []
-        for fn in files:
-            if fn.startswith(('http://', 'https://')):
-                true_fn = path.basename(fn.split('?', 1)[0])  # without get params
-                mime, _ = mimetypes.guess_type(true_fn)
-            else:
-                mime, _ = mimetypes.guess_type(fn)
-
-            if mime:
-                if path.exists(fn):
-                    f = open(fn, 'rb')
-                    true_fn = path.basename(fn)
-
-                    if mime == 'video/mp4' and voice_clip:
-                        mime = 'audio/mp4'
-
-                    final_files.append((true_fn, f, mime))
-
-                elif fn.startswith(('http://', 'https://')):
-
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(fn) as r:
-                            if r.status == 200:
-                                f = BytesIO(await r.read())
-                                final_files.append((true_fn, f, mime))
-
-        if final_files:
-            uploaded = await WiertarBot.client.upload(final_files, voice_clip)
-        else:
-            return None
-
-        return uploaded
-
-    @staticmethod
-    async def message_garbage_collector():
+    async def message_garbage_collector() -> NoReturn:
         while True:
             t = int(time()) - config.time_to_remove_sent_messages
-            messages: Iterable[FBMessage] = FBMessage \
-                .select(FBMessage.message) \
-                .where(FBMessage.time < t, FBMessage.deleted_at == None) \
-                .order_by(FBMessage.time)
+            messages = FBMessageRepository.find_not_deleted_and_time_before(t)
 
             for message in messages:
                 deserialized_message = json.loads(message.message)
@@ -188,9 +126,7 @@ class WiertarBot:
                     if p.exists():
                         p.unlink()
 
-            count = FBMessage.delete() \
-                .where(FBMessage.time < t, FBMessage.deleted_at == None) \
-                .execute()
+            count = FBMessageRepository.remove_not_deleted_and_time_before(t)
             log.info(f"Deleted {count} messages from db")
 
             del messages

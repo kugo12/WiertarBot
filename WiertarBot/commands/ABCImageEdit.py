@@ -2,9 +2,9 @@ import fbchat
 import aiohttp
 from abc import ABC, abstractmethod
 from io import BytesIO
-from typing import BinaryIO, Optional
+from typing import BinaryIO, Optional, final
 
-from .. import bot
+from ..events import MessageEvent
 
 
 class ImageEditABC(ABC):
@@ -12,31 +12,24 @@ class ImageEditABC(ABC):
     mime = 'image/jpeg'
     fn = 'imageedit.jpg'
 
-    def __init__(self):
+    def __init__(self, args: str):
         super().__init__()
+
+        self.args = args.split(' ')
 
     @abstractmethod
     async def edit(self, fp: BinaryIO) -> BinaryIO:
         pass
 
-    async def get_profile_picture(self, uid: str) -> Optional[BinaryIO]:
-        url = f'https://graph.facebook.com/v3.1/{ uid }/picture?height=500'
-        f = None
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as r:
-                if r.status == 200:
-                    f = BytesIO(await r.read())
-
-        return f
-
-    async def get_image_from_attachments(self, msg: fbchat.MessageData) -> Optional[BinaryIO]:
+    async def get_image_from_attachments(self, event: MessageEvent, msg: fbchat.MessageData) -> Optional[BinaryIO]:
         f = None
 
         if msg.attachments:
             if isinstance(msg.attachments[0], fbchat.ImageAttachment):
                 image = msg.attachments[0]
-                url = await bot.WiertarBot.client.fetch_image_url(image.id)
+                if image.id is None:
+                    return None
+                url = await event.context.fetch_image_url(image.id)
 
                 async with aiohttp.ClientSession() as session:
                     async with session.get(url) as r:
@@ -45,38 +38,21 @@ class ImageEditABC(ABC):
 
         return f
 
-    async def edit_and_send(self, event: fbchat.MessageEvent, fp: BinaryIO):
+    @final
+    async def edit_and_send(self, event: MessageEvent, fp: BinaryIO):
         f = await self.edit(fp)
-        f = await bot.WiertarBot.client.upload([(self.fn, f, self.mime)])
-        await event.thread.send_files(f)
+        file = await event.context.upload_raw([(self.fn, f, self.mime)])
 
-    async def check(self, event: fbchat.MessageEvent) -> bool:
-        msg = event.message
-        self.args = msg.text.split(' ')
+        await event.send_response(files=file)
 
-        if msg.reply_to_id:
-            replied_to = fbchat.Message(thread=event.thread, id=msg.reply_to_id)
-            replied_to = await replied_to.fetch()
-
-            f = await self.get_image_from_attachments(replied_to)
+    @final
+    async def check(self, event: MessageEvent) -> bool:
+        replied_to = await event.context.fetch_replied_to(event)
+        if replied_to:
+            f = await self.get_image_from_attachments(event, replied_to)
             if f:
                 await self.edit_and_send(event, f)
                 return False
 
-        if msg.mentions:
-            mnt = msg.mentions[0]
-            name = msg.text[mnt.offset:mnt.offset+mnt.length].count(' ')
-            del self.args[1: name+1]
-
-            f = await self.get_profile_picture(mnt.thread_id)
-            await self.edit_and_send(event, f)
-            return False
-
-        if len(self.args) == 2:
-            if self.args[1].lower() == '@me':
-                f = await self.get_profile_picture(event.author.id)
-                await self.edit_and_send(event, f)
-                return False
-
-        await event.thread.send_text(text="Wyślij zdjęcie")
+        await event.send_response(text="Wyślij zdjęcie")
         return True

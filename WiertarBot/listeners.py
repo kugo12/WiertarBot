@@ -3,74 +3,71 @@ from datetime import datetime
 
 import fbchat
 
-from . import perm, statistics
-from .bot import WiertarBot
+from . import perm
+from .context import Context
+from .integrations.rabbitmq import publish_message_delete, publish_message_event
 from .dispatch import EventDispatcher
-from .utils import serialize_MessageEvent
-from .database import FBMessage, db
+from .utils import serialize_message_event
+from .database import FBMessage, FBMessageRepository
 from .log import log
 
 
-@EventDispatcher.slot(fbchat.Connect)
-async def on_connect(event: fbchat.Connect):
+@EventDispatcher.on(fbchat.Connect)
+async def on_connect(event, **_) -> None:
     log.info('Connected')
 
 
-@EventDispatcher.slot(fbchat.PeopleAdded)
-async def on_people_added(event: fbchat.PeopleAdded):
-    if WiertarBot.session.user not in event.added:
+@EventDispatcher.on(fbchat.Disconnect)
+async def on_disconnect(event: fbchat.Disconnect, **_) -> None:
+    log.info(f"Disconnected: {event.reason}")
+
+
+@EventDispatcher.on(fbchat.PeopleAdded)
+async def on_people_added(event: fbchat.PeopleAdded, *, context: Context, **_) -> None:
+    if context.bot_id not in (u.id for u in event.added):
         await event.thread.send_text('poziom spat')
 
 
-@EventDispatcher.slot(fbchat.PersonRemoved)
-async def on_person_removed(event: fbchat.PersonRemoved):
+@EventDispatcher.on(fbchat.PersonRemoved)
+async def on_person_removed(event: fbchat.PersonRemoved, **_) -> None:
     await event.thread.send_text('poziom wzrus')
 
 
-@EventDispatcher.slot(fbchat.ReactionEvent)
-async def on_reaction(event: fbchat.ReactionEvent):
-    if event.author.id != WiertarBot.session.user.id:
-        if perm.check('doublereact', event.thread.id, event.author.id):
-            await event.message.react(event.reaction)
+@EventDispatcher.on(fbchat.ReactionEvent)
+async def on_reaction(event: fbchat.ReactionEvent, *, context: Context, **_) -> None:
+    if event.author.id != context.bot_id \
+            and perm.check('doublereact', event.thread.id, event.author.id):
+        await event.message.react(event.reaction)
 
 
-@EventDispatcher.slot(fbchat.NicknameSet)
-async def on_nickname_change(event: fbchat.NicknameSet):
-    if event.author.id != WiertarBot.session.user.id:
-        if perm.check('deletename', event.thread.id, event.subject.id):
-            await event.thread.set_nickname(event.subject, None)
-            # await self.standard_szkaluj(["!szkaluj"], {'author_id':author_id, 'thread_id':thread_id, 'thread_type':thread_type})
-
-
-@EventDispatcher.slot(fbchat.UnsendEvent)
-async def on_unsend(event: fbchat.UnsendEvent):
+@EventDispatcher.on(fbchat.UnsendEvent)
+async def on_unsend(event: fbchat.UnsendEvent, **_) -> None:
     deleted_at = int(datetime.timestamp(event.at))
 
-    statistics.delete_message(event)
-
-    FBMessage\
-        .update(deleted_at=deleted_at)\
-        .where(FBMessage.message_id == event.message.id)\
-        .execute()
+    await publish_message_delete(event)
+    FBMessageRepository.mark_deleted(event.message.id, deleted_at)
 
 
-@EventDispatcher.slot(fbchat.MessageEvent)
-async def save_message(event: fbchat.MessageEvent):
+@EventDispatcher.on(fbchat.MessageEvent)
+async def save_message(event: fbchat.MessageEvent, *, context: Context, **_) -> None:
     created_at = int(datetime.timestamp(event.message.created_at))
 
-    serialized_message = serialize_MessageEvent(event)
-    statistics.post_message(serialized_message)
+    serialized_message = serialize_message_event(event)
 
-    with db.atomic():
-        FBMessage.create(
+    await publish_message_event(serialized_message)
+
+    FBMessageRepository.save(
+        FBMessage(
             message_id=event.message.id,
             thread_id=event.thread.id,
             author_id=event.author.id,
             time=created_at,
             message=serialized_message,
             deleted_at=None
-        )
+        ),
+        force_insert=True
+    )
 
     if event.message.attachments:
-        await asyncio.gather(*[WiertarBot.save_attachment(i)
+        await asyncio.gather(*[context.save_attachment(i)
                                for i in event.message.attachments])

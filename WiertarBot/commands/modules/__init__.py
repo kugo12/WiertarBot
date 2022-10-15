@@ -1,2 +1,2 @@
-from .alipaczka import AliPaczka
-from .fantano import Fantano
+from .alipaczka import AliPaczka as AliPaczka
+from .fantano import Fantano as Fantano

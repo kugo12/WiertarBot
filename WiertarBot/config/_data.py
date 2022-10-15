@@ -27,12 +27,19 @@ class SentryConfig:
     sample_rate: float = 1.0
 
 
-@config.properties("wiertarbot.stats_api", optional=True)
-class WiertarBotStatsConfig:
-    key: str
-    message_url: str
-
-
 @config.properties("wiertarbot.cat_api", optional=True)
 class CatApiConfig:
     key: str
+
+
+@config.properties("rabbitmq", optional=True)
+class RabbitMQConfig:
+    url: str
+    exchange_name: str = "bot.default"
+
+
+@config.properties("health", optional=True)
+class HealthConfig:
+    port: int
+    host: str = "0.0.0.0"
+    access_log: bool = False
