@@ -26,6 +26,14 @@ class Mention:
             length=mention.length
         )
 
+    @property
+    def fb(self) -> fbchat.Mention:
+        return fbchat.Mention(
+            thread_id=self.thread_id,
+            offset=self.offset,
+            length=self.length
+        )
+
 
 @attr.s(frozen=True, init=True, auto_attribs=True)
 class MessageEvent:

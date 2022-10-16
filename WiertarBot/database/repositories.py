@@ -5,6 +5,7 @@ from .models import db, Permission, FBMessage, MessageCountMilestone
 if TYPE_CHECKING:
     from ..typing import QueriedFBMessage, QueriedPermission, QueriedMessageCountMilestone
 
+
 # noinspection PyComparisonWithNone
 class FBMessageRepository:
     @staticmethod
@@ -27,7 +28,7 @@ class FBMessageRepository:
         return (
             FBMessage
             .select(FBMessage.message)
-            .whee(FBMessage.time < time, FBMessage.deleted_at == None)
+            .where(FBMessage.time < time, FBMessage.deleted_at == None)
         )
 
     @staticmethod

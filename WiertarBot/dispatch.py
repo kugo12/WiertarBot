@@ -98,6 +98,7 @@ class MessageEventDispatcher:
 
         return wrap
 
+    @staticmethod
     @EventDispatcher.on(fbchat.MessageEvent)
     async def dispatch(event: fbchat.MessageEvent, *, context: Context, **kwargs) -> None:
         cls = MessageEventDispatcher
