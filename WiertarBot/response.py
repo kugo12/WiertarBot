@@ -1,5 +1,7 @@
 from typing import Optional, Union, TYPE_CHECKING
 
+import fbchat
+
 if TYPE_CHECKING:
     from .events import MessageEvent, Mention
 
@@ -26,3 +28,7 @@ class Response:
 
     async def send(self) -> None:
         await self.event.context.send_response(self)
+
+    @property
+    def fb_mentions(self) -> list[fbchat.Mention]:
+        return [it.fb for it in self.mentions] if self.mentions else []

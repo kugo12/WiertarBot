@@ -16,3 +16,5 @@ venv/
 /*.yml
 /*.json
 /*.sqlite3
+
+/*.iml

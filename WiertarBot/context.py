@@ -50,7 +50,7 @@ class Context:
         if response.text:
             await thread.send_text(
                 text=response.text,
-                mentions=cast(list[fbchat.Mention], response.mentions),
+                mentions=response.fb_mentions,
                 files=cast(list[tuple[str, str]], files),
                 reply_to_id=cast(str, response.reply_to_id)
             )
