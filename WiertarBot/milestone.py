@@ -54,4 +54,4 @@ async def milestone_listener(event: fbchat.MessageEvent, *, context: Context, **
 
     reached = await _update(event.thread, context)
     if reached:
-        await event.thread.send_text(f"Gratulacje, osiągnięto {reached} ")
+        await event.thread.send_text(f"Gratulacje, osiągnięto ~{reached} wiadomości")
