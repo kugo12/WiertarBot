@@ -1,7 +1,7 @@
 aio-pika==8.2.4
 aiofiles==0.7.0
 aiogoogletrans==3.3.2
-aiogTTS==1.1.0
+aiogTTS==1.1.1
 aiohttp==3.7.4
 aiormq==6.4.2
 async-timeout==3.0.1

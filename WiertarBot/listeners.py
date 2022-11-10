@@ -1,4 +1,5 @@
 import asyncio
+from asyncio import get_running_loop
 from datetime import datetime
 
 import fbchat
@@ -44,7 +45,8 @@ async def on_reaction(event: fbchat.ReactionEvent, *, context: Context, **_) -> 
 async def on_unsend(event: fbchat.UnsendEvent, **_) -> None:
     deleted_at = int(datetime.timestamp(event.at))
 
-    await publish_message_delete(event)
+    get_running_loop()\
+        .create_task(publish_message_delete(event))
     FBMessageRepository.mark_deleted(event.message.id, deleted_at)
 
 
@@ -54,7 +56,8 @@ async def save_message(event: fbchat.MessageEvent, *, context: Context, **_) -> 
 
     serialized_message = serialize_message_event(event)
 
-    await publish_message_event(serialized_message)
+    get_running_loop()\
+        .create_task(publish_message_event(serialized_message))
 
     FBMessageRepository.save(
         FBMessage(
