@@ -5,7 +5,7 @@ from datetime import datetime
 import fbchat
 
 from . import perm
-from .context import Context
+from .abc import Context
 from .integrations.rabbitmq import publish_message_delete, publish_message_event
 from .dispatch import EventDispatcher
 from .utils import serialize_message_event

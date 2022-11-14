@@ -1,27 +1,35 @@
+import atexit
+
 import fbchat
 import json
 from asyncio import sleep, get_running_loop
 from typing import Optional, NoReturn, Any
 from time import time
 
-from . import config
-from .context import Context
-from .dispatch import EventDispatcher
-from .utils import execute_after_delay
-from .database import FBMessageRepository
-from .log import log
-from .integrations.rabbitmq import publish_account_locked
+from .FBContext import FBContext
+from ... import config
+from ...abc import Connector
+from ...dispatch import EventDispatcher
+from ...utils import execute_after_delay
+from ...database import FBMessageRepository
+from ...log import log
+from ...integrations.rabbitmq import publish_account_locked
 
 
-class WiertarBot:
+class FBConnector(Connector):
     __session: fbchat.Session
     __client: fbchat.Client
     __listener: fbchat.Listener
 
     @classmethod
-    async def create(cls) -> 'WiertarBot':
+    async def create(cls) -> Connector:
         self = cls()
         await self.login()
+
+        atexit.register(self.save_cookies)
+        get_running_loop().create_task(
+            self.message_garbage_collector()
+        )
 
         return self
 
@@ -90,7 +98,7 @@ class WiertarBot:
             chat_on=True, foreground=True
         )
 
-        context = Context(self.__client)
+        context = FBContext(self.__client)
 
         # funny sequence id fetching
         self.__client.sequence_id_callback = self.__listener.set_sequence_id

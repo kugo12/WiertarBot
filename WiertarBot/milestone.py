@@ -7,7 +7,7 @@ from collections import defaultdict
 from .dispatch import EventDispatcher
 from .typing import QueriedMessageCountMilestone
 from .database import MilestoneMessageCountRepository
-from .context import Context
+from .abc import Context
 
 _counts: dict[str, QueriedMessageCountMilestone] = {}
 _locks: defaultdict[str, asyncio.Lock] = defaultdict(asyncio.Lock)

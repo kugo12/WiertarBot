@@ -5,7 +5,7 @@ from typing import Iterable, Optional, Type, TYPE_CHECKING
 from time import time
 
 from . import perm, config
-from .context import Context
+from .abc import Context
 from .database import PermissionRepository
 from .events import MessageEvent
 from .typing import MessageEventCallable, MessageEventConsumer, EventConsumer, FBEvent

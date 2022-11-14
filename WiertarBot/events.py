@@ -9,7 +9,7 @@ from .response import Response
 from .typing import FBMessageEvent
 
 if TYPE_CHECKING:
-    from .context import Context
+    from .abc import Context
 
 
 @attr.s(frozen=True, init=True, auto_attribs=True)

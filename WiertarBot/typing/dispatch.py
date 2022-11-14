@@ -1,10 +1,9 @@
-from typing import Protocol, Optional, Union, TypeVar, Type, ClassVar, TYPE_CHECKING
+from typing import Protocol, Optional, Union, TypeVar, ClassVar, TYPE_CHECKING
 
 import fbchat
 
 if TYPE_CHECKING:
-    from ..commands.ABCImageEdit import ImageEditABC
-    from ..context import Context
+    from ..abc import Context
     from ..events import MessageEvent
     from ..response import Response
 

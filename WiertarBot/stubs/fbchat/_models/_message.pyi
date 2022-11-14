@@ -15,6 +15,8 @@ class Mention:
     offset: int
     length: int
 
+    def __init__(self, *, thread_id: str, offset: int, length: int) -> None: ...
+
 class Message:
     thread: _threads.ThreadABC
     id: str
