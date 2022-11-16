@@ -1,2 +1,2 @@
-from .connector import Connector
-from .context import Context
+from .connector import Connector as Connector
+from .context import Context as Context
