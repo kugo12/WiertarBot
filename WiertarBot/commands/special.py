@@ -3,7 +3,7 @@ from typing import cast
 import fbchat
 
 from .. import perm
-from ..dispatch import MessageEventDispatcher
+from ..message_dispatch import MessageEventDispatcher
 from ..events import Mention, MessageEvent
 
 

@@ -7,9 +7,9 @@ from typing import Optional, NoReturn, Any
 from time import time
 
 from .FBContext import FBContext
+from .dispatch import FBEventDispatcher
 from ... import config
 from ...abc import Connector
-from ...dispatch import EventDispatcher
 from ...utils import execute_after_delay
 from ...database import FBMessageRepository
 from ...log import log
@@ -107,7 +107,7 @@ class FBConnector(Connector):
         )
 
         async for event in self.__listener.listen():
-            await EventDispatcher.dispatch(event, context=context)
+            await FBEventDispatcher.dispatch(event, context=context)
 
     async def _2fa_callback(self) -> NoReturn:
         raise NotImplementedError()

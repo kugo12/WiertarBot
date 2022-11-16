@@ -4,10 +4,10 @@ import asyncio
 from typing import Optional
 from collections import defaultdict
 
-from .dispatch import EventDispatcher
-from .typing import QueriedMessageCountMilestone
-from .database import MilestoneMessageCountRepository
-from .abc import Context
+from ...connectors.fb import FBEventDispatcher
+from ...typing import QueriedMessageCountMilestone
+from ...database import MilestoneMessageCountRepository
+from ...abc import Context
 
 _counts: dict[str, QueriedMessageCountMilestone] = {}
 _locks: defaultdict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
@@ -47,7 +47,7 @@ async def _update(thread: fbchat.ThreadABC, context: Context) -> Optional[int]:
     return reached
 
 
-@EventDispatcher.on(fbchat.MessageEvent)
+@FBEventDispatcher.on(fbchat.MessageEvent)
 async def milestone_listener(event: fbchat.MessageEvent, *, context: Context, **_) -> None:
     if event.thread.id == event.author.id:
         return

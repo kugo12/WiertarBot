@@ -1,1 +1,1 @@
-from .fb.FBConnector import FBConnector
+from .fb import FBConnector as FBConnector

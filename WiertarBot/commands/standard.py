@@ -13,7 +13,7 @@ from aiogtts import aiogTTS
 from aiogoogletrans import Translator
 from forex_python.converter import convert as currency_convert, RatesNotAvailableError
 
-from ..dispatch import MessageEventDispatcher
+from ..message_dispatch import MessageEventDispatcher
 from ..events import MessageEvent, Mention
 from ..response import Response
 from ..config import cmd_media_path

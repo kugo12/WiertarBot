@@ -8,9 +8,9 @@ if TYPE_CHECKING:
     from ..response import Response
 
 FBMessageEvent = Union[fbchat.MessageEvent, fbchat.MessageReplyEvent]
-FBEvent = fbchat.Event
 
-_T_event = TypeVar("_T_event", bound=FBEvent, contravariant=True)
+_T_event = TypeVar("_T_event", contravariant=True)
+
 
 class EventCallable(Protocol[_T_event]):
     async def __call__(self, event: _T_event, **kwargs) -> None:
