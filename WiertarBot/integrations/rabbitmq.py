@@ -25,7 +25,7 @@ def message(data: str) -> aio_pika.Message:
 async def _init(config: RabbitMQConfig) -> None:
     global _connection, _channel, _exchange
 
-    _connection = await aio_pika.connect(config.url)
+    _connection = await aio_pika.connect_robust(config.url)
     _channel = await _connection.channel()
     _exchange = await _channel.get_exchange(config.exchange_name)
 
