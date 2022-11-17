@@ -18,3 +18,5 @@ venv/
 /*.sqlite3
 
 /*.iml
+
+.DS_Store
