@@ -21,7 +21,7 @@ multidict==5.2.0
 paho-mqtt==1.6.1
 pamqp==3.2.1
 peewee==3.15.3
-Pillow==9.0.1
+Pillow==9.3.0
 psycopg2cffi==2.9.0
 pycparser==2.21
 pyparsing==3.0.9
