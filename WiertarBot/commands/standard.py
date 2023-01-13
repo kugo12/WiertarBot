@@ -16,7 +16,7 @@ from forex_python.converter import convert as currency_convert, RatesNotAvailabl
 from ..message_dispatch import MessageEventDispatcher
 from ..events import MessageEvent, Mention
 from ..response import Response
-from ..config import cmd_media_path
+from ..config import cmd_media_path, wiertarbot as wiertarbot_config
 from .modules import AliPaczka, Fantano
 
 
@@ -222,7 +222,7 @@ async def czas(event: MessageEvent) -> Response:
         aktualny czas oraz odliczania
     """
 
-    now = datetime.now()
+    now = datetime.now(wiertarbot_config.tz)
     now_str = now.strftime("%A %d %B %H:%M")
 
     for i in __czas_localize_datetime:

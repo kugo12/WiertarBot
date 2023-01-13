@@ -1,3 +1,6 @@
+import pytz
+from functools import cached_property
+
 from ._config import Config
 from ._constants import config_path
 
@@ -9,6 +12,11 @@ class WiertarBotConfig:
     email: str
     password: str
     prefix: str = "!"
+    timezone: str = "Europe/Warsaw"
+
+    @cached_property
+    def tz(self) -> pytz.tzinfo.tzinfo:
+        return pytz.timezone(self.timezone)
 
 
 @config.properties("database")
