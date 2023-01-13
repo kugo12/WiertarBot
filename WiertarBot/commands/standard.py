@@ -208,7 +208,8 @@ __czas_localize_datetime = {
     "Sunday": "Niedziela"
 }
 __czas_timers = [
-    ("Koniec wakacji (1 wrzesnia) za: ", datetime(2021, 9, 1))
+    ("Początek wakacji (23 czerwca) za: ", datetime(2023, 6, 23)),
+    ("Początek \"wakacji\" dla maturzystów (28 kwietnia) za: ", datetime(2023, 4, 28)),
 ]
 
 
@@ -486,10 +487,13 @@ async def tlumacz(event: MessageEvent) -> Response:
 
 
 sundays = [
-    date(2022, 6, 26),
-    date(2022, 8, 28),
-    date(2022, 12, 11),
-    date(2022, 12, 18)
+    date(2023, 1, 29),
+    date(2023, 4, 2),
+    date(2023, 4, 30),
+    date(2023, 6, 25),
+    date(2023, 8, 27),
+    date(2023, 12, 17),
+    date(2023, 12, 24),
 ]
 
 
