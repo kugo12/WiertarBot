@@ -68,8 +68,7 @@ async def save_message(event: fbchat.MessageEvent, *, context: Context, **_) -> 
             time=created_at,
             message=serialized_message,
             deleted_at=None
-        ),
-        force_insert=True
+        )
     )
 
     if event.message.attachments:

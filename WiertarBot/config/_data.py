@@ -19,6 +19,10 @@ class DatabaseConfig:
     host: str
     port: int = 5432
 
+    @property
+    def url(self) -> str:
+        return f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}"
+
 
 @config.properties("sentry", optional=True)
 class SentryConfig:

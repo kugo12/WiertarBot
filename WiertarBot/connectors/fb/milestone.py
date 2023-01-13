@@ -5,11 +5,10 @@ from typing import Optional
 from collections import defaultdict
 
 from ...connectors.fb import FBEventDispatcher
-from ...typing import QueriedMessageCountMilestone
-from ...database import MilestoneMessageCountRepository
+from ...database import MilestoneMessageCountRepository, MessageCountMilestone
 from ...abc import Context
 
-_counts: dict[str, QueriedMessageCountMilestone] = {}
+_counts: dict[str, MessageCountMilestone] = {}
 _locks: defaultdict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 _default_total_delta = 250_000
 
@@ -36,7 +35,7 @@ async def _update(thread: fbchat.ThreadABC, context: Context) -> Optional[int]:
             count = (await context.fetch_thread(thread.id)).message_count or 1
 
             milestone = MilestoneMessageCountRepository.find_by_thread_id(thread.id) \
-                        or QueriedMessageCountMilestone.new(thread.id, count)
+                        or MessageCountMilestone(thread_id=thread.id, count=count)
 
             reached = _check_threshold(milestone.count, count)
 

@@ -1,36 +1,43 @@
-from peewee import PostgresqlDatabase, Model, CharField, TextField, TimestampField, IntegerField
+from typing import Optional
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
+from sqlalchemy import String, Text, BigInteger, MetaData
 
 from ..config import database
 
-db = PostgresqlDatabase(
-    database.name,
-    user=database.user,
-    password=database.password,
-    host=database.host,
-    port=database.port
-)
+engine = create_engine(database.url)
+Session = sessionmaker(engine)
 
 
-class BaseModel(Model):
-    class Meta:
-        database = db
+class Base(DeclarativeBase):
+    metadata = MetaData(naming_convention={"ix": "%(column_0_label)s"})
 
 
-class Permission(BaseModel):
-    command = CharField(unique=True)
-    whitelist = TextField()
-    blacklist = TextField()
+class Permission(Base):
+    __tablename__ = "permission"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    command: Mapped[str] = mapped_column(String(255), index=True, unique=True)
+    whitelist: Mapped[str] = mapped_column(Text)
+    blacklist: Mapped[str] = mapped_column(Text)
 
 
-class FBMessage(BaseModel):
-    message_id = CharField(unique=True)
-    thread_id = CharField()
-    author_id = CharField()
-    time = TimestampField()
-    message = TextField()
-    deleted_at = TimestampField(null=True)
+class FBMessage(Base):
+    __tablename__ = "fbmessage"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    message_id: Mapped[str] = mapped_column(String(255), index=True, unique=True)
+    thread_id: Mapped[str] = mapped_column(String(255))
+    author_id: Mapped[str] = mapped_column(String(255))
+    time: Mapped[int] = mapped_column(BigInteger)
+    message: Mapped[str] = mapped_column(Text)
+    deleted_at: Mapped[Optional[int]] = mapped_column(BigInteger)
 
 
-class MessageCountMilestone(BaseModel):
-    thread_id = CharField(unique=True)
-    count = IntegerField()
+class MessageCountMilestone(Base):
+    __tablename__ = "messagecountmilestone"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    thread_id: Mapped[str] = mapped_column(String(255), index=True, unique=True)
+    count: Mapped[int]

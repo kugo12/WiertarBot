@@ -1,8 +1,7 @@
 import json
 from typing import List, Optional
 
-from .database import PermissionRepository
-from .typing import QueriedPermission
+from .database import PermissionRepository, Permission
 
 
 def check(name: str, thread_id: str, user_id: str) -> bool:
@@ -101,7 +100,7 @@ def edit(command: str, uids: List[str], bl=False, add=True, tid: Optional[str] =
         permission.whitelist = json.dumps(whitelist)
         permission.blacklist = json.dumps(blacklist)
     else:
-        permission = QueriedPermission.new(command=command, whitelist=json.dumps(whitelist), blacklist=json.dumps(blacklist))
+        permission = Permission(command=command, whitelist=json.dumps(whitelist), blacklist=json.dumps(blacklist))
     PermissionRepository.save(permission)
 
     return True
