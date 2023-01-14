@@ -34,9 +34,9 @@ class FBMessageRepository(BaseRepository[FBMessage]):
             ))
 
     @classmethod
-    def remove_not_deleted_and_time_before(cls, time: int) -> int:
+    def remove_not_deleted_and_time_before(cls, time: int) -> None:
         with Session.begin() as session:
-            return session.execute(delete(FBMessage).where(
+            session.execute(delete(FBMessage).where(
                 FBMessage.time < time,
                 FBMessage.deleted_at == None
             ))

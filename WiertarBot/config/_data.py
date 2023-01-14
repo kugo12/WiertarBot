@@ -15,7 +15,7 @@ class WiertarBotConfig:
     timezone: str = "Europe/Warsaw"
 
     @cached_property
-    def tz(self) -> pytz.tzinfo.tzinfo:
+    def tz(self) -> pytz.BaseTzInfo:
         return pytz.timezone(self.timezone)
 
 
