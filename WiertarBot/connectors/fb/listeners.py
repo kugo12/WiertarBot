@@ -1,13 +1,12 @@
-from .dispatch import FBEventDispatcher
-
 import asyncio
 from asyncio import get_running_loop
 from datetime import datetime
 
 import fbchat
 
+from .FBContext import FBContext
+from .dispatch import FBEventDispatcher
 from ... import perm
-from ...abc import Context
 from ...integrations.rabbitmq import publish_message_delete, publish_message_event
 from ...utils import serialize_message_event
 from ...database import FBMessage, FBMessageRepository
@@ -25,7 +24,7 @@ async def on_disconnect(event: fbchat.Disconnect, **_) -> None:
 
 
 @FBEventDispatcher.on(fbchat.PeopleAdded)
-async def on_people_added(event: fbchat.PeopleAdded, *, context: Context, **_) -> None:
+async def on_people_added(event: fbchat.PeopleAdded, *, context: FBContext, **_) -> None:
     if context.bot_id not in (u.id for u in event.added):
         await event.thread.send_text('poziom spat')
 
@@ -36,7 +35,7 @@ async def on_person_removed(event: fbchat.PersonRemoved, **_) -> None:
 
 
 @FBEventDispatcher.on(fbchat.ReactionEvent)
-async def on_reaction(event: fbchat.ReactionEvent, *, context: Context, **_) -> None:
+async def on_reaction(event: fbchat.ReactionEvent, *, context: FBContext, **_) -> None:
     if event.author.id != context.bot_id \
             and perm.check('doublereact', event.thread.id, event.author.id):
         await event.message.react(event.reaction)
@@ -52,7 +51,7 @@ async def on_unsend(event: fbchat.UnsendEvent, **_) -> None:
 
 
 @FBEventDispatcher.on(fbchat.MessageEvent)
-async def save_message(event: fbchat.MessageEvent, *, context: Context, **_) -> None:
+async def save_message(event: fbchat.MessageEvent, *, context: FBContext, **_) -> None:
     created_at = int(datetime.timestamp(event.message.created_at))
 
     serialized_message = serialize_message_event(event)
@@ -74,4 +73,3 @@ async def save_message(event: fbchat.MessageEvent, *, context: Context, **_) -> 
     if event.message.attachments:
         await asyncio.gather(*[context.save_attachment(i)
                                for i in event.message.attachments])
-

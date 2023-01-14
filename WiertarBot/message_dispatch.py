@@ -1,12 +1,9 @@
-import fbchat
 import inspect
 from asyncio import gather
 from typing import Iterable, Optional, TYPE_CHECKING
 from time import time
 
 from . import perm, config
-from .abc import Context
-from .connectors.fb import FBEventDispatcher
 from .database import PermissionRepository
 from .events import MessageEvent
 from .typing import MessageEventCallable, MessageEventConsumer
@@ -72,49 +69,42 @@ class MessageEventDispatcher:
 
         return wrap
 
-    @staticmethod
-    @FBEventDispatcher.on(fbchat.MessageEvent)
-    async def dispatch(event: fbchat.MessageEvent, *, context: Context, **kwargs) -> None:
-        cls = MessageEventDispatcher
-        if event.author.id != context.bot_id \
-                and not perm.check('banned', event.thread.id, event.author.id):
-            if event.message.text:
-                g_event = MessageEvent.from_fb_event(context, event)
-
-                if g_event.text.startswith(config.wiertarbot.prefix):
+    @classmethod
+    async def dispatch(cls, event: MessageEvent, **kwargs) -> None:
+        if not perm.check('banned', event.thread_id, event.author_id):
+            if event.text:
+                if event.text.startswith(config.wiertarbot.prefix):
                     # first word without prefix
-                    fw = g_event.text.split(' ', 1)[0][len(config.wiertarbot.prefix):].lower()
+                    fw = event.text.split(' ', 1)[0][len(config.wiertarbot.prefix):].lower()
                     command_name = cls._alias_of.get(fw)
 
-                    if command_name and perm.check(command_name, g_event.thread_id, g_event.author_id):
+                    if command_name and perm.check(command_name, event.thread_id, event.author_id):
                         command = cls._commands[command_name]
 
                         if isinstance(command, type):
-                            img_edit = command(g_event.text)
-                            if await img_edit.check(g_event):
+                            img_edit = command(event.text)
+                            if await img_edit.check(event):
                                 # add to queue
-                                t_u_id = f'{g_event.thread_id}_{g_event.author_id}'
+                                t_u_id = f'{event.thread_id}_{event.author_id}'
                                 queue = (int(time()), img_edit)
                                 cls._image_edit_queue[t_u_id] = queue
                         else:
-                            response = await command(g_event, **kwargs)
+                            response = await command(event, **kwargs)
                             if response:
                                 await response.send()
 
                 # run all special functions asynchronously
-                await gather(*[i(g_event, **kwargs) for i in cls._special])
+                await gather(*[i(event, **kwargs) for i in cls._special])
 
             else:  # if there is no text in message
-                t_u_id = f'{event.thread.id}_{event.author.id}'
+                t_u_id = f'{event.thread_id}_{event.author_id}'
                 if t_u_id in cls._image_edit_queue:
                     t, img_edit = cls._image_edit_queue[t_u_id]
 
-                    g_event = MessageEvent.from_fb_event(context, event)
-
                     if t + config.image_edit_timeout > time():
-                        img = await img_edit.get_image_from_attachments(g_event, event.message)
+                        img = await img_edit.get_image_from_attachments(event, event.attachments)
                         if img:  # if found an image
-                            await img_edit.edit_and_send(g_event, img)
+                            await img_edit.edit_and_send(event, img)
                             del cls._image_edit_queue[t_u_id]
                     else:  # if timed out
                         del cls._image_edit_queue[t_u_id]

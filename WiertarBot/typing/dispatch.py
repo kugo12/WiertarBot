@@ -6,6 +6,7 @@ if TYPE_CHECKING:
     from ..abc import Context
     from ..events import MessageEvent
     from ..response import Response
+    from ..commands.ABCImageEdit import ImageEditABC
 
 FBMessageEvent = Union[fbchat.MessageEvent, fbchat.MessageReplyEvent]
 
