@@ -3,7 +3,7 @@ from typing import Optional, Iterable, TYPE_CHECKING, Generic, TypeVar, final
 from .models import Session, Permission, FBMessage, MessageCountMilestone
 from sqlalchemy.sql import update, select, delete
 from abc import ABCMeta
-
+from functools import cache
 
 _T = TypeVar("_T")
 
@@ -52,6 +52,7 @@ class FBMessageRepository(BaseRepository[FBMessage]):
 
 class PermissionRepository(BaseRepository[Permission]):
     @classmethod
+    @cache
     def find_by_command(cls, command: str) -> Optional[Permission]:
         with Session() as session:
             return session.scalar(select(Permission).where(

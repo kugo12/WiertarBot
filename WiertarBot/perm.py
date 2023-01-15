@@ -102,5 +102,6 @@ def edit(command: str, uids: List[str], bl=False, add=True, tid: Optional[str] =
     else:
         permission = Permission(command=command, whitelist=json.dumps(whitelist), blacklist=json.dumps(blacklist))
     PermissionRepository.save(permission)
+    PermissionRepository.find_by_command.cache_clear()
 
     return True
