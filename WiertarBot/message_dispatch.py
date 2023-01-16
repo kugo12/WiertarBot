@@ -1,5 +1,5 @@
 import inspect
-from asyncio import gather
+from asyncio import get_running_loop
 from typing import Iterable, Optional, TYPE_CHECKING
 from time import time
 
@@ -93,8 +93,7 @@ class MessageEventDispatcher:
                             if response:
                                 await response.send()
 
-                # run all special functions asynchronously
-                await gather(*[i(event, **kwargs) for i in cls._special])
+                get_running_loop().create_task(cls._run_special(event, **kwargs))
 
             else:  # if there is no text in message
                 t_u_id = f'{event.thread_id}_{event.author_id}'
@@ -108,3 +107,8 @@ class MessageEventDispatcher:
                             del cls._image_edit_queue[t_u_id]
                     else:  # if timed out
                         del cls._image_edit_queue[t_u_id]
+
+    @classmethod
+    async def _run_special(cls, event: MessageEvent, **kwargs) -> None:
+        for it in cls._special:
+            await it(event, **kwargs)

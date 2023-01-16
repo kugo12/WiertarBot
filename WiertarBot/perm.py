@@ -1,16 +1,27 @@
 import json
-from typing import List, Optional
+from functools import cache
+from typing import List, Optional, Union
 
 from .database import PermissionRepository, Permission
 
+PermDict = dict[str, Union[int, list[str]]]
+
+
+@cache
+def _get_lists(command: str) -> Optional[tuple[PermDict, PermDict]]:
+    permission = PermissionRepository.find_by_command(command)
+    if permission is None:
+        return None
+
+    return json.loads(permission.whitelist), json.loads(permission.blacklist)
+
 
 def check(name: str, thread_id: str, user_id: str) -> bool:
-    permission = PermissionRepository.find_by_command(name)
-    if permission is None:
+    lists = _get_lists(name)
+    if lists is None:
         return False
 
-    whitelist = json.loads(permission.whitelist)
-    blacklist = json.loads(permission.blacklist)
+    whitelist, blacklist = lists
 
     if "*" in blacklist:
         if user_id != thread_id and thread_id in whitelist:
@@ -101,7 +112,10 @@ def edit(command: str, uids: List[str], bl=False, add=True, tid: Optional[str] =
         permission.blacklist = json.dumps(blacklist)
     else:
         permission = Permission(command=command, whitelist=json.dumps(whitelist), blacklist=json.dumps(blacklist))
+
     PermissionRepository.save(permission)
+
     PermissionRepository.find_by_command.cache_clear()
+    _get_lists.cache_clear()
 
     return True
