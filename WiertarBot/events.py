@@ -9,7 +9,7 @@ from .response import Response
 from .typing import FBMessageEvent
 
 if TYPE_CHECKING:
-    from .context import Context
+    from .abc import Context
 
 
 @attr.s(frozen=True, init=True, auto_attribs=True)
@@ -36,6 +36,31 @@ class Mention:
 
 
 @attr.s(frozen=True, init=True, auto_attribs=True)
+class Attachment:
+    id: Optional[str]
+
+    @classmethod
+    def from_fb(cls, attachment: fbchat.Attachment) -> 'Attachment':
+        if isinstance(attachment, fbchat.ImageAttachment):
+            return ImageAttachment(
+                id=attachment.id,
+                width=attachment.width,
+                height=attachment.height,
+                original_extension=attachment.original_extension,
+                is_animated=attachment.is_animated
+            )
+        return cls(attachment.id)
+
+
+@attr.s(frozen=True, init=True, auto_attribs=True)
+class ImageAttachment(Attachment):
+    width: Optional[int]
+    height: Optional[int]
+    original_extension: Optional[str]
+    is_animated: Optional[bool]
+
+
+@attr.s(frozen=True, init=True, auto_attribs=True)
 class MessageEvent:
     context: 'Context'
     text: str
@@ -45,6 +70,7 @@ class MessageEvent:
     mentions: list[Mention]
     external_id: str
     reply_to_id: Optional[str]
+    attachments: list[Attachment]
 
     @property
     def is_group(self) -> bool:
@@ -73,6 +99,7 @@ class MessageEvent:
             mentions=[Mention.from_fb(it) for it in event.message.mentions],
             external_id=event.message.id,
             reply_to_id=event.message.reply_to_id,
+            attachments=[Attachment.from_fb(it) for it in event.message.attachments]
         )
 
     # FIXME: remove this hack
@@ -86,5 +113,6 @@ class MessageEvent:
             at=event.at,
             mentions=event.mentions,
             external_id=event.external_id,
-            reply_to_id=event.reply_to_id
+            reply_to_id=event.reply_to_id,
+            attachments=event.attachments
         )

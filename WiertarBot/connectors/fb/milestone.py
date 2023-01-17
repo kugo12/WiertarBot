@@ -4,12 +4,12 @@ import asyncio
 from typing import Optional
 from collections import defaultdict
 
-from .dispatch import EventDispatcher
-from .typing import QueriedMessageCountMilestone
-from .database import MilestoneMessageCountRepository
-from .context import Context
+from .dispatch import FBEventDispatcher
+from .FBContext import FBContext
+from ...database import MilestoneMessageCountRepository, MessageCountMilestone
+from ...abc import Context
 
-_counts: dict[str, QueriedMessageCountMilestone] = {}
+_counts: dict[str, MessageCountMilestone] = {}
 _locks: defaultdict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 _default_total_delta = 250_000
 
@@ -24,7 +24,7 @@ def _check_threshold(previous: int, current: int, total_delta: int = _default_to
     return None
 
 
-async def _update(thread: fbchat.ThreadABC, context: Context) -> Optional[int]:
+async def _update(thread: fbchat.ThreadABC, context: FBContext) -> Optional[int]:
     async with _locks[thread.id]:
         milestone = _counts.get(thread.id)
 
@@ -36,7 +36,7 @@ async def _update(thread: fbchat.ThreadABC, context: Context) -> Optional[int]:
             count = (await context.fetch_thread(thread.id)).message_count or 1
 
             milestone = MilestoneMessageCountRepository.find_by_thread_id(thread.id) \
-                        or QueriedMessageCountMilestone.new(thread.id, count)
+                        or MessageCountMilestone(thread_id=thread.id, count=count)
 
             reached = _check_threshold(milestone.count, count)
 
@@ -47,8 +47,8 @@ async def _update(thread: fbchat.ThreadABC, context: Context) -> Optional[int]:
     return reached
 
 
-@EventDispatcher.on(fbchat.MessageEvent)
-async def milestone_listener(event: fbchat.MessageEvent, *, context: Context, **_) -> None:
+@FBEventDispatcher.on(fbchat.MessageEvent)
+async def milestone_listener(event: fbchat.MessageEvent, *, context: FBContext, **_) -> None:
     if event.thread.id == event.author.id:
         return
 

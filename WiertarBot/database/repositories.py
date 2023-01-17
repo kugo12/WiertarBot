@@ -1,77 +1,69 @@
-from typing import Optional, Iterable, TYPE_CHECKING
+from typing import Optional, Iterable, TYPE_CHECKING, Generic, TypeVar, final
 
-from .models import db, Permission, FBMessage, MessageCountMilestone
+from .models import Session, Permission, FBMessage, MessageCountMilestone
+from sqlalchemy.sql import update, select, delete
+from abc import ABCMeta
+from functools import cache
 
-if TYPE_CHECKING:
-    from ..typing import QueriedFBMessage, QueriedPermission, QueriedMessageCountMilestone
+_T = TypeVar("_T")
+
+
+class BaseRepository(Generic[_T], metaclass=ABCMeta):
+    @classmethod
+    @final
+    def save(cls, obj: _T) -> None:
+        with Session.begin() as session:
+            session.add(obj)
 
 
 # noinspection PyComparisonWithNone
-class FBMessageRepository:
-    @staticmethod
-    @db.atomic()
-    def save(obj: FBMessage, *, force_insert=False) -> None:
-        obj.save(force_insert=force_insert)
+class FBMessageRepository(BaseRepository[FBMessage]):
+    @classmethod
+    def mark_deleted(cls, mid: str, timestamp: int) -> None:
+        with Session.begin() as session:
+            session.execute(update(FBMessage)
+                            .where(FBMessage.message_id == mid)
+                            .values(deleted_at=timestamp))
 
-    @staticmethod
-    @db.atomic()
-    def mark_deleted(mid: str, timestamp: int) -> None:
-        (
-            FBMessage
-            .update(deleted_at=timestamp)
-            .where(FBMessage.message_id == mid)
-            .execute()
-        )
+    @classmethod
+    def find_not_deleted_and_time_before(cls, time: int) -> Iterable[FBMessage]:
+        with Session() as session:
+            return session.scalars(select(FBMessage).where(
+                FBMessage.time < time,
+                FBMessage.deleted_at == None
+            ))
 
-    @staticmethod
-    def find_not_deleted_and_time_before(time: int) -> Iterable['QueriedFBMessage']:
-        return (
-            FBMessage
-            .select(FBMessage.message)
-            .where(FBMessage.time < time, FBMessage.deleted_at == None)
-        )
+    @classmethod
+    def remove_not_deleted_and_time_before(cls, time: int) -> None:
+        with Session.begin() as session:
+            session.execute(delete(FBMessage).where(
+                FBMessage.time < time,
+                FBMessage.deleted_at == None
+            ))
 
-    @staticmethod
-    @db.atomic()
-    def remove_not_deleted_and_time_before(time: int) -> int:
-        return (
-            FBMessage
-            .delete()
-            .where(FBMessage.time < time, FBMessage.deleted_at == None)
-            .execute()
-        )
-
-    @staticmethod
-    def find_deleted_by_thread_id(thread_id: str, limit: int) -> Iterable['QueriedFBMessage']:
-        return (
-            FBMessage
-            .select(FBMessage.message)
-            .where(
+    @classmethod
+    def find_deleted_by_thread_id(cls, thread_id: str, limit: int) -> Iterable[FBMessage]:
+        with Session() as session:
+            return session.scalars(select(FBMessage).where(
                 FBMessage.deleted_at != None,
-                FBMessage.thread_id == thread_id
-            )
-            .order_by(FBMessage.time.desc())
-            .limit(limit)
-        )
+                FBMessage.thread_id == thread_id,
+            ).order_by(FBMessage.time.desc()))
 
 
-class PermissionRepository:
-    @staticmethod
-    def find_by_command(command: str) -> Optional['QueriedPermission']:
-        return Permission.get_or_none(Permission.command == command)
+class PermissionRepository(BaseRepository[Permission]):
+    @classmethod
+    @cache
+    def find_by_command(cls, command: str) -> Optional[Permission]:
+        with Session() as session:
+            return session.scalar(select(Permission).where(
+                Permission.command == command
+            ))
 
-    @staticmethod
-    @db.atomic()
-    def save(obj: Permission, *, force_insert=False) -> None:
-        obj.save(force_insert=force_insert)
 
-
-class MilestoneMessageCountRepository:
-    @staticmethod
-    def find_by_thread_id(thread_id: str) -> Optional['QueriedMessageCountMilestone']:
-        return MessageCountMilestone.get_or_none(MessageCountMilestone.thread_id == thread_id)
-
-    @staticmethod
-    @db.atomic()
-    def save(obj: MessageCountMilestone, *, force_insert=False):
-        obj.save(force_insert=force_insert)
+class MilestoneMessageCountRepository(BaseRepository[MessageCountMilestone]):
+    @classmethod
+    def find_by_thread_id(cls, thread_id: str) -> Optional[MessageCountMilestone]:
+        with Session() as session:
+            return session.scalar(select(MessageCountMilestone).where(
+                MessageCountMilestone.thread_id == thread_id
+            ))

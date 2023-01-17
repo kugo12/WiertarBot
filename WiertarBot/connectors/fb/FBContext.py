@@ -7,28 +7,22 @@ import aiofiles
 import aiohttp
 import fbchat
 
-from . import config
+from ... import config
+from ...abc.context import Context, ThreadData
 
 if TYPE_CHECKING:
-    from .response import Response
-    from .events import MessageEvent
-
-ThreadData = Union[fbchat.UserData, fbchat.GroupData, fbchat.PageData]
+    from ...response import Response
+    from ...events import MessageEvent
 
 
-class Context:
-    __client: fbchat.Client
-
+class FBContext(Context):
     def __init__(self, client: fbchat.Client) -> None:
         self.__client = client
+        self.__session = client.session
 
     @property
     def bot_id(self) -> str:
         return self.__client.session.user.id
-
-    @property
-    def __session(self) -> fbchat.Session:
-        return self.__client.session
 
     def _get_event_thread(self, event: 'MessageEvent') -> fbchat.ThreadABC:
         t: type[Union[fbchat.Group, fbchat.User]] = fbchat.Group if event.is_group else fbchat.User

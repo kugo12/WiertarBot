@@ -1,3 +1,6 @@
+import pytz
+from functools import cached_property
+
 from ._config import Config
 from ._constants import config_path
 
@@ -9,6 +12,11 @@ class WiertarBotConfig:
     email: str
     password: str
     prefix: str = "!"
+    timezone: str = "Europe/Warsaw"
+
+    @cached_property
+    def tz(self) -> pytz.BaseTzInfo:
+        return pytz.timezone(self.timezone)
 
 
 @config.properties("database")
@@ -18,6 +26,10 @@ class DatabaseConfig:
     password: str
     host: str
     port: int = 5432
+
+    @property
+    def url(self) -> str:
+        return f"postgresql+psycopg2://{self.user}:{self.password}@{self.host}:{self.port}/{self.name}"
 
 
 @config.properties("sentry", optional=True)

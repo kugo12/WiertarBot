@@ -1,6 +1,7 @@
 from typing import Callable, Union, Awaitable
 
 from aiohttp import web
+from aiohttp.log import access_logger
 from inspect import isawaitable
 from http import HTTPStatus
 
@@ -28,8 +29,7 @@ async def _init(config: HealthConfig) -> None:
         ]
     )
 
-    kwargs = {} if config.access_log else {"access_log": None}
-    runner = web.AppRunner(app, **kwargs)
+    runner = web.AppRunner(app, access_log=access_logger if config.access_log else None)
     await runner.setup()
 
     site = web.TCPSite(runner, config.host, config.port)

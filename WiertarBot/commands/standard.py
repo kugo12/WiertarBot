@@ -13,10 +13,10 @@ from aiogtts import aiogTTS
 from aiogoogletrans import Translator
 from forex_python.converter import convert as currency_convert, RatesNotAvailableError
 
-from ..dispatch import MessageEventDispatcher
+from ..message_dispatch import MessageEventDispatcher
 from ..events import MessageEvent, Mention
 from ..response import Response
-from ..config import cmd_media_path
+from ..config import cmd_media_path, wiertarbot as wiertarbot_config
 from .modules import AliPaczka, Fantano
 
 
@@ -208,7 +208,8 @@ __czas_localize_datetime = {
     "Sunday": "Niedziela"
 }
 __czas_timers = [
-    ("Koniec wakacji (1 wrzesnia) za: ", datetime(2021, 9, 1))
+    ("Początek wakacji (23 czerwca) za: ", datetime(2023, 6, 23, tzinfo=wiertarbot_config.tz)),
+    ("Początek \"wakacji\" dla maturzystów (28 kwietnia) za: ", datetime(2023, 4, 28, tzinfo=wiertarbot_config.tz)),
 ]
 
 
@@ -221,7 +222,7 @@ async def czas(event: MessageEvent) -> Response:
         aktualny czas oraz odliczania
     """
 
-    now = datetime.now()
+    now = datetime.now(wiertarbot_config.tz)
     now_str = now.strftime("%A %d %B %H:%M")
 
     for i in __czas_localize_datetime:
@@ -486,10 +487,13 @@ async def tlumacz(event: MessageEvent) -> Response:
 
 
 sundays = [
-    date(2022, 6, 26),
-    date(2022, 8, 28),
-    date(2022, 12, 11),
-    date(2022, 12, 18)
+    date(2023, 1, 29),
+    date(2023, 4, 2),
+    date(2023, 4, 30),
+    date(2023, 6, 25),
+    date(2023, 8, 27),
+    date(2023, 12, 17),
+    date(2023, 12, 24),
 ]
 
 

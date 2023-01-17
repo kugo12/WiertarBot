@@ -4,7 +4,7 @@ from PIL import Image, ImageEnhance, ImageOps, ImageFont, ImageDraw
 
 from .ABCImageEdit import ImageEditABC
 from ..config import cmd_media_path
-from ..dispatch import MessageEventDispatcher
+from ..message_dispatch import MessageEventDispatcher
 
 
 @MessageEventDispatcher.register()

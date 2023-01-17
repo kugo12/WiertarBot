@@ -2,7 +2,7 @@ from typing import Optional
 
 import pytest
 
-from WiertarBot.milestone import _check_threshold, _default_total_delta
+from WiertarBot.connectors.fb.milestone import _check_threshold, _default_total_delta
 from sys import maxsize
 
 _x_total_delta = 20 * _default_total_delta

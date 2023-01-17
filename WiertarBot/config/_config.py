@@ -3,18 +3,19 @@ import asyncio
 from returns.curry import partial
 from dataclasses import dataclass
 from os import PathLike, environ
-from typing import TypeVar, Any, Union, Type, Optional, cast, Final, Callable, overload, Literal, Coroutine, Awaitable, \
+from typing import TypeVar, Any, Union, Type, Optional, cast, Final, Callable, overload, Literal, Coroutine, \
     Generic, get_args
 from typing_extensions import ParamSpec, Concatenate
 from inspect import isawaitable, getfullargspec
 
-import dacite
+from dacite.core import from_dict
 import yaml
 import re
 
 from WiertarBot.config._utils import traverse_dict
 
 _T = TypeVar("_T")
+_V = TypeVar("_V")
 _P = ParamSpec("_P")
 
 _on_T = TypeVar("_on_T")
@@ -22,8 +23,8 @@ _on_T_ret = TypeVar("_on_T_ret")
 
 env_regex = re.compile(r"\$(?P<b>{)?(?P<env>[A-Za-z_]+)(?(b)})")
 
-InitType = Callable[[], Union[Awaitable[None], None]]
-
+_Coro = Coroutine[Any, Any, _V]
+InitType = Callable[[], Union[_Coro[None], None]]
 
 def expand_env(string: str) -> str:
     for match in env_regex.finditer(string):
@@ -64,10 +65,10 @@ class ConfigInject(Generic[_CI]):
         self.value = value
 
     @overload
-    def __call__(self, func: Callable[Concatenate[_CI, _P], Awaitable[_on_T_ret]]) -> Callable[_P, Awaitable[Optional[_on_T_ret]]]: ...  # type: ignore
+    def __call__(self, func: Callable[Concatenate[_CI, _P], _Coro[_on_T_ret]]) -> Callable[_P, _Coro[Optional[_on_T_ret]]]: ...  # type: ignore
 
     @overload
-    def __call__(self, func: Callable[_P, Awaitable[_on_T_ret]]) -> Callable[_P, Awaitable[Optional[_on_T_ret]]]: ...  # type: ignore
+    def __call__(self, func: Callable[_P, _Coro[_on_T_ret]]) -> Callable[_P, _Coro[Optional[_on_T_ret]]]: ...  # type: ignore
 
     @overload
     def __call__(self, func: Callable[Concatenate[_CI, _P], _on_T_ret]) -> Callable[_P, Optional[_on_T_ret]]: ...
@@ -107,7 +108,7 @@ class Config:
         if mapping and isinstance(mapping, dict):
             def wrap(cls: Type[_T]) -> Type[_T]:
                 cls = dataclass(cls)
-                self._mapping[cls] = dacite.from_dict(data_class=cls, data=cast(dict[str, Any], mapping))
+                self._mapping[cls] = from_dict(data_class=cls, data=cast(dict[str, Any], mapping))
                 return cls
 
             return wrap

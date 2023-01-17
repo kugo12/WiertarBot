@@ -5,7 +5,7 @@ import os
 from bs4 import BeautifulSoup
 from io import BytesIO
 
-from ..dispatch import MessageEventDispatcher
+from ..message_dispatch import MessageEventDispatcher
 from ..events import MessageEvent
 from ..response import Response
 from .. import config

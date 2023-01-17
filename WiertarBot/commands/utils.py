@@ -3,7 +3,7 @@ import asyncio
 from typing import List, Awaitable, Optional
 
 from .. import perm, config
-from ..dispatch import MessageEventDispatcher
+from ..message_dispatch import MessageEventDispatcher
 from ..events import MessageEvent, Mention
 from ..response import Response
 from ..database import PermissionRepository, FBMessageRepository
