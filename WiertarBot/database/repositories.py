@@ -31,7 +31,7 @@ class FBMessageRepository(BaseRepository[FBMessage]):
             return session.scalars(select(FBMessage).where(
                 FBMessage.time < time,
                 FBMessage.deleted_at == None
-            ))
+            )).all()
 
     @classmethod
     def remove_not_deleted_and_time_before(cls, time: int) -> None:
@@ -47,7 +47,7 @@ class FBMessageRepository(BaseRepository[FBMessage]):
             return session.scalars(select(FBMessage).where(
                 FBMessage.deleted_at != None,
                 FBMessage.thread_id == thread_id,
-            ).order_by(FBMessage.time.desc()))
+            ).order_by(FBMessage.time.desc())).all()
 
 
 class PermissionRepository(BaseRepository[Permission]):
