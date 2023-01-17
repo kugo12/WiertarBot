@@ -2,7 +2,7 @@ import json
 from functools import cache
 from typing import List, Optional, Union
 
-from .database import PermissionRepository, Permission
+from .database import PermissionRepository, Permission, Session
 
 PermDict = dict[str, Union[int, list[str]]]
 
@@ -107,13 +107,14 @@ def edit(command: str, uids: List[str], bl=False, add=True, tid: Optional[str] =
             else:
                 currently_edited.pop(uid)
 
-    if permission:
-        permission.whitelist = json.dumps(whitelist)
-        permission.blacklist = json.dumps(blacklist)
-    else:
-        permission = Permission(command=command, whitelist=json.dumps(whitelist), blacklist=json.dumps(blacklist))
-
-    PermissionRepository.save(permission)
+    with Session.begin() as session:
+        if permission:
+            session.add(permission)
+            permission.whitelist = json.dumps(whitelist)
+            permission.blacklist = json.dumps(blacklist)
+        else:
+            permission = Permission(command=command, whitelist=json.dumps(whitelist), blacklist=json.dumps(blacklist))
+            session.add(permission)
 
     PermissionRepository.find_by_command.cache_clear()
     _get_lists.cache_clear()

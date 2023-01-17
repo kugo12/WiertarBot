@@ -6,7 +6,7 @@ from collections import defaultdict
 
 from .dispatch import FBEventDispatcher
 from .FBContext import FBContext
-from ...database import MilestoneMessageCountRepository, MessageCountMilestone
+from ...database import MilestoneMessageCountRepository, MessageCountMilestone, Session
 from ...abc import Context
 
 _counts: dict[str, MessageCountMilestone] = {}
@@ -40,10 +40,10 @@ async def _update(thread: fbchat.ThreadABC, context: FBContext) -> Optional[int]
 
             reached = _check_threshold(milestone.count, count)
 
-            milestone.count = count
+            with Session.begin() as session:
+                session.add(milestone)
+                milestone.count = count
             _counts[thread.id] = milestone
-
-    MilestoneMessageCountRepository.save(milestone)
     return reached
 
 
