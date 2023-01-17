@@ -19,6 +19,5 @@ async def _dispatch_message_event(event: fbchat.MessageEvent, *, context: FBCont
     if event.author.id != context.bot_id:
         await MessageEventDispatcher.dispatch(
             MessageEvent.from_fb_event(context, event),
-            context=context,
             **kwargs
         )
