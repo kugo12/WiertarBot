@@ -2,10 +2,10 @@ aio-pika==8.2.4
 aiofiles==0.7.0
 aiogoogletrans==3.3.2
 aiogTTS==1.1.1
-aiohttp==3.7.4
+aiohttp==3.8.3
 aiormq==6.4.2
-async-timeout==3.0.1
-attrs==21.2.0
+async-timeout==4.0.2
+attrs==22.2.0
 beautifulsoup4==4.10.0
 bs4==0.0.1
 certifi==2022.12.7
@@ -21,7 +21,7 @@ multidict==5.2.0
 paho-mqtt==1.6.1
 pamqp==3.2.1
 Pillow==9.3.0
-psycopg2cffi==2.9.0
+psycopg2==2.9.5
 pycparser==2.21
 pyparsing==3.0.9
 pytz==2022.7
@@ -38,4 +38,5 @@ SQLAlchemy==2.0.0rc1
 typing_extensions==4.4.0
 uritemplate==4.1.1
 urllib3==1.26.7
-yarl==1.7.2
+yarl==1.8.2
+jep==4.1.1
