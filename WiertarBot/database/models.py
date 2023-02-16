@@ -1,43 +1,57 @@
-from typing import Optional
-
-from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
-from sqlalchemy import String, Text, BigInteger, MetaData
-
-from ..config import database
-
-engine = create_engine(database.url)
-Session = sessionmaker(engine)
+from typing import Optional, Protocol
+from pl.kvgx12.wiertarbot.entities import \
+    FBMessage as _FBMessage, \
+    MessageCountMilestone as _MessageCountMilestone, \
+    Permission as _Permission
 
 
-class Base(DeclarativeBase):
-    metadata = MetaData(naming_convention={"ix": "%(column_0_label)s"})
+class Permission(Protocol):
+    @staticmethod
+    def new(command: str, whitelist: str, blacklist: str) -> 'Permission':
+        return _Permission(None, command, whitelist, blacklist)
 
 
-class Permission(Base):
-    __tablename__ = "permission"
+    def getId(self) -> int: ...
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    command: Mapped[str] = mapped_column(String(255), index=True, unique=True)
-    whitelist: Mapped[str] = mapped_column(Text)
-    blacklist: Mapped[str] = mapped_column(Text)
+    def getCommand(self) -> str: ...
 
+    def getWhitelist(self) -> str: ...
 
-class FBMessage(Base):
-    __tablename__ = "fbmessage"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    message_id: Mapped[str] = mapped_column(String(255), index=True, unique=True)
-    thread_id: Mapped[str] = mapped_column(String(255))
-    author_id: Mapped[str] = mapped_column(String(255))
-    time: Mapped[int] = mapped_column(BigInteger)
-    message: Mapped[str] = mapped_column(Text)
-    deleted_at: Mapped[Optional[int]] = mapped_column(BigInteger)
+    def getBlacklist(self) -> str: ...
 
 
-class MessageCountMilestone(Base):
-    __tablename__ = "messagecountmilestone"
+class FBMessage(Protocol):
+    @staticmethod
+    def new(message_id: str, thread_id: str, author_id: str, time: int, message: str,
+            deleted_at: Optional[int] = None) -> 'FBMessage':
+        return _FBMessage(None, message_id, thread_id, author_id, time, message, deleted_at)
 
-    id: Mapped[int] = mapped_column(primary_key=True)
-    thread_id: Mapped[str] = mapped_column(String(255), index=True, unique=True)
-    count: Mapped[int]
+    def getId(self) -> int: ...
+
+    def getMessageId(self) -> str: ...
+
+    def getThreadId(self) -> str: ...
+
+    def getAuthorId(self) -> str: ...
+
+    def getTime(self) -> int: ...
+
+    def getMessage(self) -> str: ...
+
+    def getDeletedAt(self) -> Optional[int]: ...
+
+    def setDeletedAt(self, deletedAt: int) -> None: ...
+
+
+class MessageCountMilestone(Protocol):
+    @staticmethod
+    def new(thread_id: str, count: int) -> 'MessageCountMilestone':
+        return _MessageCountMilestone(None, thread_id, count)
+
+    def getId(self) -> int: ...
+
+    def getThreadId(self) -> str: ...
+
+    def getCount(self) -> int: ...
+
+    def setCount(self, count: int) -> None: ...

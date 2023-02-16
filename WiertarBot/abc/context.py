@@ -4,7 +4,7 @@ from typing import Optional, Sequence, Tuple, Iterable, BinaryIO, Union, TYPE_CH
 import fbchat
 
 if TYPE_CHECKING:
-    from ..response import Response
+    from ..response import IResponse
     from ..events import MessageEvent
 
 ThreadData = Union[fbchat.UserData, fbchat.GroupData, fbchat.PageData]
@@ -12,7 +12,7 @@ ThreadData = Union[fbchat.UserData, fbchat.GroupData, fbchat.PageData]
 
 class Context(ABC):
     @abstractmethod
-    async def send_response(self, response: 'Response') -> None: ...
+    async def send_response(self, response: 'IResponse') -> None: ...
 
     @abstractmethod
     async def upload_raw(

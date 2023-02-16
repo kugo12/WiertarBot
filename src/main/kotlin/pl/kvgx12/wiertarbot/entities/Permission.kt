@@ -15,8 +15,8 @@ class Permission(
     val command: String,
 
     @Column(columnDefinition = "TEXT", nullable = false)
-    val whitelist: String,
+    var whitelist: String,
 
     @Column(columnDefinition = "TEXT", nullable = false)
-    val blacklist: String,
+    var blacklist: String,
 )

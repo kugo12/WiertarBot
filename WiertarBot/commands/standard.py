@@ -15,13 +15,13 @@ from forex_python.converter import convert as currency_convert, RatesNotAvailabl
 
 from ..message_dispatch import MessageEventDispatcher
 from ..events import MessageEvent, Mention
-from ..response import Response
+from ..response import IResponse, response
 from ..config import cmd_media_path, wiertarbot as wiertarbot_config
 from .modules import AliPaczka, Fantano
 
 
 @MessageEventDispatcher.register()
-async def wybierz(event: MessageEvent) -> Response:
+async def wybierz(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} <opcje do wyboru po przecinku>
@@ -30,16 +30,16 @@ async def wybierz(event: MessageEvent) -> Response:
     """
 
     txt = "Brak opcji do wyboru"
-    m = event.text.split(" ", 1)
+    m = event.getText().split(" ", 1)
     if len(m) > 1:
         m = m[1].split(",")
         txt = random.choice(m)
 
-    return event.response(text=txt)
+    return response(event, text=txt)
 
 
 @MessageEventDispatcher.register()
-async def moneta(event: MessageEvent) -> Response:
+async def moneta(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -52,11 +52,11 @@ async def moneta(event: MessageEvent) -> Response:
     else:
         msg = 'Reszka!'
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 @MessageEventDispatcher.register()
-async def kostka(event: MessageEvent) -> Response:
+async def kostka(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -67,11 +67,11 @@ async def kostka(event: MessageEvent) -> Response:
     n = random.randint(1, 6)
     msg = f'Wyrzuciłeś {n}'
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 @MessageEventDispatcher.register()
-async def szkaluj(event: MessageEvent) -> Response:
+async def szkaluj(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} (oznaczenie/random)
@@ -79,21 +79,21 @@ async def szkaluj(event: MessageEvent) -> Response:
         tekst szkalujący osobę
     """
 
-    text = event.text.lower()
+    text = event.getText().lower()
     is_group_and_random = (
-            event.is_group
+            event.isGroup()
             and text.count(' ') == 1
             and text.endswith(' random')
     )
     if is_group_and_random:
-        thread = cast(fbchat.GroupData, await event.context.fetch_thread(event.thread_id))
+        thread = cast(fbchat.GroupData, await event.getContext().fetch_thread(event.getThreadId()))
         uid = random.choice(list(thread.participants)).id
-    elif event.mentions:
-        uid = event.mentions[0].thread_id
+    elif event.getMentions():
+        uid = event.getMentions()[0].getThreadId()
     else:
-        uid = event.author_id
+        uid = event.getAuthorId()
 
-    user = await event.context.fetch_thread(uid)
+    user = await event.getContext().fetch_thread(uid)
     name = str(user.name)
 
     path = cmd_media_path / 'random/szkaluj.txt'
@@ -110,11 +110,11 @@ async def szkaluj(event: MessageEvent) -> Response:
         mentions.append(mention)
         msg = msg.replace('%on%', name, 1)
 
-    return event.response(text=msg, mentions=mentions)
+    return response(event, text=msg, mentions=mentions)
 
 
 @MessageEventDispatcher.register()
-async def donate(event: MessageEvent) -> Response:
+async def donate(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -127,11 +127,11 @@ async def donate(event: MessageEvent) -> Response:
         'z góry dzięki'
     )
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 @MessageEventDispatcher.register()
-async def changelog(event: MessageEvent) -> Response:
+async def changelog(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -139,11 +139,11 @@ async def changelog(event: MessageEvent) -> Response:
         link do spisu zmian bota
     """
 
-    return event.response(text='https://github.com/kugo12/WiertarBot/commits/main')
+    return response(event, text='https://github.com/kugo12/WiertarBot/commits/main')
 
 
 @MessageEventDispatcher.register()
-async def kod(event: MessageEvent) -> Response:
+async def kod(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -153,11 +153,11 @@ async def kod(event: MessageEvent) -> Response:
 
     msg = 'https://github.com/kugo12/WiertarBot'
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 @MessageEventDispatcher.register()
-async def barka(event: MessageEvent) -> Response:
+async def barka(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -167,14 +167,14 @@ async def barka(event: MessageEvent) -> Response:
 
     msg = 'Pan kiedyś stanął nad brzegiem\nSzukał ludzi gotowych pójść za Nim\nBy łowić serca\nSłów Bożych prawdą.\n\nRef.:\nO Panie, to Ty na mnie spojrzałeś,\nTwoje usta dziś wyrzekły me imię.\nSwoją barkę pozostawiam na brzegu,\nRazem z Tobą nowy zacznę dziś łów.\n\n2.\nJestem ubogim człowiekiem,\nMoim skarbem są ręce gotowe\nDo pracy z Tobą\nI czyste serce.\n\n3.\nTy, potrzebujesz mych dłoni,\nMego serca młodego zapałem\nMych kropli potu\nI samotności.\n\n4.\nDziś wypłyniemy już razem\nŁowić serca na morzach dusz ludzkich\nTwej prawdy siecią\nI słowem życia.\n\n\nBy Papież - https://www.youtube.com/watch?v=fimrULqiExA\nZ tekstem - https://www.youtube.com/watch?v=_o9mZ_DVTKA'
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 __Xd_message = 'Serio, mało rzeczy mnie triggeruje tak jak to chore \"Xd\". Kombinacji x i d można używać na wiele wspaniałych sposobów. Coś cię śmieszy? Stawiasz \"xD\". Coś się bardzo śmieszy? Śmiało: \"XD\"! Coś doprowadza Cię do płaczu ze śmiechu? \"XDDD\" i załatwione. Uśmiechniesz się pod nosem? \"xd\". Po kłopocie. A co ma do tego ten bękart klawiaturowej ewolucji, potwór i zakała ludzkiej estetyki - \"Xd\"? Co to w ogóle ma wyrażać? Martwego człowieka z wywalonym jęzorem? Powiem Ci, co to znaczy. To znaczy, że masz w telefonie włączone zaczynanie zdań dużą literą, ale szkoda Ci klikać capsa na jedno \"d\" później. Korona z głowy spadnie? Nie sondze. \"Xd\" to symptom tego, że masz mnie, jako rozmówcę, gdzieś, bo Ci się nawet kliknąć nie chce, żeby mi wysłać poprawny emotikon. Szanujesz mnie? Używaj \"xd\", \"xD\", \"XD\", do wyboru. Nie szanujesz mnie? Okaż to. Wystarczy, że wstawisz to zjebane \"Xd\" w choć jednej wiadomości. Nie pozdrawiam'
 
 
 @MessageEventDispatcher.register(aliases=['xd'])
-async def Xd(event: MessageEvent) -> Optional[Response]:
+async def Xd(event: MessageEvent) -> Optional[IResponse]:
     """
     Użycie:
         !Xd
@@ -182,7 +182,7 @@ async def Xd(event: MessageEvent) -> Optional[Response]:
         copypaste o Xd
     """
 
-    return event.response(text=__Xd_message) if event.text == '!Xd' else None
+    return response(event, text=__Xd_message) if event.getText() == '!Xd' else None
 
 
 # constants
@@ -214,7 +214,7 @@ __czas_timers = [
 
 
 @MessageEventDispatcher.register()
-async def czas(event: MessageEvent) -> Response:
+async def czas(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -242,11 +242,11 @@ async def czas(event: MessageEvent) -> Response:
 
             msg += f'\n{timer[0]}: {d}d {h}h {m}min {s}sek'
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 @MessageEventDispatcher.register()
-async def track(event: MessageEvent) -> Response:
+async def track(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} <numer śledzenia>
@@ -256,15 +256,15 @@ async def track(event: MessageEvent) -> Response:
 
     msg = track.__doc__
 
-    arg = event.text.split(' ', 1)
+    arg = event.getText().split(' ', 1)
     if len(arg) == 2:
         msg = str(AliPaczka(arg[1]))
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 @MessageEventDispatcher.register(aliases=['słownik'])
-async def slownik(event: MessageEvent) -> Response:
+async def slownik(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} <wyraz>
@@ -274,24 +274,24 @@ async def slownik(event: MessageEvent) -> Response:
 
     msg = slownik.__doc__
 
-    args = event.text.split(' ', 1)
+    args = event.getText().split(' ', 1)
     if len(args) == 2:
         arg = args[1].lower()
         url = f'https://sjp.pwn.pl/slowniki/{arg.replace(" ", "-")}'
 
-        response = requests.get(url).text
-        parsed = BeautifulSoup(response, 'html.parser')
+        r = requests.get(url).text
+        parsed = BeautifulSoup(r, 'html.parser')
         text = parsed.body.find('div', {'class': 'ribbon-element type-187126'})  # type: ignore
         if text:
             msg = text.get_text().strip()
         else:
             msg = 'Coś poszło nie tak, jak nie użyłeś polskich liter, to dobry moment'
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 @MessageEventDispatcher.register()
-async def miejski(event: MessageEvent) -> Response:
+async def miejski(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} <wyraz>
@@ -301,16 +301,16 @@ async def miejski(event: MessageEvent) -> Response:
 
     msg = miejski.__doc__
 
-    args = event.text.split(' ', 1)
+    args = event.getText().split(' ', 1)
     if len(args) == 2:
         arg = args[1].lower()
         url = f'https://www.miejski.pl/slowo-{arg.replace(" ", "+")}'
 
-        response = requests.get(url)
-        if response.status_code == 404:
+        r = requests.get(url)
+        if r.status_code == 404:
             msg = 'Nie znaleziono takiego słowa'
         else:
-            parsed = BeautifulSoup(response.text, 'html.parser')
+            parsed = BeautifulSoup(r.text, 'html.parser')
             main = parsed.body.find('main')  # type: ignore
 
             definition = main.find('p').get_text()  # type: ignore
@@ -320,7 +320,7 @@ async def miejski(event: MessageEvent) -> Response:
 
             msg = f'{arg}\nDefinicja: {definition}{example}'
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 # constants
@@ -328,7 +328,7 @@ __tts_gtts = aiogTTS()
 
 
 @MessageEventDispatcher.register()
-async def tts(event: MessageEvent) -> Response:
+async def tts(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} (lang=kod) <tekst>
@@ -343,12 +343,12 @@ async def tts(event: MessageEvent) -> Response:
     msg = tts.__doc__
     files = None
 
-    arg = event.text.split(' ', 2)
+    arg = event.getText().split(' ', 2)
     if len(arg) > 1:
         lang = 'pl'
         if arg[1].startswith('lang='):
             if len(arg) == 2:
-                return event.response(text=msg)
+                return response(event, text=msg)
 
             lang = arg[1].replace('lang=', '')
             arg[1] = ''
@@ -361,14 +361,14 @@ async def tts(event: MessageEvent) -> Response:
 
         fn = 'tts.mp3'
         mime = 'audio/mp3'
-        files = await event.context.upload_raw([(fn, f, mime)], voice_clip=False)
+        files = await event.getContext().upload_raw([(fn, f, mime)], voice_clip=False)
         msg = None
 
-    return event.response(text=msg, files=files)
+    return response(event, text=msg, files=files)
 
 
 @MessageEventDispatcher.register()
-async def mc(event: MessageEvent) -> Response:
+async def mc(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} <names/skin> <nick>
@@ -379,7 +379,7 @@ async def mc(event: MessageEvent) -> Response:
     msg = mc.__doc__
     files = None
 
-    args = event.text.split(' ', 2)
+    args = event.getText().split(' ', 2)
     if len(args) == 3:
         arg = args[1].lower()
 
@@ -408,11 +408,11 @@ async def mc(event: MessageEvent) -> Response:
         else:
             msg = 'Podany nick nie istnieje'
 
-    return event.response(text=msg, files=files)
+    return response(event, text=msg, files=files)
 
 
 @MessageEventDispatcher.register()
-async def covid(event: MessageEvent) -> Response:
+async def covid(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -422,11 +422,11 @@ async def covid(event: MessageEvent) -> Response:
 
     msg = covid.__doc__
 
-    args = event.text.split(' ', 1)
+    args = event.getText().split(' ', 1)
     if len(args) == 1:
         url = "https://services-eu1.arcgis.com/zk7YlClTgerl62BY/arcgis/rest/services/global_corona_actual_widok3/FeatureServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=1&where=1%3D1&outFields=*"
-        response = requests.get(url).json()
-        fields = response["features"][0]["attributes"]
+        r = requests.get(url).json()
+        fields = r["features"][0]["attributes"]
 
         msg = (
             f'Statystyki COVID19 w Polsce na {fields["DATA_SHOW"]}:\n'
@@ -445,11 +445,11 @@ async def covid(event: MessageEvent) -> Response:
             # f'szczegółowe dane Polski !covid s\n'
         )
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 @MessageEventDispatcher.register()
-async def sugestia(event: MessageEvent) -> Response:
+async def sugestia(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -457,14 +457,14 @@ async def sugestia(event: MessageEvent) -> Response:
         https://github.com/kugo12/WiertarBot/issues
     """
 
-    return event.response(text="https://github.com/kugo12/WiertarBot/issues")
+    return response(event, text="https://github.com/kugo12/WiertarBot/issues")
 
 
 translator = Translator()
 
 
 @MessageEventDispatcher.register(aliases=['tłumacz'])
-async def tlumacz(event: MessageEvent) -> Response:
+async def tlumacz(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} <docelowy język> <tekst>
@@ -475,7 +475,7 @@ async def tlumacz(event: MessageEvent) -> Response:
 
     msg = tlumacz.__doc__
 
-    args = event.text.split(' ', 2)
+    args = event.getText().split(' ', 2)
     if len(args) == 3:
         try:
             t = await translator.translate(args[2], dest=args[1])
@@ -483,7 +483,7 @@ async def tlumacz(event: MessageEvent) -> Response:
         except ValueError:
             msg = 'Zły docelowy język'
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 sundays = [
@@ -498,7 +498,7 @@ sundays = [
 
 
 @MessageEventDispatcher.register()
-async def niedziela(event: MessageEvent) -> Response:
+async def niedziela(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} [lista]
@@ -512,7 +512,7 @@ async def niedziela(event: MessageEvent) -> Response:
     now = date.today()
     msg = niedziela.__doc__
 
-    request = event.text.split(" ", 2)
+    request = event.getText().split(" ", 2)
     if len(request) == 1:
         nearest_sunday = None
 
@@ -530,11 +530,11 @@ async def niedziela(event: MessageEvent) -> Response:
         msg = "Niedziele handlowe:\n- " \
               + "\n- ".join([i.isoformat() for i in sundays if i >= now])
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 @MessageEventDispatcher.register(aliases=['anthony', 'melon'])
-async def fantano(event: MessageEvent) -> Response:
+async def fantano(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} <nazwa albumu>
@@ -543,7 +543,7 @@ async def fantano(event: MessageEvent) -> Response:
         Treść: <Treść recenzji>
         Ocena: <Końcowa ocena>
     """
-    args = event.text.split(' ', 1)
+    args = event.getText().split(' ', 1)
     if len(args) == 2:
         review = Fantano().get_rate(args[1])
         msg = (
@@ -554,7 +554,7 @@ async def fantano(event: MessageEvent) -> Response:
     else:
         msg = fantano.__doc__
 
-    return event.response(text=msg)
+    return response(event, text=msg)
 
 
 def __convert_currency(_from: str, to: str, amount: Decimal) -> Decimal:
@@ -562,7 +562,7 @@ def __convert_currency(_from: str, to: str, amount: Decimal) -> Decimal:
 
 
 @MessageEventDispatcher.register(aliases=["przelicz"])
-async def kurs(event: MessageEvent) -> Response:
+async def kurs(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} <z waluty> <do waluty> (ilosc=1)
@@ -570,7 +570,7 @@ async def kurs(event: MessageEvent) -> Response:
         Obecny kurs Forex
     """
 
-    args = event.text.split(" ")
+    args = event.getText().split(" ")
     msg = kurs.__doc__
 
     if len(args) in (3, 4):
@@ -587,4 +587,4 @@ async def kurs(event: MessageEvent) -> Response:
         except RatesNotAvailableError:
             msg = "Nieprawidłowa waluta"
 
-    return event.response(text=msg)
+    return response(event, text=msg)

@@ -2,66 +2,67 @@ from typing import cast
 
 import fbchat
 
-from .. import perm
 from ..message_dispatch import MessageEventDispatcher
 from ..events import Mention, MessageEvent
+from ..response import response
+from ..services import PermissionService
 
 
 @MessageEventDispatcher.register(special=True)
 async def everyone(event: MessageEvent):
-    if '@everyone' in event.text \
-            and perm.check('everyone', event.thread_id, event.author_id) \
-            and event.is_group:
-        group = cast(fbchat.GroupData, await event.context.fetch_thread(event.thread_id))
+    if '@everyone' in event.getText() \
+            and PermissionService.isAuthorized('everyone', event.getThreadId(), event.getAuthorId()) \
+            and event.isGroup():
+        group = cast(fbchat.GroupData, await event.getContext().fetch_thread(event.getThreadId()))
         mentions = [
             Mention(thread_id=participant.id, offset=0, length=9)
             for participant in group.participants
         ]
 
-        await event.send_response(text="@everyone", mentions=mentions)
+        await response(event, text="@everyone", mentions=mentions).pySend()
 
 
 @MessageEventDispatcher.register(special=True)
 async def thinking(event: MessageEvent):
-    if event.text == '🤔':
-        await event.send_response(text='🤔')
+    if event.getText() == '🤔':
+        await response(event, text='🤔').pySend()
 
 
 @MessageEventDispatcher.register(special=True)
 async def grek(event: MessageEvent):
-    text = event.text.lower()
+    text = event.getText().lower()
     if text == 'grek':
-        if event.text == 'Grek':
-            await event.send_response(text="grek*")
-        await event.send_response(text="to pedał")
+        if event.getText() == 'Grek':
+            await response(event, text="grek*").pySend()
+        await response(event, text="to pedał").pySend()
     elif text == 'pedał':
-        await event.send_response(text="sam jesteś grek")
+        await response(event, text="sam jesteś grek").pySend()
     elif text == 'pedał to':
-        await event.send_response(text="grek")
+        await response(event, text="grek").pySend()
 
 
 @MessageEventDispatcher.register(special=True)
 async def leet(event: MessageEvent):
-    if '1337' in event.text:
-        p = perm.check('leet', event.thread_id, event.author_id)
+    if '1337' in event.getText():
+        p = PermissionService.isAuthorized('leet', event.getThreadId(), event.getAuthorId())
 
-        await event.send_response(text="Jesteś elitą" if p else "Nie jesteś elitą")
+        await response(event, text="Jesteś elitą" if p else "Nie jesteś elitą").pySend()
 
 
 @MessageEventDispatcher.register(special=True)
 async def papiezowa_liczba(event: MessageEvent):
-    if '2137' in event.text:
-        await event.send_response(text='haha toż to papieżowa liczba')
+    if '2137' in event.getText():
+        await response(event, text='haha toż to papieżowa liczba').pySend()
 
 
 @MessageEventDispatcher.register(special=True)
 async def Xd_reaction(event: MessageEvent):
-    if 'Xd' in event.text:
-        await event.react('😠')  # angry reaction
+    if 'Xd' in event.getText():
+        await event.pyReact('😠')  # angry reaction
 
 
 async def spierwyp(event: MessageEvent, word: str):
-    text = event.text.lower()
+    text = event.getText().lower()
     msg = 'sam '
 
     if text.startswith('sam') and text.endswith(word):
@@ -70,8 +71,8 @@ async def spierwyp(event: MessageEvent, word: str):
             msg = 'sam ' * (text.count('sam') + 1)
 
     if word in text:
-        await event.send_response(text=msg + word)
-        await event.react('😠')  # angry reaction
+        await response(event, text=msg + word).pySend()
+        await event.pyReact('😠')  # angry reaction
 
 
 @MessageEventDispatcher.register(special=True)
