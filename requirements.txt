@@ -13,7 +13,6 @@ cffi==1.15.1
 chardet==3.0.4
 charset-normalizer==2.0.12
 dacite==1.6.0
-fbchat-asyncio-kvgx12==0.6.24
 forex-python==1.6
 idna==3.3
 lxml==4.9.1

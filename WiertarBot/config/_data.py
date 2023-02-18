@@ -11,6 +11,7 @@ config = Config(wbglobals.config)
 class WiertarBotConfig:
     email: str
     password: str
+    datr: str
     prefix: str = "!"
     timezone: str = "Europe/Warsaw"
 

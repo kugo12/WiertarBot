@@ -194,8 +194,8 @@ def session_factory(domain: str, user_agent: Optional[str] = None) -> aiohttp.Cl
                                  })
 
 
-def login_cookies(at: datetime.datetime):
-    return {"act": "{}/0".format(_util.datetime_to_millis(at))}
+def login_cookies(datr: str):
+    return {"locale": "en_US", "datr": datr}
 
 
 def client_id_factory() -> str:
@@ -226,7 +226,7 @@ def find_form_request(html: str):
     return url, data
 
 
-async def two_factor_helper(session: aiohttp.ClientSession, r: aiohttp.ClientResponse,
+async def two_factor_helper(datr: str, session: aiohttp.ClientSession, r: aiohttp.ClientResponse,
                             on_2fa_callback: Callable[[], Awaitable[int]]) -> str:
     url, data = find_form_request(await r.text())
 
@@ -236,7 +236,7 @@ async def two_factor_helper(session: aiohttp.ClientSession, r: aiohttp.ClientRes
         data["approvals_code"] = await on_2fa_callback()
         log.info("Submitting 2FA code")
         r = await session.post(url, data=data, allow_redirects=False,
-                               cookies=login_cookies(_util.now()))
+                               cookies=login_cookies(datr))
         log.debug("2FA location: %s", r.headers.get("Location"))
         url, data = find_form_request(await r.text())
 
@@ -245,7 +245,7 @@ async def two_factor_helper(session: aiohttp.ClientSession, r: aiohttp.ClientRes
         data["name_action_selected"] = "save_device"
         log.info("Saving browser")
         r = await session.post(url, data=data, allow_redirects=False,
-                               cookies=login_cookies(_util.now()))
+                               cookies=login_cookies(datr))
         log.debug("2FA location: %s", r.headers.get("Location"))
         url = r.headers.get("Location")
         if url and url.startswith("https://www.messenger.com/login/auth_token/"):
@@ -254,7 +254,7 @@ async def two_factor_helper(session: aiohttp.ClientSession, r: aiohttp.ClientRes
 
     log.info("Starting Facebook checkup flow")
     r = await session.post(url, data=data, allow_redirects=False,
-                           cookies=login_cookies(_util.now()))
+                           cookies=login_cookies(datr))
     log.debug("2FA location: %s", r.headers.get("Location"))
 
     url, data = find_form_request(await r.text())
@@ -269,7 +269,7 @@ async def two_factor_helper(session: aiohttp.ClientSession, r: aiohttp.ClientRes
     log.info("Verifying login attempt")
 
     r = await session.post(url, data=data, allow_redirects=False,
-                           cookies=login_cookies(_util.now()))
+                           cookies=login_cookies(datr))
     log.debug("2FA location: %s", r.headers.get("Location"))
 
     url, data = find_form_request(await r.text())
@@ -279,7 +279,7 @@ async def two_factor_helper(session: aiohttp.ClientSession, r: aiohttp.ClientRes
     log.info("Saving device again")
 
     r = await session.post(url, data=data, allow_redirects=False,
-                           cookies=login_cookies(_util.now()))
+                           cookies=login_cookies(datr))
     log.debug("2FA location: %s", r.headers.get("Location"))
     return r.headers.get("Location")
 
@@ -352,7 +352,7 @@ class Session:
         }
 
     @classmethod
-    async def login(cls, email: str, password: str,
+    async def login(cls, email: str, password: str, datr: str,
                     on_2fa_callback: Callable[[], Awaitable[int]] = None,
                     user_agent: Optional[str] = None) -> 'Session':
         """Login the user, using ``email`` and ``password``.
@@ -389,9 +389,9 @@ class Session:
 
         data = {
             # "jazoest": "2754",
-            # "lsd": "AVqqqRUa",
+            "lsd": "AVos578yVIs",
             "initial_request_id": "x",  # any, just has to be present
-            # "timezone": "-120",
+            "timezone": "-60",
             # "lgndim": "eyJ3IjoxNDQwLCJoIjo5MDAsImF3IjoxNDQwLCJhaCI6ODc3LCJjIjoyNH0=",
             # "lgnrnd": "044039_RGm9",
             "lgnjs": "n",
@@ -409,7 +409,7 @@ class Session:
                 "https://www.messenger.com/login/password/",
                 data=data,
                 allow_redirects=False,
-                cookies=login_cookies(_util.now()),
+                cookies=login_cookies(datr),
             )
         except aiohttp.ClientError as e:
             _exception.handle_requests_error(e)
@@ -434,18 +434,18 @@ class Session:
             if not url.startswith("https://www.facebook.com/checkpoint/start/"):
                 raise _exception.ParseError("Failed 2fa flow (1)", data=url)
 
-            r = await session.get(url, allow_redirects=False, cookies=login_cookies(_util.now()))
+            r = await session.get(url, allow_redirects=False, cookies=login_cookies(datr))
             url = r.headers.get("Location")
             if not url or not url.startswith("https://www.facebook.com/checkpoint/"):
                 raise _exception.ParseError("Failed 2fa flow (2)", data=url)
 
-            r = await session.get(url, allow_redirects=False, cookies=login_cookies(_util.now()))
-            url = await two_factor_helper(session, r, on_2fa_callback)
+            r = await session.get(url, allow_redirects=False, cookies=login_cookies(datr))
+            url = await two_factor_helper(datr, session, r, on_2fa_callback)
 
             if not url.startswith("https://www.messenger.com/login/auth_token/"):
                 raise _exception.ParseError("Failed 2fa flow (3)", data=url)
 
-            r = await session.get(url, allow_redirects=False, cookies=login_cookies(_util.now()))
+            r = await session.get(url, allow_redirects=False, cookies=login_cookies(datr))
             url = r.headers.get("Location")
 
         if url != "https://www.messenger.com/":

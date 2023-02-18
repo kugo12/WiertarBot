@@ -10,7 +10,6 @@ name = "fbchat-asyncio-kvgx12"
 authors = [
     {name = "kvgx12", email = "szczepan7700@gmail.com"}
 ]
-readme = "README.rst"
 license = {file="LICENSE"}
 dynamic = ["description", "version"]
 
@@ -24,28 +23,10 @@ dependencies = [
     "paho-mqtt~=1.5",
 ]
 
-classifiers = [
-    "Development Status :: 3 - Alpha",
-    "License :: OSI Approved :: BSD License",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
-    "Topic :: Communications :: Chat",
-    "Topic :: Internet :: WWW/HTTP",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-]
-
 [project.optional-dependencies]
 proxy = [
     "aiohttp-socks",
     "pysocks"
-]
-doc = [
-    "sphinx"
 ]
 test = [
     "pytest>=4.3,<6.0",
@@ -54,7 +35,3 @@ lint = [
     "black",
     "pyright"
 ]
-
-[project.urls]
-"Homepage" = "https://github.com/kugo12/fbchat-asyncio"
-"Bug Tracker" = "https://github.com/kugo12/fbchat-asyncio/issues"
