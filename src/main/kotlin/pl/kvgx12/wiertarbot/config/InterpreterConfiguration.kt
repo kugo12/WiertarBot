@@ -3,7 +3,6 @@ package pl.kvgx12.wiertarbot.config
 import jep.JepConfig
 import jep.MainInterpreter
 import jep.SharedInterpreter
-import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
@@ -17,17 +16,21 @@ import pl.kvgx12.wiertarbot.repositories.MessageCountMilestoneRepository
 import pl.kvgx12.wiertarbot.repositories.PermissionRepository
 import pl.kvgx12.wiertarbot.services.PermissionService
 import pl.kvgx12.wiertarbot.services.RabbitMQService
+import pl.kvgx12.wiertarbot.utils.getLogger
 import pl.kvgx12.wiertarbot.utils.newSingleThreadDispatcher
-import java.util.concurrent.Executors
 
 
 @Configuration
 class InterpreterConfiguration {
     companion object {
+        private val log = getLogger()
+
         init {
-            MainInterpreter.setJepLibraryPath(
-                "/Users/kvgx12/Desktop/projekty/moje/WiertarBot/.venv/lib/python3.11/site-packages/jep/libjep.jnilib"
-            )
+            System.getenv("JEP_LIB_PATH")
+                ?.let {
+                    log.info("JEP_LIB_PATH=$it")
+                    MainInterpreter.setJepLibraryPath(it)
+                }
         }
     }
 

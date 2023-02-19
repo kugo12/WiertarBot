@@ -21,20 +21,21 @@ COPY ./fbchat-asyncio/pyproject.toml ./fbchat-asyncio/poetry.lock ./fbchat-async
 
 RUN export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")  \
     && poetry install --no-root --no-cache --without local \
-    && poetry install -C fbchat-asyncio --no-root --no-cache
+    && poetry install -C fbchat-asyncio --no-root --no-cache \
+    && JEP_LIB_PATH="$(find / -wholename *site-packages/jep 2>/dev/null)/libjep.so" \
+    && ln -s "$JEP_LIB_PATH" /usr/lib/libjep.so
 
 # actual stuff
 COPY ./docker/init.sh ./
 COPY ./WiertarBot/ ./WiertarBot/
-COPY ./fbchat-asyncio/ ./fbchat-asyncio/
+COPY ./fbchat-asyncio/fbchat/ ./fbchat-asyncio/fbchat/
 COPY ./data ./static-data
 COPY build/libs/*.jar app.jar
 
 RUN poetry install --no-cache --only-root  \
     && poetry install -C fbchat-asyncio --only-root  \
     && chown -R user:user /app \
-    && chmod +x ./init.sh ./app.jar \
-    && rm -rv ./fbchat-asyncio ./WiertarBot poetry.lock pyproject.toml \
+    && chmod +x ./init.sh ./app.jar
 
 USER user
 
