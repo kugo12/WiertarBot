@@ -2,7 +2,8 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN apt -y update &&  \
+# setup - jdk + libraries + python stuff + new user
+RUN apt -y update && \
     apt install -y wget gnupg libxml2-dev libxslt-dev zlib1g-dev libjpeg-dev gcc libfreetype6-dev libpq-dev && \
     wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | apt-key add - && \
     echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list && \
@@ -11,19 +12,30 @@ RUN apt -y update &&  \
     apt clean -y && \
     useradd -U user && \
     pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir requests wheel
+    pip install --no-cache-dir poetry requests wheel && \
+    poetry config virtualenvs.create false
 
-COPY requirements.txt ./
+# dependencies
+COPY poetry.lock pyproject.toml ./
+COPY ./fbchat-asyncio/pyproject.toml ./fbchat-asyncio/poetry.lock ./fbchat-asyncio/
 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN export JAVA_HOME=$(readlink -f /usr/bin/java | sed "s:bin/java::")  \
+    && poetry install --no-root --no-cache --without local \
+    && poetry install -C fbchat-asyncio --no-root --no-cache
 
-COPY ./WiertarBot ./WiertarBot
-COPY ./docker/init.sh /usr/local/bin/init.sh
+# actual stuff
+COPY ./docker/init.sh ./
+COPY ./WiertarBot/ ./WiertarBot/
+COPY ./fbchat-asyncio/ ./fbchat-asyncio/
 COPY ./data ./static-data
+COPY build/libs/*.jar app.jar
 
-RUN chown -R user:user /app && \
-    chmod +x /usr/local/bin/init.sh
+RUN poetry install --no-cache --only-root  \
+    && poetry install -C fbchat-asyncio --only-root  \
+    && chown -R user:user /app \
+    && chmod +x ./init.sh ./app.jar \
+    && rm -rv ./fbchat-asyncio ./WiertarBot poetry.lock pyproject.toml \
 
 USER user
 
-CMD [ "init.sh" ]
+CMD [ "/app/init.sh" ]

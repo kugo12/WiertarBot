@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
 	val kotlinVersion = "1.8.0"
@@ -43,6 +44,7 @@ benchmark {
 	}
 }
 
+
 dependencies {
 	implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 	implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -77,4 +79,13 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+// disable generating *-plain.jar
+tasks.jar {
+	enabled = false
+}
+
+tasks.bootJar {
+	launchScript()
 }

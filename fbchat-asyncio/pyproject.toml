@@ -1,37 +1,33 @@
 [build-system]
-requires = ["flit_core >=3.2,<4"]
-build-backend = "flit_core.buildapi"
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
 
-[tool.flit.module]
+[tool.poetry]
 name = "fbchat"
+authors = ["kvgx12"]
+version = "0.0.0"
+description = ""
+license = "BSD-3-Clause"
+packages = [{include="fbchat"}]
 
-[project]
-name = "fbchat-asyncio-kvgx12"
-authors = [
-    {name = "kvgx12", email = "szczepan7700@gmail.com"}
-]
-license = {file="LICENSE"}
-dynamic = ["description", "version"]
 
-requires-python = ">=3.9"
+[tool.poetry.dependencies]
+python = "^3.9"
+attrs = ">=19.1"
+beautifulsoup4 = "^4.0"
+aiohttp = "*"
+yarl = "*"
+paho-mqtt= "^1.5"
 
-dependencies = [
-    "attrs>=19.1",
-    "beautifulsoup4~=4.0",
-    "aiohttp",
-    "yarl",
-    "paho-mqtt~=1.5",
-]
+[tool.poetry.group.test.dependencies]
+pytest = ">=4.3,<6.0"
 
-[project.optional-dependencies]
-proxy = [
-    "aiohttp-socks",
-    "pysocks"
-]
-test = [
-    "pytest>=4.3,<6.0",
-]
-lint = [
-    "black",
-    "pyright"
-]
+[tool.poetry.group.test]
+optional = true
+
+[tool.poetry.group.proxy.dependencies]
+aiohttp-socks = "*"
+pysocks = "*"
+
+[tool.poetry.group.proxy]
+optional = true

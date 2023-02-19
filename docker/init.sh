@@ -3,4 +3,4 @@
 set -eux
 
 cp -r static-data/* data/
-pypy3 -m WiertarBot
+./app.jar
