@@ -28,7 +28,7 @@ commands:
 jobs:
   gradle_build:
     docker:
-      - image: circleci/openjdk:17.0
+      - image: cimg/openjdk:17.0
     steps:
       - checkout
       - gradle/with_cache:
