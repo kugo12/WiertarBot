@@ -3,6 +3,9 @@ wiertarbot:
   password: ""
   datr: ""
 
+  cat-api:
+    key: ""
+
 spring:
   datasource:
     url: jdbc:postgresql://db:5432/postgres

@@ -2,6 +2,7 @@ package pl.kvgx12.wiertarbot.config
 
 import jep.JepConfig
 import jep.MainInterpreter
+import jep.NamingConventionClassEnquirer
 import jep.SharedInterpreter
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
@@ -40,6 +41,9 @@ class InterpreterConfiguration {
         redirectStdErr(System.err)
         redirectStdout(System.out)
         setClassLoader(Runner::class.java.classLoader)
+        setClassEnquirer(NamingConventionClassEnquirer(true).apply {
+            addTopLevelPackageName("pl")
+        })
 
         SharedInterpreter.setConfig(this)
     }
