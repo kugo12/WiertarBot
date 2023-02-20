@@ -9,7 +9,7 @@ from typing_extensions import ParamSpec, Concatenate
 from inspect import isawaitable, getfullargspec
 
 from dacite.core import from_dict
-import yaml
+import json
 import re
 
 from WiertarBot.config._utils import traverse_dict
@@ -91,15 +91,10 @@ class Config:
     _mapping: dict[type, Any]
     _init: list[InitType]
 
-    def __init__(self, path: Union[str, PathLike]) -> None:
+    def __init__(self, raw: str) -> None:
         self._mapping = {}
         self._init = []
-
-        with open(path, "r") as f:
-            config_str = f.read()
-
-        config_str = expand_env(config_str)
-        self._raw = yaml.safe_load(config_str)
+        self._raw = json.loads(raw)
 
     def properties(self, prefix: str, *, optional: bool = False):
         keys = prefix.split(".")

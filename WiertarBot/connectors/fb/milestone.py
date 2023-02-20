@@ -6,8 +6,7 @@ from collections import defaultdict
 
 from .dispatch import FBEventDispatcher
 from .FBContext import FBContext
-from ...database import MilestoneMessageCountRepository, MessageCountMilestone, Session
-from ...abc import Context
+from ...database import MessageCountMilestoneRepository, MessageCountMilestone
 
 _counts: dict[str, MessageCountMilestone] = {}
 _locks: defaultdict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
@@ -29,21 +28,21 @@ async def _update(thread: fbchat.ThreadABC, context: FBContext) -> Optional[int]
         milestone = _counts.get(thread.id)
 
         if milestone:
-            reached = _check_threshold(milestone.count, milestone.count+1)
+            reached = _check_threshold(milestone.getCount(), milestone.getCount()+1)
 
-            milestone.count += 1
+            milestone.setCount(milestone.getCount() + 1)
         else:
             count = (await context.fetch_thread(thread.id)).message_count or 1
 
-            milestone = MilestoneMessageCountRepository.find_by_thread_id(thread.id) \
-                        or MessageCountMilestone(thread_id=thread.id, count=count)
+            milestone = MessageCountMilestoneRepository.findFirstByThreadId(thread.id) \
+                        or MessageCountMilestone.new(thread_id=thread.id, count=count)
 
-            reached = _check_threshold(milestone.count, count)
+            reached = _check_threshold(milestone.getCount(), count)
 
-            with Session.begin() as session:
-                session.add(milestone)
-                milestone.count = count
+            milestone.setCount(count)
             _counts[thread.id] = milestone
+
+        MessageCountMilestoneRepository.saveAndFlush(milestone)
     return reached
 
 

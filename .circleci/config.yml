@@ -15,8 +15,30 @@ executors:
     docker:
       - image: cimg/base:current
 
+orbs:
+  gradle: circleci/gradle@3.0.0
+
+commands:
+  docker_login:
+    steps:
+      - run:
+          name: Docker login
+          command: docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_TOKEN
 
 jobs:
+  gradle_build:
+    docker:
+      - image: circleci/openjdk:17.0
+    steps:
+      - checkout
+      - gradle/with_cache:
+          deps_checksum_file: build.gradle.kts
+          steps:
+            - run: ./gradlew bootJar
+      - persist_to_workspace:
+          root: .
+          paths: [build/libs]
+
   build_and_push:
     parameters:
       executor:
@@ -25,9 +47,9 @@ jobs:
 
     steps:
       - checkout
-      - run:
-          name: Docker login
-          command: docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_TOKEN
+      - attach_workspace:
+          at: .
+      - docker_login
       - run:
           name: Build and push
           command: docker buildx build --progress=plain --push -f ./docker/Dockerfile -t $DOCKERHUB_USER/wiertarbot:$(uname -m)-${CIRCLE_SHA1} .
@@ -37,9 +59,7 @@ jobs:
     steps:
       - setup_remote_docker:
           version: 20.10.14
-      - run:
-          name: Docker login
-          command: docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_TOKEN
+      - docker_login
       - run:
           name: Create and push manifest
           command: |
@@ -74,8 +94,10 @@ workflows:
       equal: [ main, << pipeline.git.branch >> ]
 
     jobs:
+      - gradle_build
       - build_and_push:
           context: [dockerhub]
+          requires: [gradle_build]
           matrix:
             parameters:
               executor: [x86, arm]

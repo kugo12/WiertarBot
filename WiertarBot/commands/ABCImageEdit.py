@@ -5,7 +5,21 @@ from io import BytesIO
 from typing import BinaryIO, Optional, final
 
 from ..events import MessageEvent, ImageAttachment, Attachment
+from ..response import response
 
+from pl.kvgx12.wiertarbot.events import Attachment as KtAttachment, ImageAttachment as KtImageAttachment
+
+
+def fb_attachment_to_generic(attachment: fbchat.Attachment) -> Attachment:
+    if isinstance(attachment, fbchat.ImageAttachment):
+        return KtImageAttachment(
+            id=attachment.id,
+            width=attachment.width,
+            height=attachment.height,
+            original_extension=attachment.original_extension,
+            is_animated=attachment.is_animated
+        )
+    return KtAttachment(attachment.id)
 
 class ImageEditABC(ABC):
     __slots__ = ['args']
@@ -24,9 +38,9 @@ class ImageEditABC(ABC):
     async def get_image_from_attachments(self, event: MessageEvent, attachments: list[Attachment]) -> Optional[BinaryIO]:
         if attachments and isinstance(attachments[0], ImageAttachment):
             image = attachments[0]
-            if image.id is None:
+            if image.getId() is None:
                 return None
-            url = await event.context.fetch_image_url(image.id)
+            url = await event.getContext().fetch_image_url(image.getId())
 
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as r:
@@ -37,18 +51,18 @@ class ImageEditABC(ABC):
     @final
     async def edit_and_send(self, event: MessageEvent, fp: BinaryIO):
         f = await self.edit(fp)
-        file = await event.context.upload_raw([(self.fn, f, self.mime)])
+        file = await event.getContext().upload_raw([(self.fn, f, self.mime)])
 
-        await event.send_response(files=file)
+        await response(event, files=file).pySend()
 
     @final
     async def check(self, event: MessageEvent) -> bool:
-        replied_to = await event.context.fetch_replied_to(event)  # FIXME
+        replied_to = await event.getContext().fetch_replied_to(event)  # FIXME
         if replied_to:
-            f = await self.get_image_from_attachments(event, [Attachment.from_fb(it) for it in replied_to.attachments])
+            f = await self.get_image_from_attachments(event, [fb_attachment_to_generic(it) for it in replied_to.attachments])
             if f:
                 await self.edit_and_send(event, f)
                 return False
 
-        await event.send_response(text="Wyślij zdjęcie")
+        await response(event, text="Wyślij zdjęcie").pySend()
         return True

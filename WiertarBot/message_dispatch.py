@@ -1,10 +1,7 @@
 import inspect
-from asyncio import get_running_loop
 from typing import Iterable, Optional, TYPE_CHECKING
-from time import time
 
-from . import perm, config
-from .database import PermissionRepository
+from . import config
 from .events import MessageEvent
 from .typing import MessageEventCallable, MessageEventConsumer
 
@@ -61,52 +58,10 @@ class MessageEventDispatcher:
                     for alias in aliases:
                         cls._alias_of[alias] = _name
 
-                # if permission doesn't exist in db, allow all users to use command
-                if not PermissionRepository.find_by_command(_name):
-                    perm.edit(_name, ['*'])
-
             return func
 
         return wrap
 
-    @classmethod
-    async def dispatch(cls, event: MessageEvent, **kwargs) -> None:
-        if not perm.check('banned', event.thread_id, event.author_id):
-            if event.text:
-                if event.text.startswith(config.wiertarbot.prefix):
-                    # first word without prefix
-                    fw = event.text.split(' ', 1)[0][len(config.wiertarbot.prefix):].lower()
-                    command_name = cls._alias_of.get(fw)
-
-                    if command_name and perm.check(command_name, event.thread_id, event.author_id):
-                        command = cls._commands[command_name]
-
-                        if isinstance(command, type):
-                            img_edit = command(event.text)
-                            if await img_edit.check(event):
-                                # add to queue
-                                t_u_id = f'{event.thread_id}_{event.author_id}'
-                                queue = (int(time()), img_edit)
-                                cls._image_edit_queue[t_u_id] = queue
-                        else:
-                            response = await command(event, **kwargs)
-                            if response:
-                                await response.send()
-
-                get_running_loop().create_task(cls._run_special(event, **kwargs))
-
-            else:  # if there is no text in message
-                t_u_id = f'{event.thread_id}_{event.author_id}'
-                if t_u_id in cls._image_edit_queue:
-                    t, img_edit = cls._image_edit_queue[t_u_id]
-
-                    if t + config.image_edit_timeout > time():
-                        img = await img_edit.get_image_from_attachments(event, event.attachments)
-                        if img:  # if found an image
-                            await img_edit.edit_and_send(event, img)
-                            del cls._image_edit_queue[t_u_id]
-                    else:  # if timed out
-                        del cls._image_edit_queue[t_u_id]
 
     @classmethod
     async def _run_special(cls, event: MessageEvent, **kwargs) -> None:

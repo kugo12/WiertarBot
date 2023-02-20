@@ -1,14 +1,11 @@
 from typing import Protocol, Optional, Union, TypeVar, ClassVar, TYPE_CHECKING
 
-import fbchat
-
 if TYPE_CHECKING:
     from ..abc import Context
     from ..events import MessageEvent
-    from ..response import Response
+    from ..response import IResponse
     from ..commands.ABCImageEdit import ImageEditABC
 
-FBMessageEvent = Union[fbchat.MessageEvent, fbchat.MessageReplyEvent]
 
 _T_event = TypeVar("_T_event", contravariant=True)
 
@@ -26,7 +23,7 @@ class EventCallableWithContext(Protocol[_T_event]):
 class MessageEventCallable(Protocol):
     __name__: ClassVar[str]
 
-    async def __call__(self, event: 'MessageEvent') -> Optional['Response']:
+    async def __call__(self, event: 'MessageEvent') -> Optional['IResponse']:
         pass
 
 

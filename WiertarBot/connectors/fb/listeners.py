@@ -1,13 +1,13 @@
+import json
+
 import asyncio
-from asyncio import get_running_loop
 from datetime import datetime
 
 import fbchat
 
 from .FBContext import FBContext
 from .dispatch import FBEventDispatcher
-from ... import perm
-from ...integrations.rabbitmq import publish_message_delete, publish_message_event
+from ...services import PermissionService, RabbitMQService
 from ...utils import serialize_message_event
 from ...database import FBMessage, FBMessageRepository
 from ...log import log
@@ -37,17 +37,27 @@ async def on_person_removed(event: fbchat.PersonRemoved, **_) -> None:
 @FBEventDispatcher.on(fbchat.ReactionEvent)
 async def on_reaction(event: fbchat.ReactionEvent, *, context: FBContext, **_) -> None:
     if event.author.id != context.bot_id \
-            and perm.check('doublereact', event.thread.id, event.author.id):
+            and PermissionService.isAuthorized('doublereact', event.thread.id, event.author.id):
         await event.message.react(event.reaction)
 
 
 @FBEventDispatcher.on(fbchat.UnsendEvent)
 async def on_unsend(event: fbchat.UnsendEvent, **_) -> None:
-    deleted_at = int(datetime.timestamp(event.at))
+    deleted_at = int(event.at.timestamp())
 
-    get_running_loop() \
-        .create_task(publish_message_delete(event))
-    FBMessageRepository.mark_deleted(event.message.id, deleted_at)
+    serialized_event = json.dumps({
+        "message_id": event.message.id,
+        "thread_id": event.thread.id,
+        "author_id": event.author.id,
+        "at": event.at.timestamp()
+    })
+
+    try:
+        RabbitMQService.publishMessageDelete(serialized_event)
+    except Exception as e:
+        pass
+
+    FBMessageRepository.markDeleted(event.message.id, deleted_at)
 
 
 @FBEventDispatcher.on(fbchat.MessageEvent)
@@ -56,11 +66,13 @@ async def save_message(event: fbchat.MessageEvent, *, context: FBContext, **_) -
 
     serialized_message = serialize_message_event(event)
 
-    get_running_loop() \
-        .create_task(publish_message_event(serialized_message))
+    try:
+        RabbitMQService.publishMessageEvent(serialized_message)
+    except Exception as e:
+        pass
 
-    FBMessageRepository.save(
-        FBMessage(
+    FBMessageRepository.saveAndFlush(
+        FBMessage.new(
             message_id=event.message.id,
             thread_id=event.thread.id,
             author_id=event.author.id,

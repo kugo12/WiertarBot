@@ -1,34 +1,28 @@
 from typing import Optional, Union, TYPE_CHECKING
-
-import fbchat
+from pl.kvgx12.wiertarbot.events import Response as KtResponse
 
 if TYPE_CHECKING:
     from .events import MessageEvent, Mention
 
 
-class Response:
-    __slots__ = ["event", "text", "files", "voice_clip", "mentions", "reply_to_id"]
+class IResponse:
 
-    def __init__(
-            self,
-            event: 'MessageEvent',
-            *,
-            text: Optional[str] = None,
-            files: Optional[Union[list[str], list[tuple[str, str]]]] = None,
-            voice_clip: bool = False,
-            mentions: Optional[list['Mention']] = None,
-            reply_to_id: Optional[str] = None
-            ) -> None:
-        self.event = event
-        self.text = text
-        self.files = files
-        self.voice_clip = voice_clip
-        self.mentions = mentions
-        self.reply_to_id = reply_to_id
+    def getEvent(self) -> 'MessageEvent': ...
+    def getText(self) -> Optional[str]: ...
+    def getFiles(self) -> list[str]: ...
+    def getVoiceClip(self) -> bool: ...
+    def getMentions(self) -> list['Mention']: ...
+    def getReplyToId(self) -> Optional[str]: ...
 
-    async def send(self) -> None:
-        await self.event.context.send_response(self)
+    async def pySend(self) -> None: ...
 
-    @property
-    def fb_mentions(self) -> list[fbchat.Mention]:
-        return [it.fb for it in self.mentions] if self.mentions else []
+
+def response(
+        event: 'MessageEvent',
+        text: str | None = None,
+        files: list[str] | None = None,
+        voice_clip: bool = False,
+        mentions: list['Mention'] | None = None,
+        reply_to_id: str | None = None
+) -> 'IResponse':
+    return KtResponse(event, text, files, voice_clip, mentions, reply_to_id)

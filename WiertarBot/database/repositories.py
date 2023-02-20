@@ -1,69 +1,30 @@
-from typing import Optional, Iterable, TYPE_CHECKING, Generic, TypeVar, final
+from typing import Protocol, Any, Optional
 
-from .models import Session, Permission, FBMessage, MessageCountMilestone
-from sqlalchemy.sql import update, select, delete
-from abc import ABCMeta
-from functools import cache
-
-_T = TypeVar("_T")
+from WiertarBot.database import FBMessage, MessageCountMilestone, Permission
+import wbglobals
 
 
-class BaseRepository(Generic[_T], metaclass=ABCMeta):
-    @classmethod
-    @final
-    def save(cls, obj: _T) -> None:
-        with Session.begin() as session:
-            session.add(obj)
+class IFBMessageRepository(Protocol):
+    def saveAndFlush(self, message: FBMessage) -> FBMessage: ...
+    def findAllByDeletedAtNullAndTimeBefore(self, time: int) -> list[FBMessage]: ...
+
+    def findAllByThreadIdAndDeletedAtNotNull(self, threadId: str, pageable: Any): list[FBMessage]: ...
+
+    def markDeleted(self, messageId: str, timestamp: int) -> None: ...
+
+    def deleteByDeletedAtNullAndTimeBefore(self, time: int) -> None: ...
 
 
-# noinspection PyComparisonWithNone
-class FBMessageRepository(BaseRepository[FBMessage]):
-    @classmethod
-    def mark_deleted(cls, mid: str, timestamp: int) -> None:
-        with Session.begin() as session:
-            session.execute(update(FBMessage)
-                            .where(FBMessage.message_id == mid)
-                            .values(deleted_at=timestamp))
-
-    @classmethod
-    def find_not_deleted_and_time_before(cls, time: int) -> Iterable[FBMessage]:
-        with Session() as session:
-            return session.scalars(select(FBMessage).where(
-                FBMessage.time < time,
-                FBMessage.deleted_at == None
-            ))
-
-    @classmethod
-    def remove_not_deleted_and_time_before(cls, time: int) -> None:
-        with Session.begin() as session:
-            session.execute(delete(FBMessage).where(
-                FBMessage.time < time,
-                FBMessage.deleted_at == None
-            ))
-
-    @classmethod
-    def find_deleted_by_thread_id(cls, thread_id: str, limit: int) -> Iterable[FBMessage]:
-        with Session() as session:
-            return session.scalars(select(FBMessage).where(
-                FBMessage.deleted_at != None,
-                FBMessage.thread_id == thread_id,
-            ).order_by(FBMessage.time.desc()))
+class IMessageCountMilestoneRepository(Protocol):
+    def saveAndFlush(self, milestone: MessageCountMilestone) -> MessageCountMilestone: ...
+    def findFirstByThreadId(self, threadId: str) -> Optional[MessageCountMilestone]: ...
 
 
-class PermissionRepository(BaseRepository[Permission]):
-    @classmethod
-    @cache
-    def find_by_command(cls, command: str) -> Optional[Permission]:
-        with Session() as session:
-            return session.scalar(select(Permission).where(
-                Permission.command == command
-            ))
+class IPermissionRepository(Protocol):
+    def saveAndFlush(self, permission: Permission) -> Permission: ...
+    def findFirstByCommand(self, command: str) -> Optional[Permission]: ...
 
 
-class MilestoneMessageCountRepository(BaseRepository[MessageCountMilestone]):
-    @classmethod
-    def find_by_thread_id(cls, thread_id: str) -> Optional[MessageCountMilestone]:
-        with Session() as session:
-            return session.scalar(select(MessageCountMilestone).where(
-                MessageCountMilestone.thread_id == thread_id
-            ))
+FBMessageRepository: IFBMessageRepository = wbglobals.fb_message_repository
+MessageCountMilestoneRepository: IMessageCountMilestoneRepository = wbglobals.milestone_repository
+PermissionRepository: IPermissionRepository = wbglobals.permission_repository

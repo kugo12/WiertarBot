@@ -11,8 +11,16 @@ from ... import config
 from ...abc.context import Context, ThreadData
 
 if TYPE_CHECKING:
-    from ...response import Response
-    from ...events import MessageEvent
+    from ...response import IResponse
+    from ...events import MessageEvent, Mention
+
+
+def fb_mentions(mentions: Iterable['Mention']) -> list[fbchat.Mention]:
+    return [
+        fbchat.Mention(thread_id=it.thread_id, offset=it.offset, length=it.length)
+        for it in mentions
+    ] if mentions else []
+
 
 
 class FBContext(Context):
@@ -25,28 +33,30 @@ class FBContext(Context):
         return self.__client.session.user.id
 
     def _get_event_thread(self, event: 'MessageEvent') -> fbchat.ThreadABC:
-        t: type[Union[fbchat.Group, fbchat.User]] = fbchat.Group if event.is_group else fbchat.User
+        t: type[Union[fbchat.Group, fbchat.User]] = fbchat.Group if event.isGroup() else fbchat.User
 
         return t(session=self.__session, id=event.thread_id)
 
-    async def _resolve_response_files(self, response: 'Response') -> Optional[Sequence[tuple[str, str]]]:
-        if response.files:
-            if isinstance(response.files[0], str):
-                return await self.upload(cast(list[str], response.files), response.voice_clip)
-            return cast(list[tuple[str, str]], response.files)
+    async def _resolve_response_files(self, response: 'IResponse') -> Optional[Sequence[tuple[str, str]]]:
+        files = response.getFiles()
+        if files:
+            if isinstance(files[0], str):
+                return await self.upload(cast(list[str], files), response.getVoiceClip())
+            return cast(list[tuple[str, str]], files)
         return None
 
-    async def send_response(self, response: 'Response') -> None:
+    async def send_response(self, response: 'IResponse') -> None:
         files: Final = await self._resolve_response_files(response)
 
-        thread = self._get_event_thread(response.event)
+        thread = self._get_event_thread(response.getEvent())
+        text = response.getText()
 
-        if response.text:
+        if text:
             await thread.send_text(
-                text=response.text,
-                mentions=response.fb_mentions,
+                text=text,
+                mentions=fb_mentions(response.getMentions()),
                 files=cast(list[tuple[str, str]], files),
-                reply_to_id=cast(str, response.reply_to_id)
+                reply_to_id=cast(str, response.getReplyToId())
             )
         elif files:
             await thread.send_files(files)
@@ -70,7 +80,7 @@ class FBContext(Context):
 
     async def react_to_message(self, event: 'MessageEvent', reaction: Optional[str]) -> None:
         thread = self._get_event_thread(event)
-        await fbchat.Message(thread=thread, id=event.external_id).react(reaction)
+        await fbchat.Message(thread=thread, id=event.getExternalId()).react(reaction)
 
     async def fetch_replied_to(self, event: 'MessageEvent') -> Optional[fbchat.MessageData]:
         if event.reply_to_id is None:
@@ -78,7 +88,7 @@ class FBContext(Context):
 
         thread = self._get_event_thread(event)
 
-        return await fbchat.Message(thread=thread, id=event.reply_to_id).fetch()
+        return await fbchat.Message(thread=thread, id=event.getReplyToId()).fetch()
 
     async def save_attachment(self, attachment) -> None:
         name = type(attachment).__name__

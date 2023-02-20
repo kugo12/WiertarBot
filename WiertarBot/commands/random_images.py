@@ -7,12 +7,12 @@ from io import BytesIO
 
 from ..message_dispatch import MessageEventDispatcher
 from ..events import MessageEvent
-from ..response import Response
+from ..response import IResponse, response
 from .. import config
 
 
 @MessageEventDispatcher.register()
-async def suchar(event: MessageEvent) -> Response:
+async def suchar(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -20,15 +20,15 @@ async def suchar(event: MessageEvent) -> Response:
         zdjęcie z sucharem
     """
 
-    response = requests.get('http://www.suchary.com/random.html')
-    parsed = BeautifulSoup(response.text, 'html.parser')
+    r = requests.get('http://www.suchary.com/random.html')
+    parsed = BeautifulSoup(r.text, 'html.parser')
     image_url: str = parsed.find('div', 'file-container').a.img['src']  # type: ignore
 
-    return event.response(files=[image_url])
+    return response(event, files=[image_url])
 
 
 @MessageEventDispatcher.register(aliases=['jeż'])
-async def jez(event: MessageEvent) -> Response:
+async def jez(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -37,12 +37,12 @@ async def jez(event: MessageEvent) -> Response:
     """
 
     url = f'http://www.cutestpaw.com/tag/hedgehogs/page/{random.randint(1, 10)}/'
-    response = requests.get(url)
-    bs = BeautifulSoup(response.text, 'html.parser')
+    r = requests.get(url)
+    bs = BeautifulSoup(r.text, 'html.parser')
     h = bs.find_all('a', {'title': True})
     image_url = random.choice(h).img['src']  # type: ignore
 
-    return event.response(files=[image_url])
+    return response(event, files=[image_url])
 
 
 __zolw_pages = 1000
@@ -66,10 +66,10 @@ async def zolw(event: MessageEvent):
         "page": str(random_page)
     }
 
-    response = requests.get("https://unsplash.com/napi/search/photos", params=data).json()
-    __zolw_pages = int(response["total_pages"])
+    r = requests.get("https://unsplash.com/napi/search/photos", params=data).json()
+    __zolw_pages = int(r["total_pages"])
 
-    image_url = response["results"][0]["urls"]["regular"]
+    image_url = r["results"][0]["urls"]["regular"]
 
     image = BytesIO(
         requests.get(image_url).content
@@ -79,12 +79,12 @@ async def zolw(event: MessageEvent):
         (f"turtle{random_page}.jpg", image, "image/jpeg")
     ]
 
-    uploaded_files = await event.context.upload_raw(files_to_upload, False)
-    await event.send_response(files=uploaded_files)
+    uploaded_files = await event.getContext().upload_raw(files_to_upload, False)
+    await response(event, files=uploaded_files).pySend()
 
 
 @MessageEventDispatcher.register(aliases=['dog', 'pies'])
-async def doggo(event: MessageEvent) -> Response:
+async def doggo(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -92,15 +92,15 @@ async def doggo(event: MessageEvent) -> Response:
         zdjęcie z pieskiem
     """
 
-    response = requests.get('https://dog.ceo/api/breeds/image/random')
-    data = json.loads(response.text)
+    r = requests.get('https://dog.ceo/api/breeds/image/random')
+    data = json.loads(r.text)
     image_url = data['message']
 
-    return event.response(files=[image_url])
+    return response(event, files=[image_url])
 
 
 @MessageEventDispatcher.register()
-async def beagle(event: MessageEvent) -> Response:
+async def beagle(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -108,15 +108,15 @@ async def beagle(event: MessageEvent) -> Response:
         zdjęcie z pieskiem rasy beagle
     """
 
-    response = requests.get('https://dog.ceo/api/breed/beagle/images/random')
-    data = json.loads(response.text)
+    r = requests.get('https://dog.ceo/api/breed/beagle/images/random')
+    data = json.loads(r.text)
     image_url = data['message']
 
-    return event.response(files=[image_url])
+    return response(event, files=[image_url])
 
 
 @MessageEventDispatcher.register()
-async def birb(event: MessageEvent) -> Response:
+async def birb(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -124,15 +124,15 @@ async def birb(event: MessageEvent) -> Response:
         zdjęcie z ptaszkiem
     """
 
-    response = requests.get('https://some-random-api.ml/img/birb')
-    data = json.loads(response.text)
+    r = requests.get('https://some-random-api.ml/img/birb')
+    data = json.loads(r.text)
     image_url = data['link']
 
-    return event.response(files=[image_url])
+    return response(event, files=[image_url])
 
 
 @MessageEventDispatcher.register()
-async def wink(event: MessageEvent) -> Response:
+async def wink(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -140,18 +140,18 @@ async def wink(event: MessageEvent) -> Response:
         gif z mrugnięciem
     """
 
-    response = requests.get('https://some-random-api.ml/animu/wink')
-    data = json.loads(response.text)
+    r = requests.get('https://some-random-api.ml/animu/wink')
+    data = json.loads(r.text)
     image_url = data['link']
 
-    return event.response(files=[image_url])
+    return response(event, files=[image_url])
 
 
 if config.cat_api:
     __cat_api_key = config.cat_api.key
 
     @MessageEventDispatcher.register(aliases=['cat', 'kot'])
-    async def catto(event: MessageEvent) -> Response:
+    async def catto(event: MessageEvent) -> IResponse:
         """
         Użycie:
             {command}
@@ -163,15 +163,15 @@ if config.cat_api:
             "x-api-key": __cat_api_key
         }
 
-        response = requests.get('https://api.thecatapi.com/v1/images/search', headers=headers)
-        data = json.loads(response.text)
+        r = requests.get('https://api.thecatapi.com/v1/images/search', headers=headers)
+        data = json.loads(r.text)
         image_url = data[0]['url']
 
-        return event.response(files=[image_url])
+        return response(event, files=[image_url])
 
 
 @MessageEventDispatcher.register(aliases=['panda'])
-async def pandka(event: MessageEvent) -> Response:
+async def pandka(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -179,15 +179,15 @@ async def pandka(event: MessageEvent) -> Response:
         zdjęcie z pandką
     """
 
-    response = requests.get('https://some-random-api.ml/img/red_panda')
-    data = json.loads(response.text)
+    r = requests.get('https://some-random-api.ml/img/red_panda')
+    data = json.loads(r.text)
     image_url = data['link']
 
-    return event.response(files=[image_url])
+    return response(event, files=[image_url])
 
 
 @MessageEventDispatcher.register()
-async def shiba(event: MessageEvent) -> Response:
+async def shiba(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command} (ilosc<=10)
@@ -196,7 +196,7 @@ async def shiba(event: MessageEvent) -> Response:
     """
 
     try:
-        count = int(event.text.split(' ', 1)[1])
+        count = int(event.getText().split(' ', 1)[1])
         if count > 10:
             count = 10
         elif count < 1:
@@ -205,10 +205,9 @@ async def shiba(event: MessageEvent) -> Response:
         count = 1
 
     url = f'https://shibe.online/api/shibes?count={count}&urls=true&httpsUrls=true'
-    response = requests.get(url)
-    image_urls = json.loads(response.text)
+    image_urls = requests.get(url).json()
 
-    return event.response(files=image_urls)
+    return response(event, files=image_urls)
 
 
 def random_from_media_dir(directory: str) -> str:
@@ -218,7 +217,7 @@ def random_from_media_dir(directory: str) -> str:
 
 
 @MessageEventDispatcher.register()
-async def konon(event: MessageEvent) -> Response:
+async def konon(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -228,11 +227,11 @@ async def konon(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/konon')
 
-    return event.response(files=[image_path])
+    return response(event, files=[image_path])
 
 
 @MessageEventDispatcher.register()
-async def papaj(event: MessageEvent) -> Response:
+async def papaj(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -242,11 +241,11 @@ async def papaj(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/papaj')
 
-    return event.response(files=[image_path])
+    return response(event, files=[image_path])
 
 
 @MessageEventDispatcher.register()
-async def bmw(event: MessageEvent) -> Response:
+async def bmw(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -256,11 +255,11 @@ async def bmw(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/bmw')
 
-    return event.response(files=[image_path])
+    return response(event, files=[image_path])
 
 
 @MessageEventDispatcher.register()
-async def audi(event: MessageEvent) -> Response:
+async def audi(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -270,11 +269,11 @@ async def audi(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/audi')
 
-    return event.response(files=[image_path])
+    return response(event, files=[image_path])
 
 
 @MessageEventDispatcher.register()
-async def mikser(event: MessageEvent) -> Response:
+async def mikser(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -284,11 +283,11 @@ async def mikser(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/mikser')
 
-    return event.response(files=[image_path])
+    return response(event, files=[image_path])
 
 
 @MessageEventDispatcher.register(aliases=['meme'])
-async def mem(event: MessageEvent) -> Response:
+async def mem(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -299,17 +298,16 @@ async def mem(event: MessageEvent) -> Response:
     """
 
     # https://github.com/R3l3ntl3ss/Meme_Api
-    r = requests.get('https://meme-api.herokuapp.com/gimme').text
-    data = json.loads(r)
+    data = requests.get('https://meme-api.herokuapp.com/gimme').json()
 
     msg = data['title']
     files = [data['url']]
 
-    return event.response(text=msg, files=files)
+    return response(event, text=msg, files=files)
 
 
 @MessageEventDispatcher.register()
-async def hug(event: MessageEvent) -> Response:
+async def hug(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -317,13 +315,13 @@ async def hug(event: MessageEvent) -> Response:
         losowy obrazek z tuleniem
     """
 
-    response = requests.get("https://some-random-api.ml/animu/hug").json()
+    data = requests.get("https://some-random-api.ml/animu/hug").json()
 
-    return event.response(files=[response["link"]])
+    return response(event, files=[data["link"]])
 
 
 @MessageEventDispatcher.register()
-async def jabol(event: MessageEvent) -> Response:
+async def jabol(event: MessageEvent) -> IResponse:
     """
     Użycie:
         {command}
@@ -333,4 +331,4 @@ async def jabol(event: MessageEvent) -> Response:
 
     image_path = random_from_media_dir('random/jabol')
 
-    return event.response(files=[image_path])
+    return response(event, files=[image_path])

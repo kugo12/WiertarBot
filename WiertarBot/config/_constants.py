@@ -3,8 +3,6 @@ from os import getcwd
 
 root_dir = Path(getcwd())
 
-config_path = root_dir / "application.yml"
-
 _runtime_data = root_dir / "data"
 upload_save_path = _runtime_data / "upload"
 attachment_save_path = _runtime_data / "saved"
