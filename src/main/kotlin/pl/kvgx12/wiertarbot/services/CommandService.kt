@@ -72,7 +72,7 @@ class CommandService(
     fun getCommands() = commands as Map<String, CommandHandler>
 
     suspend fun dispatch(event: MessageEvent) {
-        if (permissionService.isAuthorized("banned", event.threadId, event.authorId))
+        if (event.authorId == event.context.getBotId() || permissionService.isAuthorized("banned", event.threadId, event.authorId))
             return
 
         if (event.text.isNotEmpty()) {

@@ -10,6 +10,7 @@ import pl.kvgx12.wiertarbot.python.PyFuture
 abstract class ConnectorContext(
     val interpreter: Interpreter
 ) {
+    abstract suspend fun getBotId(): String
     abstract suspend fun sendResponse(response: Response)
     abstract suspend fun uploadRaw(files: Iterable<PyObject>, voiceClip: Boolean = false)
     abstract suspend fun fetchThread(threadId: String): PyObject
