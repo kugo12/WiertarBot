@@ -10,6 +10,10 @@ class FBConnectorContext(
     interpreter: Interpreter,
     private val pyContext: PyContext,
 ) : ConnectorContext(interpreter) {
+    override suspend fun getBotId() = interpreter {
+        pyContext.get_bot_id()
+    }
+
     override suspend fun sendResponse(response: Response) {
         interpreter {
             pyContext.send_response(response).pyAwait()
@@ -67,5 +71,6 @@ class FBConnectorContext(
         fun fetch_replied_to(event: MessageEvent): PyObject
         fun save_attachment(attachment: PyObject): PyObject
         fun upload(files: Iterable<String>, voiceClip: Boolean): PyObject
+        fun get_bot_id(): String
     }
 }

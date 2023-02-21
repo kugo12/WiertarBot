@@ -31,6 +31,9 @@ class FBContext(PyContext):
     def bot_id(self) -> str:
         return self.__client.session.user.id
 
+    def get_bot_id(self) -> str:
+        return self.bot_id
+
     def _get_event_thread(self, event: 'MessageEvent') -> fbchat.ThreadABC:
         t: type[Union[fbchat.Group, fbchat.User]] = fbchat.Group if event.isGroup() else fbchat.User
 
