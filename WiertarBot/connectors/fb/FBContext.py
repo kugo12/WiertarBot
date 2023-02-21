@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 def fb_mentions(mentions: Iterable['Mention']) -> list[fbchat.Mention]:
     return [
-        fbchat.Mention(thread_id=it.thread_id, offset=it.offset, length=it.length)
+        fbchat.Mention(thread_id=it.getThreadId(), offset=it.getOffset(), length=it.getLength())
         for it in mentions
     ] if mentions else []
 
@@ -35,7 +35,7 @@ class FBContext(Context):
     def _get_event_thread(self, event: 'MessageEvent') -> fbchat.ThreadABC:
         t: type[Union[fbchat.Group, fbchat.User]] = fbchat.Group if event.isGroup() else fbchat.User
 
-        return t(session=self.__session, id=event.thread_id)
+        return t(session=self.__session, id=event.getThreadId())
 
     async def _resolve_response_files(self, response: 'IResponse') -> Optional[Sequence[tuple[str, str]]]:
         files = response.getFiles()
@@ -83,7 +83,7 @@ class FBContext(Context):
         await fbchat.Message(thread=thread, id=event.getExternalId()).react(reaction)
 
     async def fetch_replied_to(self, event: 'MessageEvent') -> Optional[fbchat.MessageData]:
-        if event.reply_to_id is None:
+        if event.getReplyToId() is None:
             return None
 
         thread = self._get_event_thread(event)
