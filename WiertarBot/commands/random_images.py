@@ -79,7 +79,7 @@ async def zolw(event: MessageEvent):
         (f"turtle{random_page}.jpg", image, "image/jpeg")
     ]
 
-    uploaded_files = await event.getContext().upload_raw(files_to_upload, False)
+    uploaded_files = await event.getContext().pyUploadRaw(files_to_upload, False)
     await response(event, files=uploaded_files).pySend()
 
 

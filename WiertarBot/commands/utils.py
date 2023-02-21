@@ -174,7 +174,7 @@ async def ile(event: MessageEvent) -> IResponse:
         ilość napisanych wiadomości od dodania bota
     """
 
-    thread = await event.getContext().fetch_thread(event.getThreadId())
+    thread = await event.getContext().pyFetchThread(event.getThreadId())
 
     msg = f'Odkąd tutaj jestem napisano tu { thread.message_count } wiadomości.'
 

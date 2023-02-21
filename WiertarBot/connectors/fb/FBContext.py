@@ -8,7 +8,7 @@ import aiohttp
 import fbchat
 
 from ... import config
-from ...abc.context import Context, ThreadData
+from ...abc.context import PyContext, ThreadData
 
 if TYPE_CHECKING:
     from ...response import IResponse
@@ -22,8 +22,7 @@ def fb_mentions(mentions: Iterable['Mention']) -> list[fbchat.Mention]:
     ] if mentions else []
 
 
-
-class FBContext(Context):
+class FBContext(PyContext):
     def __init__(self, client: fbchat.Client) -> None:
         self.__client = client
         self.__session = client.session

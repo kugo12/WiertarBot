@@ -13,7 +13,7 @@ async def everyone(event: MessageEvent):
     if '@everyone' in event.getText() \
             and PermissionService.isAuthorized('everyone', event.getThreadId(), event.getAuthorId()) \
             and event.isGroup():
-        group = cast(fbchat.GroupData, await event.getContext().fetch_thread(event.getThreadId()))
+        group = cast(fbchat.GroupData, await event.getContext().pyFetchThread(event.getThreadId()))
         mentions = [
             Mention(thread_id=participant.id, offset=0, length=9)
             for participant in group.participants
