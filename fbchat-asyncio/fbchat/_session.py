@@ -190,7 +190,7 @@ def session_factory(domain: str, user_agent: Optional[str] = None) -> aiohttp.Cl
     return aiohttp.ClientSession(connector=connector,
                                  headers={
                                      "Referer": f"https://www.{domain}/",
-                                     "User-Agent": user_agent or f"fbchat-asyncio/{__version__}",
+                                     "User-Agent": "curl",
                                  })
 
 
@@ -352,7 +352,7 @@ class Session:
         }
 
     @classmethod
-    async def login(cls, email: str, password: str, datr: str,
+    async def login(cls, email: str, password: str,
                     on_2fa_callback: Callable[[], Awaitable[int]] = None,
                     user_agent: Optional[str] = None) -> 'Session':
         """Login the user, using ``email`` and ``password``.
@@ -387,19 +387,23 @@ class Session:
         """
         session = session_factory(domain="messenger.com", user_agent=user_agent)
 
-        data = {
-            # "jazoest": "2754",
-            "lsd": "AVos578yVIs",
-            "initial_request_id": "x",  # any, just has to be present
+        try:
+            r = await session.get("https://www.messenger.com/login.php")
+            text = await r.text()
+            soup = bs4.BeautifulSoup(text, "html.parser")
+            form_data = {input.get("name"): input.get("value") for input in soup.select("form input")}
+            datr = re.search(r'"_js_datr"[^"]+"([^"]+)', text).group(1)
+        except aiohttp.ClientError as e:
+            _exception.handle_requests_error(e)
+            raise e
+
+        data = form_data | {
             "timezone": "-60",
-            # "lgndim": "eyJ3IjoxNDQwLCJoIjo5MDAsImF3IjoxNDQwLCJhaCI6ODc3LCJjIjoyNH0=",
-            # "lgnrnd": "044039_RGm9",
-            "lgnjs": "n",
             "email": email,
             "pass": password,
             "login": "1",
             "persistent": "1",  # Changes the cookie type to have a long "expires"
-            "default_persistent": "0",
+            "default_persistent": None,
         }
 
         try:
