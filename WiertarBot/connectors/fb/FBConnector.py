@@ -79,9 +79,8 @@ class FBConnector:
                 log.warn('Error at loading session from cookies')
 
         return await fbchat.Session.login(
-            config.wiertarbot.email, config.wiertarbot.password, config.wiertarbot.datr,
+            config.wiertarbot.email, config.wiertarbot.password,
             on_2fa_callback=self._2fa_callback,
-            user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
         )
 
     async def _listen(self, callback) -> None:
