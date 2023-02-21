@@ -195,7 +195,7 @@ def session_factory(domain: str, user_agent: Optional[str] = None) -> aiohttp.Cl
 
 
 def login_cookies(datr: str):
-    return {"locale": "en_US", "datr": datr}
+    return {"locale": "pl_PL", "datr": datr}
 
 
 def client_id_factory() -> str:
@@ -410,6 +410,9 @@ class Session:
                 data=data,
                 allow_redirects=False,
                 cookies=login_cookies(datr),
+                headers={
+                    "sec-fetch-site": "same-origin",
+                },
             )
         except aiohttp.ClientError as e:
             _exception.handle_requests_error(e)
