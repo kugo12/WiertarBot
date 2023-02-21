@@ -2,9 +2,7 @@ import json
 import asyncio
 from typing import List, Awaitable, Optional
 
-from ..config import config
-# fixme
-# from .. import perm, config
+from .. import config
 from ..message_dispatch import MessageEventDispatcher
 from ..events import MessageEvent, Mention
 from ..response import IResponse, response
