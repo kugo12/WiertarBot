@@ -220,7 +220,7 @@ async def see(event: MessageEvent) -> Optional[IResponse]:
     except (IndexError, ValueError):
         n = 1
 
-    messages = FBMessageRepository.find_deleted_by_thread_id(event.thread_id, n)
+    messages = FBMessageRepository.find_deleted_by_thread_id(event.getThreadId(), n)
 
     send_responses: List[Awaitable] = []
     for it in messages:
