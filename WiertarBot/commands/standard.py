@@ -86,14 +86,14 @@ async def szkaluj(event: MessageEvent) -> IResponse:
             and text.endswith(' random')
     )
     if is_group_and_random:
-        thread = cast(fbchat.GroupData, await event.getContext().fetch_thread(event.getThreadId()))
+        thread = cast(fbchat.GroupData, await event.getContext().pyFetchThread(event.getThreadId()))
         uid = random.choice(list(thread.participants)).id
     elif event.getMentions():
         uid = event.getMentions()[0].getThreadId()
     else:
         uid = event.getAuthorId()
 
-    user = await event.getContext().fetch_thread(uid)
+    user = await event.getContext().pyFetchThread(uid)
     name = str(user.name)
 
     path = cmd_media_path / 'random/szkaluj.txt'
@@ -361,7 +361,7 @@ async def tts(event: MessageEvent) -> IResponse:
 
         fn = 'tts.mp3'
         mime = 'audio/mp3'
-        files = await event.getContext().upload_raw([(fn, f, mime)], voice_clip=False)
+        files = await event.getContext().pyUploadRaw([(fn, f, mime)], voice_clip=False)
         msg = None
 
     return response(event, text=msg, files=files)

@@ -40,7 +40,7 @@ class ImageEditABC(ABC):
             image = attachments[0]
             if image.getId() is None:
                 return None
-            url = await event.getContext().fetch_image_url(image.getId())
+            url = await event.getContext().pyFetchImageUrl(image.getId())
 
             async with aiohttp.ClientSession() as session:
                 async with session.get(url) as r:
@@ -51,13 +51,13 @@ class ImageEditABC(ABC):
     @final
     async def edit_and_send(self, event: MessageEvent, fp: BinaryIO):
         f = await self.edit(fp)
-        file = await event.getContext().upload_raw([(self.fn, f, self.mime)])
+        file = await event.getContext().pyUploadRaw([(self.fn, f, self.mime)])
 
         await response(event, files=file).pySend()
 
     @final
     async def check(self, event: MessageEvent) -> bool:
-        replied_to = await event.getContext().fetch_replied_to(event)  # FIXME
+        replied_to = await event.getContext().pyFetchRepliedTo(event)  # FIXME
         if replied_to:
             f = await self.get_image_from_attachments(event, [fb_attachment_to_generic(it) for it in replied_to.attachments])
             if f:

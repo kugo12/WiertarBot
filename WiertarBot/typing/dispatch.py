@@ -1,7 +1,7 @@
 from typing import Protocol, Optional, Union, TypeVar, ClassVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..abc import Context
+    from ..abc import PyContext
     from ..events import MessageEvent
     from ..response import IResponse
     from ..commands.ABCImageEdit import ImageEditABC
@@ -16,7 +16,7 @@ class EventCallable(Protocol[_T_event]):
 
 
 class EventCallableWithContext(Protocol[_T_event]):
-    async def __call__(self, event: _T_event, *, context: 'Context', **kwargs) -> None:
+    async def __call__(self, event: _T_event, *, context: 'PyContext', **kwargs) -> None:
         pass
 
 

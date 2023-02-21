@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 ThreadData = Union[fbchat.UserData, fbchat.GroupData, fbchat.PageData]
 
 
-class Context(ABC):
+class PyContext(ABC):
     @abstractmethod
     async def send_response(self, response: 'IResponse') -> None: ...
 
