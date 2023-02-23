@@ -208,8 +208,8 @@ __czas_localize_datetime = {
     "Sunday": "Niedziela"
 }
 __czas_timers = [
-    ("Początek wakacji (23 czerwca) za: ", datetime(2023, 6, 23, tzinfo=wiertarbot_config.tz)),
-    ("Początek \"wakacji\" dla maturzystów (28 kwietnia) za: ", datetime(2023, 4, 28, tzinfo=wiertarbot_config.tz)),
+    ("Początek wakacji (23 czerwca) za", datetime(2023, 6, 23, tzinfo=wiertarbot_config.tz)),
+    ("Początek \"wakacji\" dla maturzystów (28 kwietnia) za", datetime(2023, 4, 28, tzinfo=wiertarbot_config.tz)),
 ]
 
 
