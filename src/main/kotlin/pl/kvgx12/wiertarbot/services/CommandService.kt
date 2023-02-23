@@ -2,12 +2,11 @@ package pl.kvgx12.wiertarbot.services
 
 import jep.python.PyCallable
 import jep.python.PyObject
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import org.springframework.scheduling.annotation.Async
 import org.springframework.stereotype.Service
 import pl.kvgx12.wiertarbot.Constants
+import pl.kvgx12.wiertarbot.config.SpecialCommandsConfiguration
 import pl.kvgx12.wiertarbot.config.WiertarbotProperties
 import pl.kvgx12.wiertarbot.events.Attachment
 import pl.kvgx12.wiertarbot.events.MessageEvent
@@ -50,15 +49,15 @@ class CommandService(
     private val permissionService: PermissionService,
     private val wiertarbotProperties: WiertarbotProperties,
     private val interpreter: Interpreter,
+    specialCommandsConfiguration: SpecialCommandsConfiguration,
 ) {
     private val commands = mutableMapOf<String, CommandHandler>()
-    private val special = mutableListOf<CommandHandler.Function>()
+    private val special = specialCommandsConfiguration.commands
     private val aliases = mutableMapOf<String, String>()
     private val imageEditQueue = Collections.synchronizedMap(
         mutableMapOf<String, Pair<Long, CommandHandler.ImageEdit>>()
     )
-
-    private lateinit var runSpecial: PyCallable
+    private val specialCommandsContext = Dispatchers.Default + SupervisorJob()
 
     init {
         runBlocking(interpreter.context) {
@@ -71,9 +70,14 @@ class CommandService(
 
     fun getCommands() = commands as Map<String, CommandHandler>
 
-    suspend fun dispatch(event: MessageEvent) {
-        if (event.authorId == event.context.getBotId() || permissionService.isAuthorized("banned", event.threadId, event.authorId))
-            return
+    suspend fun dispatch(event: MessageEvent) = coroutineScope {
+        if (event.authorId == event.context.getBotId() || permissionService.isAuthorized(
+                "banned",
+                event.threadId,
+                event.authorId
+            )
+        )
+            return@coroutineScope
 
         if (event.text.isNotEmpty()) {
             if (event.text.startsWith(wiertarbotProperties.prefix)) {
@@ -104,12 +108,12 @@ class CommandService(
                 }
             }
 
-            interpreter.launch {
-                launchTask.call(runSpecial.call(event))
+            launch(specialCommandsContext) {
+                special.forEach { it(event) }
             }
         } else {
             val queueId = "${event.threadId}_${event.authorId}"
-            val (time, edit) = imageEditQueue[queueId] ?: return
+            val (time, edit) = imageEditQueue[queueId] ?: return@coroutineScope
 
             if (time + Constants.imageEditTimeout > Instant.now().epochSecond) {
                 interpreter.launch {
@@ -132,20 +136,10 @@ class CommandService(
     }
 
     private fun dispatcherHook(dispatcher: PyObject) {
-        runSpecial = dispatcher.get("_run_special")
         aliases.putAll(dispatcher.get("_alias_of"))
-
-        dispatcher.get<List<PyCallable>>("_special")
-            .mapTo(special) {
-                require(interpreter.inspect.iscoroutinefunction(it)) {
-                    "$it is not awaitable"
-                }
-                CommandHandler.Function(it)
-            }
 
         dispatcher.get<Map<String, PyObject>>("_commands")
             .forEach { (name, obj) ->
-
                 val checked = with(interpreter.inspect) {
                     when {
                         iscoroutinefunction(obj) -> CommandHandler.Function(obj as PyCallable)
