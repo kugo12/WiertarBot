@@ -3,9 +3,8 @@ import asyncio
 from returns.curry import partial
 from dataclasses import dataclass
 from os import PathLike, environ
-from typing import TypeVar, Any, Union, Type, Optional, cast, Final, Callable, overload, Literal, Coroutine, \
-    Generic, get_args
-from typing_extensions import ParamSpec, Concatenate
+from typing import TypeVar, Any, Union, Type, Optional, cast, Final, Callable, overload, Coroutine, \
+    Generic, ParamSpec, Concatenate
 from inspect import isawaitable, getfullargspec
 
 from dacite.core import from_dict

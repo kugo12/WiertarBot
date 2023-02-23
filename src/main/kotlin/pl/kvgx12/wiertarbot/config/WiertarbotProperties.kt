@@ -9,7 +9,6 @@ data class WiertarbotProperties(
     val sentry: Sentry = Sentry(),
     val email: String,
     val password: String,
-    val datr: String,
     val prefix: String = "!",
     val timezone: String = "Europe/Warsaw",
     val catApi: CatApi = CatApi(),
