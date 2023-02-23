@@ -90,7 +90,7 @@ class SpecialCommands(
             }
         }
 
-        val response = async { Response(event, text = msg).send() }
+        val response = async { Response(event, text = msg + word).send() }
         val react = async { event.react(ANGRY_EMOJI) }
 
         awaitAll(response, react)
