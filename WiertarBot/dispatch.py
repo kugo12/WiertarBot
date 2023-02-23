@@ -1,6 +1,5 @@
 from asyncio import get_running_loop
-from typing import Generic, TypeVar, Union, Callable, Optional
-from typing_extensions import TypeAlias
+from typing import Generic, TypeVar, Union, Callable, Optional, TypeAlias
 
 from .typing import EventCallable, EventCallableWithContext
 

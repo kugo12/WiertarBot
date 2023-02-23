@@ -4,7 +4,7 @@ WORKDIR /app
 
 # setup - jdk + libraries + python stuff + new user
 RUN apt -y update && \
-    apt install -y wget gnupg libxml2-dev libxslt-dev zlib1g-dev libjpeg-dev gcc libfreetype6-dev libpq-dev && \
+    apt install -y wget gnupg libxml2-dev libxslt-dev zlib1g-dev gcc && \
     wget -O - https://packages.adoptium.net/artifactory/api/gpg/key/public | apt-key add - && \
     echo "deb https://packages.adoptium.net/artifactory/deb $(awk -F= '/^VERSION_CODENAME/{print$2}' /etc/os-release) main" | tee /etc/apt/sources.list.d/adoptium.list && \
     apt -y update && \
