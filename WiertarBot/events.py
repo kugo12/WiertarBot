@@ -1,11 +1,12 @@
 from typing import Optional, TYPE_CHECKING, Callable, Protocol, Any, Iterable
 
-from pl.kvgx12.wiertarbot.events import Mention as KtMention
+from pl.kvgx12.wiertarbot.events import Mention as KtMention, MessageEvent as KtMessageEvent
 from pl.kvgx12.wiertarbot.connector import FileData as KtFileData, UploadedFile as KtUploadedFile
 
 if TYPE_CHECKING:
     from .response import IResponse
-    from .abc import PyContext
+    from .abc import ThreadData
+    import fbchat
 
 
 class Mention(Protocol):
@@ -35,6 +36,7 @@ class UploadedFile(Protocol):
         return KtUploadedFile(id, mime_type)
 
     def getId(self) -> str: ...
+
     def getMimeType(self) -> str: ...
 
 
@@ -57,7 +59,7 @@ class Context(Protocol):
 
     async def pyUploadRaw(self, files: list[FileData], voiceClip: bool) -> list[UploadedFile]: ...
 
-    async def pyFetchThread(self, threadId: str) -> Any: ...
+    async def pyFetchThread(self, threadId: str) -> 'ThreadData': ...
 
     async def pyFetchImageUrl(self, imageId: str) -> str: ...
 
@@ -65,7 +67,7 @@ class Context(Protocol):
 
     async def pyReactToMessage(self, event: 'MessageEvent', reaction: str) -> None: ...
 
-    async def pyFetchRepliedTo(self, event: 'MessageEvent') -> Any: ...
+    async def pyFetchRepliedTo(self, event: 'MessageEvent') -> Optional['MessageEvent']: ...
 
     async def pySaveAttachment(self, attachment: Any) -> None: ...
 
@@ -73,6 +75,19 @@ class Context(Protocol):
 
 
 class MessageEvent(Protocol):
+    def __new__(cls,
+                context: Context,
+                text: str,
+                author_id: str,
+                thread_id: str,
+                at: int,
+                mentions: list[Mention],
+                external_id: str,
+                reply_to_id: Optional[str],
+                attachments: list[Attachment],
+                ) -> 'MessageEvent':
+        return KtMessageEvent(context, text, author_id, thread_id, at, mentions, external_id, reply_to_id, attachments)
+
     def getContext(self) -> Context: ...
 
     def getText(self) -> str: ...

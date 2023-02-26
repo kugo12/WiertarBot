@@ -37,7 +37,7 @@ jep = "==4.1.1"
 optional = true
 
 [tool.poetry.group.dev.dependencies]
-mypy = "~0"
+mypy = "~1"
 types-requests = "~2"
 types-PyYAML = "~6"
 types-aiofiles = "~0"

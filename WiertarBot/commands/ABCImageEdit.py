@@ -1,4 +1,3 @@
-import fbchat
 import aiohttp
 from abc import ABC, abstractmethod
 from io import BytesIO
@@ -6,20 +5,6 @@ from typing import BinaryIO, Optional, final
 
 from ..events import MessageEvent, ImageAttachment, Attachment, FileData
 from ..response import response
-
-from pl.kvgx12.wiertarbot.events import Attachment as KtAttachment, ImageAttachment as KtImageAttachment
-
-
-def fb_attachment_to_generic(attachment: fbchat.Attachment) -> Attachment:
-    if isinstance(attachment, fbchat.ImageAttachment):
-        return KtImageAttachment(
-            id=attachment.id,
-            width=attachment.width,
-            height=attachment.height,
-            original_extension=attachment.original_extension,
-            is_animated=attachment.is_animated
-        )
-    return KtAttachment(attachment.id)
 
 
 class ImageEditABC(ABC):
@@ -62,10 +47,9 @@ class ImageEditABC(ABC):
 
     @final
     async def check(self, event: MessageEvent) -> bool:
-        replied_to = await event.getContext().pyFetchRepliedTo(event)  # FIXME
+        replied_to = await event.getContext().pyFetchRepliedTo(event)
         if replied_to:
-            f = await self.get_image_from_attachments(event,
-                                                      [fb_attachment_to_generic(it) for it in replied_to.attachments])
+            f = await self.get_image_from_attachments(event, replied_to.getAttachments())
             if f:
                 await self.edit_and_send(event, f)
                 return False

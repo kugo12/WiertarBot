@@ -7,6 +7,7 @@ import aiofiles
 import aiohttp
 import fbchat
 
+from .generic import fb_attachment_to_generic
 from ... import config
 from ...abc import PyContext, ThreadData
 from ...response import IResponse
@@ -79,13 +80,25 @@ class FBContext(PyContext):
         thread = self._get_event_thread(event)
         await fbchat.Message(thread=thread, id=event.getExternalId()).react(reaction)
 
-    async def fetch_replied_to(self, event: MessageEvent) -> Optional[fbchat.MessageData]:
+    async def fetch_replied_to(self, event: MessageEvent) -> Optional[MessageEvent]:
         if event.getReplyToId() is None:
             return None
 
         thread = self._get_event_thread(event)
 
-        return await fbchat.Message(thread=thread, id=event.getReplyToId()).fetch()
+        message = await fbchat.Message(thread=thread, id=event.getReplyToId()).fetch()
+
+        return MessageEvent(
+            context=event.getContext(),
+            text=message.text,
+            author_id=message.author,
+            thread_id=message.thread.id,
+            at=int(message.created_at.timestamp()),
+            mentions=[Mention(it.thread_id, it.offset, it.length) for it in message.mentions],
+            external_id=message.id,
+            reply_to_id=message.reply_to_id,
+            attachments=[fb_attachment_to_generic(it) for it in message.attachments]
+        )
 
     async def save_attachment(self, attachment) -> None:
         name = type(attachment).__name__

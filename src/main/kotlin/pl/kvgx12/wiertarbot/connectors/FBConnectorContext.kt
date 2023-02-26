@@ -46,8 +46,8 @@ class FBConnectorContext(
         }
     }
 
-    override suspend fun fetchRepliedTo(event: MessageEvent): PyObject? = interpreter {
-        pyContext.fetch_replied_to(event).pyAwait() as? PyObject
+    override suspend fun fetchRepliedTo(event: MessageEvent) = interpreter {
+        pyContext.fetch_replied_to(event).pyAwait() as? MessageEvent
     }
 
     override suspend fun saveAttachment(attachment: PyObject) {

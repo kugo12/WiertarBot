@@ -17,7 +17,7 @@ abstract class ConnectorContext(
     abstract suspend fun fetchImageUrl(imageId: String): String
     abstract suspend fun sendText(event: MessageEvent, text: String)
     abstract suspend fun reactToMessage(event: MessageEvent, reaction: String?)
-    abstract suspend fun fetchRepliedTo(event: MessageEvent): PyObject?
+    abstract suspend fun fetchRepliedTo(event: MessageEvent): MessageEvent?
     abstract suspend fun saveAttachment(attachment: PyObject)
     abstract suspend fun upload(files: List<String>, voiceClip: Boolean = false): List<UploadedFile>?
 
