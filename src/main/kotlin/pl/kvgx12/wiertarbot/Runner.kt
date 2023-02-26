@@ -4,6 +4,7 @@ import jep.Jep
 import kotlinx.coroutines.runBlocking
 import org.intellij.lang.annotations.Language
 import org.springframework.boot.CommandLineRunner
+import org.springframework.context.annotation.Profile
 import org.springframework.stereotype.Component
 import pl.kvgx12.wiertarbot.connectors.FBConnector
 import pl.kvgx12.wiertarbot.events.MessageEvent
@@ -14,6 +15,7 @@ inline fun Jep.execute(@Language("python") code: String) = exec(code)
 
 
 @Component
+@Profile("!test")
 class Runner(
     private val fbConnector: FBConnector,
     private val commandService: CommandService,
