@@ -3,11 +3,10 @@ import random
 import json
 import os
 from bs4 import BeautifulSoup
-from io import BytesIO
 
 from ..message_dispatch import MessageEventDispatcher
-from ..events import MessageEvent
-from ..response import IResponse, response
+from ..events import MessageEvent, FileData
+from ..response import IResponse, response, file_upload_response
 from .. import config
 
 
@@ -24,7 +23,7 @@ async def suchar(event: MessageEvent) -> IResponse:
     parsed = BeautifulSoup(r.text, 'html.parser')
     image_url: str = parsed.find('div', 'file-container').a.img['src']  # type: ignore
 
-    return response(event, files=[image_url])
+    return await file_upload_response(event, [image_url])
 
 
 @MessageEventDispatcher.register(aliases=['jeż'])
@@ -42,7 +41,7 @@ async def jez(event: MessageEvent) -> IResponse:
     h = bs.find_all('a', {'title': True})
     image_url = random.choice(h).img['src']  # type: ignore
 
-    return response(event, files=[image_url])
+    return await file_upload_response(event, [image_url])
 
 
 __zolw_pages = 1000
@@ -71,16 +70,15 @@ async def zolw(event: MessageEvent):
 
     image_url = r["results"][0]["urls"]["regular"]
 
-    image = BytesIO(
-        requests.get(image_url).content
-    )
+    image = requests.get(image_url).content
 
     files_to_upload = [
-        (f"turtle{random_page}.jpg", image, "image/jpeg")
+        FileData(f"turtle{random_page}.jpg", image, "image/jpeg")
     ]
 
     uploaded_files = await event.getContext().pyUploadRaw(files_to_upload, False)
-    await response(event, files=uploaded_files).pySend()
+
+    return response(event, files=uploaded_files)
 
 
 @MessageEventDispatcher.register(aliases=['dog', 'pies'])
@@ -96,7 +94,7 @@ async def doggo(event: MessageEvent) -> IResponse:
     data = json.loads(r.text)
     image_url = data['message']
 
-    return response(event, files=[image_url])
+    return await file_upload_response(event, [image_url])
 
 
 @MessageEventDispatcher.register()
@@ -112,7 +110,7 @@ async def beagle(event: MessageEvent) -> IResponse:
     data = json.loads(r.text)
     image_url = data['message']
 
-    return response(event, files=[image_url])
+    return await file_upload_response(event, [image_url])
 
 
 @MessageEventDispatcher.register()
@@ -128,7 +126,7 @@ async def birb(event: MessageEvent) -> IResponse:
     data = json.loads(r.text)
     image_url = data['link']
 
-    return response(event, files=[image_url])
+    return await file_upload_response(event, [image_url])
 
 
 @MessageEventDispatcher.register()
@@ -144,7 +142,7 @@ async def wink(event: MessageEvent) -> IResponse:
     data = json.loads(r.text)
     image_url = data['link']
 
-    return response(event, files=[image_url])
+    return await file_upload_response(event, [image_url])
 
 
 if config.cat_api:
@@ -167,7 +165,7 @@ if config.cat_api:
         data = json.loads(r.text)
         image_url = data[0]['url']
 
-        return response(event, files=[image_url])
+        return await file_upload_response(event, [image_url])
 
 
 @MessageEventDispatcher.register(aliases=['panda'])
@@ -183,7 +181,7 @@ async def pandka(event: MessageEvent) -> IResponse:
     data = json.loads(r.text)
     image_url = data['link']
 
-    return response(event, files=[image_url])
+    return await file_upload_response(event, [image_url])
 
 
 @MessageEventDispatcher.register()
@@ -207,13 +205,15 @@ async def shiba(event: MessageEvent) -> IResponse:
     url = f'https://shibe.online/api/shibes?count={count}&urls=true&httpsUrls=true'
     image_urls = requests.get(url).json()
 
-    return response(event, files=image_urls)
+    return await file_upload_response(event, image_urls)
 
 
-def random_from_media_dir(directory: str) -> str:
+async def random_from_media_dir(event: MessageEvent, directory: str) -> IResponse:
     path = config.cmd_media_path / directory
     filename = random.choice(os.listdir(str(path)))
-    return str(path / filename)
+    file = str(path / filename)
+
+    return await file_upload_response(event, [file])
 
 
 @MessageEventDispatcher.register()
@@ -225,9 +225,7 @@ async def konon(event: MessageEvent) -> IResponse:
         zdjęcie z kononowiczem
     """
 
-    image_path = random_from_media_dir('random/konon')
-
-    return response(event, files=[image_path])
+    return await random_from_media_dir(event, 'random/konon')
 
 
 @MessageEventDispatcher.register()
@@ -239,9 +237,7 @@ async def papaj(event: MessageEvent) -> IResponse:
         cenzo
     """
 
-    image_path = random_from_media_dir('random/papaj')
-
-    return response(event, files=[image_path])
+    return await random_from_media_dir(event, 'random/papaj')
 
 
 @MessageEventDispatcher.register()
@@ -253,9 +249,7 @@ async def bmw(event: MessageEvent) -> IResponse:
         zdjęcie z rozwalonym bmw
     """
 
-    image_path = random_from_media_dir('random/bmw')
-
-    return response(event, files=[image_path])
+    return await random_from_media_dir(event, 'random/bmw')
 
 
 @MessageEventDispatcher.register()
@@ -267,9 +261,7 @@ async def audi(event: MessageEvent) -> IResponse:
         zdjęcie z rozwalonym audi
     """
 
-    image_path = random_from_media_dir('random/audi')
-
-    return response(event, files=[image_path])
+    return await random_from_media_dir(event, 'random/audi')
 
 
 @MessageEventDispatcher.register()
@@ -281,9 +273,7 @@ async def mikser(event: MessageEvent) -> IResponse:
         zdjęcie z mikserem
     """
 
-    image_path = random_from_media_dir('random/mikser')
-
-    return response(event, files=[image_path])
+    return await random_from_media_dir(event, 'random/mikser')
 
 
 @MessageEventDispatcher.register(aliases=['meme'])
@@ -303,7 +293,7 @@ async def mem(event: MessageEvent) -> IResponse:
     msg = data['title']
     files = [data['url']]
 
-    return response(event, text=msg, files=files)
+    return await file_upload_response(event, files, text=msg)
 
 
 @MessageEventDispatcher.register()
@@ -317,7 +307,7 @@ async def hug(event: MessageEvent) -> IResponse:
 
     data = requests.get("https://some-random-api.ml/animu/hug").json()
 
-    return response(event, files=[data["link"]])
+    return await file_upload_response(event, [data["link"]])
 
 
 @MessageEventDispatcher.register()
@@ -329,6 +319,4 @@ async def jabol(event: MessageEvent) -> IResponse:
         Zdjęcie losowego jabola
     """
 
-    image_path = random_from_media_dir('random/jabol')
-
-    return response(event, files=[image_path])
+    return await random_from_media_dir(event, 'random/jabol')

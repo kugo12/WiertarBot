@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from io import BytesIO
 from typing import BinaryIO, Optional, final
 
-from ..events import MessageEvent, ImageAttachment, Attachment
+from ..events import MessageEvent, ImageAttachment, Attachment, FileData
 from ..response import response
 
 from pl.kvgx12.wiertarbot.events import Attachment as KtAttachment, ImageAttachment as KtImageAttachment
@@ -21,6 +21,7 @@ def fb_attachment_to_generic(attachment: fbchat.Attachment) -> Attachment:
         )
     return KtAttachment(attachment.id)
 
+
 class ImageEditABC(ABC):
     __slots__ = ['args']
     mime = 'image/jpeg'
@@ -35,7 +36,11 @@ class ImageEditABC(ABC):
     async def edit(self, fp: BinaryIO) -> BinaryIO:
         pass
 
-    async def get_image_from_attachments(self, event: MessageEvent, attachments: list[Attachment]) -> Optional[BinaryIO]:
+    async def get_image_from_attachments(
+            self,
+            event: MessageEvent,
+            attachments: list[Attachment]
+    ) -> Optional[BinaryIO]:
         if attachments and isinstance(attachments[0], ImageAttachment):
             image = attachments[0]
             if image.getId() is None:
@@ -51,7 +56,7 @@ class ImageEditABC(ABC):
     @final
     async def edit_and_send(self, event: MessageEvent, fp: BinaryIO):
         f = await self.edit(fp)
-        file = await event.getContext().pyUploadRaw([(self.fn, f, self.mime)])
+        file = await event.getContext().pyUploadRaw([FileData(self.fn, f.read(), self.mime)])
 
         await response(event, files=file).pySend()
 
@@ -59,7 +64,8 @@ class ImageEditABC(ABC):
     async def check(self, event: MessageEvent) -> bool:
         replied_to = await event.getContext().pyFetchRepliedTo(event)  # FIXME
         if replied_to:
-            f = await self.get_image_from_attachments(event, [fb_attachment_to_generic(it) for it in replied_to.attachments])
+            f = await self.get_image_from_attachments(event,
+                                                      [fb_attachment_to_generic(it) for it in replied_to.attachments])
             if f:
                 await self.edit_and_send(event, f)
                 return False

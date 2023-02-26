@@ -2,6 +2,8 @@ package pl.kvgx12.wiertarbot.connectors
 
 import jep.python.PyObject
 import pl.kvgx12.wiertarbot.connector.ConnectorContext
+import pl.kvgx12.wiertarbot.connector.FileData
+import pl.kvgx12.wiertarbot.connector.UploadedFile
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.python.Interpreter
@@ -20,10 +22,8 @@ class FBConnectorContext(
         }
     }
 
-    override suspend fun uploadRaw(files: Iterable<PyObject>, voiceClip: Boolean) {
-        interpreter {
-            pyContext.upload_raw(files, voiceClip).pyAwait()
-        }
+    override suspend fun uploadRaw(files: List<FileData>, voiceClip: Boolean) = interpreter {
+        pyContext.upload_raw(files, voiceClip).pyAwait() as List<UploadedFile>
     }
 
     override suspend fun fetchThread(threadId: String): PyObject = interpreter {
@@ -56,21 +56,21 @@ class FBConnectorContext(
         }
     }
 
-    override suspend fun upload(files: Iterable<String>, voiceClip: Boolean): Iterable<PyObject>? = interpreter {
-        pyContext.upload(files, voiceClip).pyAwait() as? Iterable<PyObject>
+    override suspend fun upload(files: List<String>, voiceClip: Boolean) = interpreter {
+        pyContext.upload(files, voiceClip).pyAwait() as? List<UploadedFile>
     }
 
     @Suppress("FunctionName")
     interface PyContext {
         fun send_response(response: Response): PyObject
-        fun upload_raw(files: Iterable<PyObject>, voiceClip: Boolean): PyObject
+        fun upload_raw(files: List<FileData>, voiceClip: Boolean): PyObject
         fun fetch_thread(id: String): PyObject
         fun fetch_image_url(imageId: String): PyObject
         fun send_text(event: MessageEvent, text: String): PyObject
         fun react_to_message(event: MessageEvent, reaction: String?): PyObject
         fun fetch_replied_to(event: MessageEvent): PyObject
         fun save_attachment(attachment: PyObject): PyObject
-        fun upload(files: Iterable<String>, voiceClip: Boolean): PyObject
+        fun upload(files: List<String>, voiceClip: Boolean): PyObject
         fun get_bot_id(): String
     }
 }

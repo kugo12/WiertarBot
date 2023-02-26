@@ -1,6 +1,7 @@
-from typing import Optional, TYPE_CHECKING, Callable, Protocol, Any
+from typing import Optional, TYPE_CHECKING, Callable, Protocol, Any, Iterable
 
 from pl.kvgx12.wiertarbot.events import Mention as KtMention
+from pl.kvgx12.wiertarbot.connector import FileData as KtFileData, UploadedFile as KtUploadedFile
 
 if TYPE_CHECKING:
     from .response import IResponse
@@ -16,6 +17,25 @@ class Mention(Protocol):
     def getOffset(self) -> int: ...
 
     def getLength(self) -> int: ...
+
+
+class FileData(Protocol):
+    def __new__(cls, uri: str, content: bytes, media_type: str) -> 'FileData':
+        return KtFileData(uri, content, media_type)
+
+    def getUri(self) -> str: ...
+
+    def getContent(self) -> bytes: ...
+
+    def getMediaType(self) -> str: ...
+
+
+class UploadedFile(Protocol):
+    def __new__(cls, id: str, mime_type: str) -> 'UploadedFile':
+        return KtUploadedFile(id, mime_type)
+
+    def getId(self) -> str: ...
+    def getMimeType(self) -> str: ...
 
 
 class Attachment(Protocol):
@@ -35,7 +55,7 @@ class ImageAttachment(Attachment):
 class Context(Protocol):
     async def pySendResponse(self, response: 'IResponse') -> None: ...
 
-    async def pyUploadRaw(self, files: list[Any], voiceClip: bool) -> None: ...
+    async def pyUploadRaw(self, files: list[FileData], voiceClip: bool) -> list[UploadedFile]: ...
 
     async def pyFetchThread(self, threadId: str) -> Any: ...
 
@@ -49,7 +69,7 @@ class Context(Protocol):
 
     async def pySaveAttachment(self, attachment: Any) -> None: ...
 
-    async def pyUpload(self, files: list[str], voiceClip: bool) -> list[Any]: ...
+    async def pyUpload(self, files: list[str], voiceClip: bool) -> Optional[list[UploadedFile]]: ...
 
 
 class MessageEvent(Protocol):

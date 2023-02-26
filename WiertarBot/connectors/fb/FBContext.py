@@ -1,25 +1,23 @@
 import mimetypes
 from io import BytesIO
 from os import path
-from typing import Optional, Sequence, Tuple, Iterable, BinaryIO, Union, Final, cast, TYPE_CHECKING
+from typing import Optional, Iterable, Union, cast
 
 import aiofiles
 import aiohttp
 import fbchat
 
 from ... import config
-from ...abc.context import PyContext, ThreadData
-
-if TYPE_CHECKING:
-    from ...response import IResponse
-    from ...events import MessageEvent, Mention
+from ...abc import PyContext, ThreadData
+from ...response import IResponse
+from ...events import MessageEvent, Mention, FileData, UploadedFile
 
 
 def fb_mentions(mentions: Iterable['Mention']) -> list[fbchat.Mention]:
     return [
         fbchat.Mention(thread_id=it.getThreadId(), offset=it.getOffset(), length=it.getLength())
         for it in mentions
-    ] if mentions else []
+    ]
 
 
 class FBContext(PyContext):
@@ -34,39 +32,36 @@ class FBContext(PyContext):
     def get_bot_id(self) -> str:
         return self.bot_id
 
-    def _get_event_thread(self, event: 'MessageEvent') -> fbchat.ThreadABC:
+    def _get_event_thread(self, event: MessageEvent) -> fbchat.ThreadABC:
         t: type[Union[fbchat.Group, fbchat.User]] = fbchat.Group if event.isGroup() else fbchat.User
 
         return t(session=self.__session, id=event.getThreadId())
 
-    async def _resolve_response_files(self, response: 'IResponse') -> Optional[Sequence[tuple[str, str]]]:
-        files = response.getFiles()
-        if files:
-            if isinstance(files[0], str):
-                return await self.upload(cast(list[str], files), response.getVoiceClip())
-            return cast(list[tuple[str, str]], files)
-        return None
-
-    async def send_response(self, response: 'IResponse') -> None:
-        files: Final = await self._resolve_response_files(response)
-
+    async def send_response(self, response: IResponse) -> None:
         thread = self._get_event_thread(response.getEvent())
         text = response.getText()
+        files = [(it.getId(), it.getMimeType()) for it in response.getFiles()] if response.getFiles() else None
 
         if text:
             await thread.send_text(
                 text=text,
                 mentions=fb_mentions(response.getMentions()),
-                files=cast(list[tuple[str, str]], files),
+                files=files,
                 reply_to_id=cast(str, response.getReplyToId())
             )
         elif files:
             await thread.send_files(files)
 
     async def upload_raw(
-            self, files: Iterable[Tuple[str, BinaryIO, str]], voice_clip: bool = False
-    ) -> list[Tuple[str, str]]:
-        return list(await self.__client.upload(files, voice_clip))
+            self, files: list[FileData], voice_clip: bool = False
+    ) -> list[UploadedFile]:
+        return [
+            UploadedFile(it[0], it[1])
+            for it in await self.__client.upload(
+                [(it.getUri(), BytesIO(it.getContent()), it.getMediaType()) for it in files],
+                voice_clip
+            )
+        ]
 
     async def fetch_thread(self, id: str) -> ThreadData:
         data = await self.__client.fetch_thread_info([id]).__anext__()  # type: ignore
@@ -76,15 +71,15 @@ class FBContext(PyContext):
     async def fetch_image_url(self, image_id: str) -> str:
         return await self.__client.fetch_image_url(image_id)
 
-    async def send_text(self, event: 'MessageEvent', text: str) -> None:
+    async def send_text(self, event: MessageEvent, text: str) -> None:
         thread = self._get_event_thread(event)
         await thread.send_text(text=text)
 
-    async def react_to_message(self, event: 'MessageEvent', reaction: Optional[str]) -> None:
+    async def react_to_message(self, event: MessageEvent, reaction: Optional[str]) -> None:
         thread = self._get_event_thread(event)
         await fbchat.Message(thread=thread, id=event.getExternalId()).react(reaction)
 
-    async def fetch_replied_to(self, event: 'MessageEvent') -> Optional[fbchat.MessageData]:
+    async def fetch_replied_to(self, event: MessageEvent) -> Optional[fbchat.MessageData]:
         if event.getReplyToId() is None:
             return None
 
@@ -110,8 +105,8 @@ class FBContext(PyContext):
                     async with aiofiles.open(p, mode='wb') as f:
                         await f.write(await r.read())
 
-    async def upload(self, files: Iterable[str], voice_clip=False) -> Optional[Sequence[Tuple[str, str]]]:
-        final_files = []
+    async def upload(self, files: list[str], voice_clip=False) -> Optional[list[UploadedFile]]:
+        final_files: list[FileData] = []
         for fn in files:
             if fn.startswith(('http://', 'https://')):
                 true_fn: str = path.basename(fn.split('?', 1)[0])  # without get params
@@ -122,24 +117,20 @@ class FBContext(PyContext):
             if mime:
                 if path.exists(fn):
                     with open(fn, 'rb') as file:
-                        f = BytesIO(file.read())
+                        f = file.read()
                     true_fn = path.basename(fn)
 
                     if mime == 'video/mp4' and voice_clip:
                         mime = 'audio/mp4'
 
-                    final_files.append((true_fn, f, mime))
+                    final_files.append(FileData(true_fn, f, mime))
 
                 elif fn.startswith(('http://', 'https://')):
                     async with aiohttp.ClientSession() as session:
                         async with session.get(fn) as r:
                             if r.status == 200:
-                                f = BytesIO(await r.read())
-                                final_files.append((true_fn, f, mime))
+                                final_files.append(FileData(true_fn, await r.read(), mime))
 
         if final_files:
-            uploaded = await self.upload_raw(final_files, voice_clip)
-        else:
-            return None
-
-        return uploaded
+            return await self.upload_raw(final_files, voice_clip)
+        return None

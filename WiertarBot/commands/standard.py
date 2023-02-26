@@ -14,7 +14,7 @@ from aiogoogletrans import Translator
 from forex_python.converter import convert as currency_convert, RatesNotAvailableError
 
 from ..message_dispatch import MessageEventDispatcher
-from ..events import MessageEvent, Mention
+from ..events import MessageEvent, Mention, FileData
 from ..response import IResponse, response
 from ..config import cmd_media_path, wiertarbot as wiertarbot_config
 from .modules import AliPaczka, Fantano
@@ -361,7 +361,7 @@ async def tts(event: MessageEvent) -> IResponse:
 
         fn = 'tts.mp3'
         mime = 'audio/mp3'
-        files = await event.getContext().pyUploadRaw([(fn, f, mime)], voice_clip=False)
+        files = await event.getContext().pyUploadRaw([FileData(fn, f, mime)], False)
         msg = None
 
     return response(event, text=msg, files=files)
@@ -407,6 +407,8 @@ async def mc(event: MessageEvent) -> IResponse:
 
         else:
             msg = 'Podany nick nie istnieje'
+
+    files = await event.getContext().pyUpload(files) if files else None
 
     return response(event, text=msg, files=files)
 

@@ -245,6 +245,8 @@ async def see(event: MessageEvent) -> Optional[IResponse]:
                 p = config.attachment_save_path / f'{ att["id"] }.mp4'
                 files.append(str(p))
 
+        files = await event.getContext().pyUpload(files, voice_clip) if files else None
+
         r = response(
             event,
             text=message['text'],

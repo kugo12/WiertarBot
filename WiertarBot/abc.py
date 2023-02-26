@@ -1,13 +1,23 @@
 from abc import ABC, abstractmethod
-from typing import Optional, Sequence, Tuple, Iterable, BinaryIO, Union, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, NoReturn
 
 import fbchat
 
 if TYPE_CHECKING:
-    from ..response import IResponse
-    from ..events import MessageEvent
+    from .response import IResponse
+    from .events import MessageEvent, FileData, UploadedFile
 
-ThreadData = Union[fbchat.UserData, fbchat.GroupData, fbchat.PageData]
+
+class Connector(ABC):
+    @classmethod
+    @abstractmethod
+    async def create(cls) -> 'Connector': ...
+
+    @abstractmethod
+    async def run(self) -> NoReturn: ...
+
+
+ThreadData = fbchat.UserData | fbchat.GroupData | fbchat.PageData
 
 
 class PyContext(ABC):
@@ -16,8 +26,8 @@ class PyContext(ABC):
 
     @abstractmethod
     async def upload_raw(
-            self, files: Iterable[Tuple[str, BinaryIO, str]], voice_clip: bool = False
-    ) -> list[Tuple[str, str]]: ...
+            self, files: list['FileData'], voice_clip: bool = False
+    ) -> list['UploadedFile']: ...
 
     @abstractmethod
     async def fetch_thread(self, id: str) -> ThreadData: ...  # FIXME
@@ -38,4 +48,4 @@ class PyContext(ABC):
     async def save_attachment(self, attachment) -> None: ...
 
     @abstractmethod
-    async def upload(self, files: Iterable[str], voice_clip=False) -> Optional[Sequence[Tuple[str, str]]]: ...
+    async def upload(self, files: list[str], voice_clip=False) -> Optional[list['UploadedFile']]: ...
