@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Optional, TYPE_CHECKING, NoReturn
 
-import fbchat
-
 if TYPE_CHECKING:
     from .response import IResponse
-    from .events import MessageEvent, FileData, UploadedFile
+    from .events import MessageEvent, FileData, UploadedFile, ThreadData
 
 
 class Connector(ABC):
@@ -15,9 +13,6 @@ class Connector(ABC):
 
     @abstractmethod
     async def run(self) -> NoReturn: ...
-
-
-ThreadData = fbchat.UserData | fbchat.GroupData | fbchat.PageData
 
 
 class PyContext(ABC):
@@ -30,7 +25,7 @@ class PyContext(ABC):
     ) -> list['UploadedFile']: ...
 
     @abstractmethod
-    async def fetch_thread(self, id: str) -> ThreadData: ...  # FIXME
+    async def fetch_thread(self, id: str) -> 'ThreadData': ...
 
     @abstractmethod
     async def fetch_image_url(self, image_id: str) -> str: ...

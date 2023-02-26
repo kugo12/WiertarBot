@@ -176,7 +176,7 @@ async def ile(event: MessageEvent) -> IResponse:
 
     thread = await event.getContext().pyFetchThread(event.getThreadId())
 
-    msg = f'Odkąd tutaj jestem napisano tu { thread.message_count } wiadomości.'
+    msg = f'Odkąd tutaj jestem napisano tu { thread.getMessageCount() } wiadomości.'
 
     return response(event, text=msg)
 

@@ -1,12 +1,24 @@
 from typing import Optional, TYPE_CHECKING, Callable, Protocol, Any, Iterable
 
 from pl.kvgx12.wiertarbot.events import Mention as KtMention, MessageEvent as KtMessageEvent
-from pl.kvgx12.wiertarbot.connector import FileData as KtFileData, UploadedFile as KtUploadedFile
+from pl.kvgx12.wiertarbot.connector import FileData as KtFileData, UploadedFile as KtUploadedFile, \
+    ThreadData as KtThreadData
 
 if TYPE_CHECKING:
     from .response import IResponse
-    from .abc import ThreadData
-    import fbchat
+
+
+class ThreadData(Protocol):
+    def __new__(cls, id: str, name: str, message_count: Optional[int], participants: list[str]) -> 'ThreadData':
+        return KtThreadData(id, name, message_count, participants)
+
+    def getId(self) -> str: ...
+
+    def getName(self) -> str: ...
+
+    def getMessageCount(self) -> Optional[int]: ...
+
+    def getParticipants(self) -> list[str]: ...
 
 
 class Mention(Protocol):
@@ -59,7 +71,7 @@ class Context(Protocol):
 
     async def pyUploadRaw(self, files: list[FileData], voiceClip: bool) -> list[UploadedFile]: ...
 
-    async def pyFetchThread(self, threadId: str) -> 'ThreadData': ...
+    async def pyFetchThread(self, threadId: str) -> ThreadData: ...
 
     async def pyFetchImageUrl(self, imageId: str) -> str: ...
 

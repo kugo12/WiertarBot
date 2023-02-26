@@ -9,9 +9,9 @@ import fbchat
 
 from .generic import fb_attachment_to_generic
 from ... import config
-from ...abc import PyContext, ThreadData
+from ...abc import PyContext
 from ...response import IResponse
-from ...events import MessageEvent, Mention, FileData, UploadedFile
+from ...events import MessageEvent, Mention, FileData, UploadedFile, ThreadData
 
 
 def fb_mentions(mentions: Iterable['Mention']) -> list[fbchat.Mention]:
@@ -19,6 +19,9 @@ def fb_mentions(mentions: Iterable['Mention']) -> list[fbchat.Mention]:
         fbchat.Mention(thread_id=it.getThreadId(), offset=it.getOffset(), length=it.getLength())
         for it in mentions
     ]
+
+
+FBThreadData = fbchat.UserData | fbchat.GroupData | fbchat.PageData
 
 
 class FBContext(PyContext):
@@ -65,9 +68,14 @@ class FBContext(PyContext):
         ]
 
     async def fetch_thread(self, id: str) -> ThreadData:
-        data = await self.__client.fetch_thread_info([id]).__anext__()  # type: ignore
+        data: FBThreadData = await self.__client.fetch_thread_info([id]).__anext__()  # type: ignore
 
-        return cast(ThreadData, data)
+        return ThreadData(
+            id=data.id,
+            name=data.name,
+            message_count=data.message_count,
+            participants=[it.id for it in data.participants] if isinstance(data, fbchat.GroupData) else []
+        )
 
     async def fetch_image_url(self, image_id: str) -> str:
         return await self.__client.fetch_image_url(image_id)

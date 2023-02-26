@@ -3,6 +3,7 @@ package pl.kvgx12.wiertarbot.connectors
 import jep.python.PyObject
 import pl.kvgx12.wiertarbot.connector.ConnectorContext
 import pl.kvgx12.wiertarbot.connector.FileData
+import pl.kvgx12.wiertarbot.connector.ThreadData
 import pl.kvgx12.wiertarbot.connector.UploadedFile
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
@@ -26,8 +27,8 @@ class FBConnectorContext(
         pyContext.upload_raw(files, voiceClip).pyAwait() as List<UploadedFile>
     }
 
-    override suspend fun fetchThread(threadId: String): PyObject = interpreter {
-        pyContext.fetch_thread(threadId).pyAwait() as PyObject
+    override suspend fun fetchThread(threadId: String) = interpreter {
+        pyContext.fetch_thread(threadId).pyAwait() as ThreadData
     }
 
     override suspend fun fetchImageUrl(imageId: String): String = interpreter {

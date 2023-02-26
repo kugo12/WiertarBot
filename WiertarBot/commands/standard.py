@@ -86,15 +86,15 @@ async def szkaluj(event: MessageEvent) -> IResponse:
             and text.endswith(' random')
     )
     if is_group_and_random:
-        thread = cast(fbchat.GroupData, await event.getContext().pyFetchThread(event.getThreadId()))
-        uid = random.choice(list(thread.participants)).id
+        thread = await event.getContext().pyFetchThread(event.getThreadId())
+        uid = random.choice(thread.getParticipants())
     elif event.getMentions():
         uid = event.getMentions()[0].getThreadId()
     else:
         uid = event.getAuthorId()
 
     user = await event.getContext().pyFetchThread(uid)
-    name = str(user.name)
+    name = user.getName()
 
     path = cmd_media_path / 'random/szkaluj.txt'
     with path.open('r', encoding='utf-8') as f:

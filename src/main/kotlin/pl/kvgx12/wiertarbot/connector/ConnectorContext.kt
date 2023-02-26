@@ -13,7 +13,7 @@ abstract class ConnectorContext(
     abstract suspend fun getBotId(): String
     abstract suspend fun sendResponse(response: Response)
     abstract suspend fun uploadRaw(files: List<FileData>, voiceClip: Boolean = false): List<UploadedFile>
-    abstract suspend fun fetchThread(threadId: String): PyObject
+    abstract suspend fun fetchThread(threadId: String): ThreadData
     abstract suspend fun fetchImageUrl(imageId: String): String
     abstract suspend fun sendText(event: MessageEvent, text: String)
     abstract suspend fun reactToMessage(event: MessageEvent, reaction: String?)

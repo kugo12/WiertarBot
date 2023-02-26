@@ -30,9 +30,8 @@ class SpecialCommands(
                     && permissionService.isAuthorized("everyone", it.threadId, it.authorId)
                 ) {
                     interpreter {
-                        val mentions = it.context.fetchThread(it.threadId)
-                            .get<List<PyObject>>("participants")
-                            .map { Mention(it.get("id"), 0, 9) }
+                        val mentions = it.context.fetchThread(it.threadId).participants
+                            .map { Mention(it, 0, 9) }
 
                         Response(it, text = "@everyone", mentions = mentions).send()
                     }
