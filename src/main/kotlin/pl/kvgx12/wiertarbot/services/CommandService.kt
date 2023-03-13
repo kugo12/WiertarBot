@@ -94,7 +94,9 @@ class CommandService(
                     )
                 ) {
                     when (val command = commands[commandName]) {
-                        is CommandHandler.Function -> command(interpreter, event)?.send()
+                        is CommandHandler.Function -> interpreter.launch {
+                            command(interpreter, event)?.send()
+                        }
                         is CommandHandler.ImageEditClass -> interpreter.launch {
                             val imageEdit = command(interpreter, event.text)
                             if (imageEdit.check(event).pyAwait() as Boolean) {

@@ -3,8 +3,9 @@ from abc import ABC, abstractmethod
 from io import BytesIO
 from typing import BinaryIO, Optional, final
 
-from ..events import MessageEvent, ImageAttachment, Attachment, FileData
+from ..events import MessageEvent, Attachment, FileData
 from ..response import response
+from pl.kvgx12.wiertarbot.events import ImageAttachment as KtImageAttachment
 
 
 class ImageEditABC(ABC):
@@ -26,7 +27,7 @@ class ImageEditABC(ABC):
             event: MessageEvent,
             attachments: list[Attachment]
     ) -> Optional[BinaryIO]:
-        if attachments and isinstance(attachments[0], ImageAttachment):
+        if attachments and isinstance(attachments[0], KtImageAttachment):
             image = attachments[0]
             if image.getId() is None:
                 return None
@@ -41,7 +42,7 @@ class ImageEditABC(ABC):
     @final
     async def edit_and_send(self, event: MessageEvent, fp: BinaryIO):
         f = await self.edit(fp)
-        file = await event.getContext().pyUploadRaw([FileData(self.fn, f.read(), self.mime)])
+        file = await event.getContext().pyUploadRaw([FileData(self.fn, f.read(), self.mime)], False)
 
         await response(event, files=file).pySend()
 

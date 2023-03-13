@@ -51,12 +51,6 @@ class FBConnectorContext(
         pyContext.fetch_replied_to(event).pyAwait() as? MessageEvent
     }
 
-    override suspend fun saveAttachment(attachment: PyObject) {
-        interpreter {
-            pyContext.save_attachment(attachment).pyAwait()
-        }
-    }
-
     override suspend fun upload(files: List<String>, voiceClip: Boolean) = interpreter {
         pyContext.upload(files, voiceClip).pyAwait() as? List<UploadedFile>
     }
@@ -70,7 +64,6 @@ class FBConnectorContext(
         fun send_text(event: MessageEvent, text: String): PyObject
         fun react_to_message(event: MessageEvent, reaction: String?): PyObject
         fun fetch_replied_to(event: MessageEvent): PyObject
-        fun save_attachment(attachment: PyObject): PyObject
         fun upload(files: List<String>, voiceClip: Boolean): PyObject
         fun get_bot_id(): String
     }

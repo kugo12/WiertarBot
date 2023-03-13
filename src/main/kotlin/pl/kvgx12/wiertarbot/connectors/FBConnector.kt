@@ -6,6 +6,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import pl.kvgx12.wiertarbot.connector.Connector
 import pl.kvgx12.wiertarbot.events.*
@@ -14,6 +15,7 @@ import pl.kvgx12.wiertarbot.python.*
 import pl.kvgx12.wiertarbot.utils.getLogger
 
 @Component
+@ConditionalOnProperty("wiertarbot.fb.enabled", havingValue = "true")
 class FBConnector(
     private val interpreter: Interpreter,
 ) : Connector {

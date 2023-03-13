@@ -45,10 +45,6 @@ class MockContext(
         TODO("Not yet implemented")
     }
 
-    override suspend fun saveAttachment(attachment: PyObject) {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun upload(files: List<String>, voiceClip: Boolean): List<UploadedFile>? {
         TODO("Not yet implemented")
     }

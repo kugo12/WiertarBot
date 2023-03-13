@@ -62,6 +62,8 @@ dependencies {
 	implementation("io.sentry:sentry-spring-boot-starter-jakarta:6.14.0")
 	implementation("io.sentry:sentry-logback:6.14.0")
 
+	implementation("dev.inmo:tgbotapi.core:5.2.1")
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
 	runtimeOnly("org.postgresql:postgresql")
