@@ -27,8 +27,6 @@ import pl.kvgx12.wiertarbot.python.Interpreter
 import pl.kvgx12.wiertarbot.utils.longPolling
 import pl.kvgx12.wiertarbot.utils.text
 
-@Component
-@ConditionalOnProperty("wiertarbot.telegram.enabled", havingValue = "true")
 class TelegramConnector(
     private val interpreter: Interpreter,
     telegramProperties: TelegramProperties,

@@ -15,6 +15,7 @@ plugins {
 
 allOpen {
 	annotation("org.openjdk.jmh.annotations.State")
+	annotation("pl.kvgx12.wiertarbot.utils.AllOpen")
 }
 
 group = "pl.kvgx12"

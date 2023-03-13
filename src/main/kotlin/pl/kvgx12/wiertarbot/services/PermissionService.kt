@@ -10,7 +10,6 @@ import pl.kvgx12.wiertarbot.repositories.PermissionRepository
 
 typealias PermissionList = Map<String, JsonElement>
 
-@Service
 class PermissionService(
     private val permissionRepository: PermissionRepository,
     private val permissionDecoderService: PermissionDecoderService,

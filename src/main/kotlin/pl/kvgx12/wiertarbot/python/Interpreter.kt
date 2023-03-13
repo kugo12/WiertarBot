@@ -2,16 +2,14 @@ package pl.kvgx12.wiertarbot.python
 
 import jakarta.annotation.PreDestroy
 import jep.JepConfig
-import jep.JepException
 import jep.SharedInterpreter
 import jep.python.PyCallable
 import jep.python.PyObject
 import kotlinx.coroutines.*
 import org.intellij.lang.annotations.Language
-import pl.kvgx12.wiertarbot.execute
+import pl.kvgx12.wiertarbot.utils.execute
 import pl.kvgx12.wiertarbot.utils.getLogger
 import pl.kvgx12.wiertarbot.utils.newSingleThreadDispatcher
-import java.util.concurrent.Executors
 import kotlin.coroutines.*
 
 @Language("python")

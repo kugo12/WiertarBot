@@ -2,9 +2,7 @@ package pl.kvgx12.wiertarbot.services
 
 import org.springframework.amqp.core.MessageBuilder
 import org.springframework.amqp.rabbit.core.RabbitTemplate
-import org.springframework.stereotype.Service
 
-@Service
 class RabbitMQService(
     private val template: RabbitTemplate,
 ) {

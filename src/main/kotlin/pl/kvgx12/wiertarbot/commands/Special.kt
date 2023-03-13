@@ -16,7 +16,6 @@ import pl.kvgx12.wiertarbot.services.PermissionService
 private const val THINKING_EMOJI = "\uD83E\uDD14"
 private const val ANGRY_EMOJI = "\uD83D\uDE20"
 
-@Component
 class SpecialCommands(
     specialCommands: SpecialCommandsConfiguration,
     permissionService: PermissionService,

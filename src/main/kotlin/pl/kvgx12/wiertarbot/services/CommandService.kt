@@ -4,15 +4,14 @@ import jep.python.PyCallable
 import jep.python.PyObject
 import kotlinx.coroutines.*
 import org.springframework.scheduling.annotation.Async
-import org.springframework.stereotype.Service
 import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.config.SpecialCommandsConfiguration
 import pl.kvgx12.wiertarbot.config.WiertarbotProperties
 import pl.kvgx12.wiertarbot.events.Attachment
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
-import pl.kvgx12.wiertarbot.execute
 import pl.kvgx12.wiertarbot.python.*
+import pl.kvgx12.wiertarbot.utils.AllOpen
 import java.time.Instant
 import java.util.Collections
 
@@ -44,7 +43,7 @@ sealed interface CommandHandler {
     }
 }
 
-@Service
+@AllOpen
 class CommandService(
     private val permissionService: PermissionService,
     private val wiertarbotProperties: WiertarbotProperties,

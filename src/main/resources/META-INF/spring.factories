@@ -1,0 +1,2 @@
+org.springframework.context.ApplicationContextInitializer=\
+  pl.kvgx12.wiertarbot.config.BeanInitializer

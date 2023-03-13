@@ -11,7 +11,6 @@ import java.time.Instant
 import kotlin.io.path.deleteIfExists
 import kotlin.io.path.div
 
-@Service
 class FBMessageService(
     private val fbMessageRepository: FBMessageRepository
 ) {

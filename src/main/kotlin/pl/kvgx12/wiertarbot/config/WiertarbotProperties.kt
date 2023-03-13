@@ -1,9 +1,8 @@
 package pl.kvgx12.wiertarbot.config
 
 import kotlinx.serialization.Serializable
-import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigurationProperties("wiertarbot")
+@ConfigProperties("wiertarbot")
 @Serializable
 data class WiertarbotProperties(
     val sentry: Sentry = Sentry(),
