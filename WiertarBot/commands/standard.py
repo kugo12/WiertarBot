@@ -361,7 +361,7 @@ async def tts(event: MessageEvent) -> IResponse:
 
         fn = 'tts.mp3'
         mime = 'audio/mp3'
-        files = await event.getContext().pyUploadRaw([FileData(fn, f, mime)], False)
+        files = await event.getContext().pyUploadRaw([FileData(fn, f.read(), mime)], True)
         msg = None
 
     return response(event, text=msg, files=files)
