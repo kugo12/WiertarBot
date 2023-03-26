@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
 	val kotlinVersion = "1.8.0"
@@ -64,6 +63,11 @@ dependencies {
 	implementation("io.sentry:sentry-logback:6.14.0")
 
 	implementation("dev.inmo:tgbotapi.core:5.2.1")
+
+	implementation("com.sksamuel.scrimage:scrimage-core:4.0.33")
+	implementation("com.twelvemonkeys.imageio:imageio-core:3.9.4")
+	implementation("com.twelvemonkeys.imageio:imageio:3.9.4")
+	implementation("com.twelvemonkeys.imageio:imageio-jpeg:3.9.3")
 
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 

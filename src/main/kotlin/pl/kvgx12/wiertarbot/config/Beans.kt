@@ -7,7 +7,7 @@ import org.springframework.cache.caffeine.CaffeineCacheManager
 import org.springframework.context.support.beans
 import org.springframework.core.env.ConfigurableEnvironment
 import pl.kvgx12.wiertarbot.Runner
-import pl.kvgx12.wiertarbot.commands.SpecialCommands
+import pl.kvgx12.wiertarbot.commands.commandBeans
 import pl.kvgx12.wiertarbot.connectors.FBConnector
 import pl.kvgx12.wiertarbot.connectors.TelegramConnector
 import pl.kvgx12.wiertarbot.services.*
@@ -23,14 +23,15 @@ fun beans() = beans {
     bean { binder.bind<WiertarbotProperties>() }
     interpreterBeans()
     rabbitBeans()
-    bean<SpecialCommandsConfiguration>()
 
     bean<RabbitMQService>()
-    bean<CommandService>()
     bean<FBMessageService>()
     bean<PermissionDecoderService>()
     bean<PermissionService>()
-    bean<SpecialCommands>()
+
+    commandBeans()
+    bean<CommandRegistrationService>()
+    bean<CommandService>()
 
     if (env.get("wiertarbot.fb.enabled", false)) {
         bean<FBConnector>()
