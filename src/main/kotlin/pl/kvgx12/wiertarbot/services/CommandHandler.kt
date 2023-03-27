@@ -7,6 +7,7 @@ import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.python.Interpreter
+import pl.kvgx12.wiertarbot.python.get
 
 sealed interface CommandHandler {
     @JvmInline
@@ -17,6 +18,10 @@ sealed interface CommandHandler {
         ) = interpreter {
             f.intoCoroutine(arrayOf(event))
         } as? Response
+
+        suspend inline fun help(interpreter: Interpreter): String = interpreter {
+            f.get("__doc__")
+        }
     }
 
     @JvmInline
@@ -35,4 +40,10 @@ sealed interface CommandHandler {
 fun CommandData.toHandler() = when (this) {
     is Command -> CommandHandler.KtGeneric(this)
     is ImageEditCommand -> CommandHandler.ImageEdit(this)
+}
+
+suspend fun CommandHandler.help(interpreter: Interpreter) = when (this) {
+    is CommandHandler.ImageEdit -> command.help
+    is CommandHandler.KtGeneric -> f.help
+    is CommandHandler.PyGeneric -> help(interpreter)
 }

@@ -9,7 +9,10 @@ data class HelpEvaluationContext(
 ) {
     inline fun StringBuilder.usage(string: String = "") =
         section("Użycie")
-            .append(prefix).append(name).append(' ').append(string)
+            .append(prefix).append(name).append(' ').append(string).append('\n')
+
+    inline fun StringBuilder.additionalUsage(string: String) =
+        append("    ").append(prefix).append(name).append(' ').append(string).append('\n')
 
     inline fun StringBuilder.returns(string: String) =
         section("Zwraca", string)
@@ -23,6 +26,7 @@ data class HelpEvaluationContext(
     inline fun StringBuilder.section(name: String, value: String) =
         section(name)
             .append(value)
+            .append('\n')
 
     companion object {
         inline fun from(dsl: CommandDsl) = HelpEvaluationContext(
