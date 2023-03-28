@@ -74,6 +74,8 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:2.2.4")
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.2.4")
 
+    implementation("it.skrape:skrapeit-html-parser:1.2.2")
+
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     runtimeOnly("org.postgresql:postgresql")

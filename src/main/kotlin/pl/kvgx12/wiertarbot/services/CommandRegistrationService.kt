@@ -35,6 +35,11 @@ class CommandRegistrationService(
         }
     }
 
+//    @PostConstruct
+//    fun postConstruct() {
+//        initCommandPermissions()
+//    }
+
     private suspend fun registerPythonCommands() {
         interpreter {
             dispatcherHook(wiertarBot.init_dispatcher())
