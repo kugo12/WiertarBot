@@ -18,6 +18,8 @@ abstract class ConnectorContext(
     abstract suspend fun fetchRepliedTo(event: MessageEvent): MessageEvent?
     abstract suspend fun upload(files: List<String>, voiceClip: Boolean = false): List<UploadedFile>?
 
+    suspend inline fun upload(file: String, voiceClip: Boolean = false) = upload(listOf(file), voiceClip)
+
     inline fun <T> intoFuture(crossinline f: suspend () -> T): PyFuture<T> = interpreter.wrapIntoFuture { f() }
 
     fun pySendResponse(response: Response) = intoFuture { sendResponse(response) }
