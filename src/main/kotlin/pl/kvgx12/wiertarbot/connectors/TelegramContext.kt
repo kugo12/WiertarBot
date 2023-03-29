@@ -130,7 +130,7 @@ class TelegramContext(
         if (!response.files.isNullOrEmpty() && sendFiles(response, response.files))
             return
 
-        if (response.text != null) {
+        if (!response.text.isNullOrEmpty()) {
             execute(
                 SendTextMessage(
                     message.chat.id,

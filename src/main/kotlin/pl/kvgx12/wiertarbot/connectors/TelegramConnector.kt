@@ -1,22 +1,24 @@
 package pl.kvgx12.wiertarbot.connectors
 
-import dev.inmo.micro_utils.coroutines.*
+import dev.inmo.micro_utils.coroutines.subscribe
 import dev.inmo.tgbotapi.abstracts.FromUser
 import dev.inmo.tgbotapi.bot.ktor.telegramBot
 import dev.inmo.tgbotapi.requests.bot.GetMe
 import dev.inmo.tgbotapi.types.files.PhotoSize
 import dev.inmo.tgbotapi.types.files.TelegramMediaFile
-import dev.inmo.tgbotapi.types.message.abstracts.*
-import dev.inmo.tgbotapi.types.message.content.*
+import dev.inmo.tgbotapi.types.message.abstracts.ContentMessage
+import dev.inmo.tgbotapi.types.message.abstracts.Message
+import dev.inmo.tgbotapi.types.message.abstracts.PossiblyReplyMessage
+import dev.inmo.tgbotapi.types.message.content.MediaCollectionContent
+import dev.inmo.tgbotapi.types.message.content.MediaContent
+import dev.inmo.tgbotapi.types.message.content.MessageContent
 import dev.inmo.tgbotapi.types.update.MessageUpdate
 import dev.inmo.tgbotapi.types.update.abstracts.Update
-import dev.inmo.tgbotapi.utils.PreviewFeature
-import dev.inmo.tgbotapi.utils.RiskFeature
 import dev.inmo.tgbotapi.utils.TelegramAPIUrlsKeeper
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.stereotype.Component
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.runBlocking
 import pl.kvgx12.wiertarbot.config.TelegramProperties
 import pl.kvgx12.wiertarbot.connector.Connector
 import pl.kvgx12.wiertarbot.events.Attachment
@@ -80,6 +82,7 @@ class TelegramConnector(
             originalExtension = null,
             isAnimated = false
         )
-        else -> Attachment(id=file.fileId.fileId)
+
+        else -> Attachment(id = file.fileId.fileId)
     }
 }

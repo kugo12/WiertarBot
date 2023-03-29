@@ -56,6 +56,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
     implementation("black.ninia:jep:4.1.1")
     implementation("io.sentry:sentry-spring-boot-starter-jakarta:6.14.0")
@@ -75,6 +76,8 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-json:2.2.4")
 
     implementation("it.skrape:skrapeit-html-parser:1.2.2")
+
+//    implementation("com.google.cloud:google-cloud-texttospeech:2.7.0")
 
     developmentOnly("org.springframework.boot:spring-boot-devtools")
 
