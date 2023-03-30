@@ -1,13 +1,11 @@
 package pl.kvgx12.wiertarbot.commands.image.edit
 
-import pl.kvgx12.wiertarbot.command.ImageEdit
 import pl.kvgx12.wiertarbot.command.command
 import pl.kvgx12.wiertarbot.utils.*
 import java.awt.Color
 import java.awt.image.BufferedImage
 
-val deepfryCommand = command {
-    name = "deepfry"
+val deepfryCommand = command("deepfry") {
     help {
         it.usage()
             .returns("usmażone zdjęcie")

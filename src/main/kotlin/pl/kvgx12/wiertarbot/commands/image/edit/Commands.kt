@@ -2,7 +2,6 @@ package pl.kvgx12.wiertarbot.commands.image.edit
 
 import com.sksamuel.scrimage.ImmutableImage
 import pl.kvgx12.wiertarbot.Constants
-import pl.kvgx12.wiertarbot.command.ImageEdit
 import pl.kvgx12.wiertarbot.command.command
 import pl.kvgx12.wiertarbot.command.commands
 import pl.kvgx12.wiertarbot.utils.ImageUtils
@@ -29,8 +28,7 @@ val font: Font by lazy {
 val imageEditCommands = commands {
     deepfryCommand()
 
-    command {
-        name = "2021"
+    command("2021") {
         help(
             returns = "przerobione zdjęcie z templatem 2021",
             info = replyInfo
@@ -44,8 +42,7 @@ val imageEditCommands = commands {
         }
     }
 
-    command {
-        name = "nobody"
+    command("nobody") {
         help(
             usage = "(tekst)",
             returns = "przerobione zdjęcie z opcjonalnym własnym tekstem",
@@ -64,8 +61,7 @@ val imageEditCommands = commands {
         }
     }
 
-    command {
-        name = "wypierdalaj"
+    command("wypierdalaj") {
         help(
             returns = "przerobione zdjęcie z WYPIERDALAJ",
             info = replyInfo

@@ -4,7 +4,6 @@ import org.springframework.context.support.BeanDefinitionDsl
 import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.command
 import pl.kvgx12.wiertarbot.command.commands
-import pl.kvgx12.wiertarbot.events.Response
 import kotlin.io.path.div
 import kotlin.io.path.listDirectoryEntries
 
@@ -19,16 +18,10 @@ val localMediaCommands = commands {
 }
 
 private fun BeanDefinitionDsl.localMediaCommand(name: String, returns: String, dir: String) =
-    command {
-        this.name = name
+    command(name) {
         help(returns = "losowe zdjęcie $returns")
 
         val files = (Constants.commandMediaPath / dir).listDirectoryEntries()
 
-        generic {
-            Response(
-                it,
-                files = it.context.upload(files.random().toString())
-            )
-        }
+        files { listOf(files.random().toString()) }
     }

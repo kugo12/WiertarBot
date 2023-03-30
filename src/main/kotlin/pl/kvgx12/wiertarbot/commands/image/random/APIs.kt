@@ -21,58 +21,51 @@ import kotlin.random.Random
 val randomImageApiCommands = commands {
     randomImageCommand<Link>("hug", "z tuleniem", "https://some-random-api.ml/animu/hug")
     randomImageCommand<Link>("wink", "z mrugnięciem", "https://some-random-api.ml/animu/wink")
-    randomImageCommand<Link>("pandka", "z pandką", "https://some-random-api.ml/img/red_panda", listOf("panda"))
+    randomImageCommand<Link>("pandka", "z pandką", "https://some-random-api.ml/img/red_panda", "panda")
     randomImageCommand<Link>("birb", "z ptaszkiem", "https://some-random-api.ml/img/birb")
 
-    randomImageCommand<Message>("doggo", "z pieskiem", "https://dog.ceo/api/breeds/image/random", listOf("dog", "pies"))
+    randomImageCommand<Message>("doggo", "z pieskiem", "https://dog.ceo/api/breeds/image/random", "dog", "pies")
     randomImageCommand<Message>("beagle", "z pieskiem rasy beagle", "https://dog.ceo/api/breed/beagle/images/random")
 
-    randomImageCommand<Meme>("mem", "z memem", "https://meme-api.com/gimme", listOf("meme"))
+    randomImageCommand<Meme>("mem", "z memem", "https://meme-api.com/gimme", "meme")
 
-    command {
-        name = "shiba"
+    command("shiba") {
         help(usage = "(ilość<=10)", returns = "zdjęcie/a z pieskami rasy shiba")
 
-        generic { event ->
+        files { event ->
             val count = event.text.split(' ', limit = 2)
                 .getOrNull(1)
                 ?.toIntOrNull()
                 ?: 1
 
-            val urls = client.get("https://shibe.online/api/shibes?count=$count&urls=true&httpsUrls=true")
+            client.get("https://shibe.online/api/shibes?count=$count&urls=true&httpsUrls=true")
                 .body<List<String>>()
-
-            Response(event, files = event.context.upload(urls))
         }
     }
 
     bean {
         ref<WiertarbotProperties>().catApi.key?.let { key ->
-            command {
-                name = "catto"
-                aliases = listOf("cat", "kot")
+            command("catto", "cat", "kot") {
                 help(returns = "zdjęcie z kotem")
 
-                generic { event ->
+                files { event ->
                     val response = client.get("https://api.thecatapi.com/v1/images/search") {
                         header("x-api-key", key)
                     }.body<List<CatApiResponse>>()
 
-                    Response(event, files = event.context.upload(response.first().url))
+                    listOf(response.first().url)
                 }
             }
         }
         Unit
     }
 
-    command {
-        name = "zolw"
-        aliases = listOf("żółw")
+    command("zolw", "żółw") {
         help(returns = "zdjęcie z żółwikiem")
 
         var pages = 1000
 
-        generic { event ->
+        rawFiles { event ->
             val response = client.get("https://unsplash.com/napi/search/photos") {
                 parameter("per_page", "1")
                 parameter("query", "turtle")
@@ -84,9 +77,7 @@ val randomImageApiCommands = commands {
             val url = response.results.first().urls.regular
             val imageResponse = client.get(url)
 
-            val file = listOf(FileData(url, imageResponse.body(), imageResponse.contentType().toString()))
-
-            Response(event, files = event.context.uploadRaw(file))
+            listOf(FileData(url, imageResponse.body(), imageResponse.contentType().toString()))
         }
     }
 }
@@ -103,10 +94,8 @@ private inline fun <reified T : WithFileAndMessage> BeanDefinitionDsl.randomImag
     name: String,
     returns: String,
     apiUrl: String,
-    aliases: List<String> = emptyList(),
-) = command {
-    this.name = name
-    this.aliases = aliases
+    vararg aliases: String,
+) = command(name, *aliases) {
     help(returns = "losowe zdjęcie $returns")
 
     generic { event ->

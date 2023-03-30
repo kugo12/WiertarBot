@@ -31,88 +31,75 @@ import kotlin.random.Random
 
 
 val standardCommands = commands {
-    command {
-        name = "wybierz"
+    command("wybierz") {
         help(usage = "<opcje do wyboru po przecinku>", returns = "losowo wybraną opcję")
 
-        generic {
-            val text = it.text.split(' ', limit = 2)
+        text {
+            it.text.split(' ', limit = 2)
                 .getOrNull(1)
                 ?.split(',')
                 ?.random()
                 ?: "Brak opcji do wyboru"
-
-            Response(it, text = text)
         }
     }
 
-    command {
-        name = "moneta"
+    command("moneta") {
         help(returns = "wynik rzutu monetą")
 
-        generic { Response(it, text = if (Random.nextBoolean()) "Orzeł!" else "Reszka!") }
+        text { if (Random.nextBoolean()) "Orzeł!" else "Reszka!" }
     }
 
-    command {
-        name = "kostka"
+    command("kostka") {
         help(returns = "wynik rzutu kostką")
 
-        generic { Response(it, text = "Wyrzuciłeś ${Random.nextInt(1, 7)}") }
+        text { "Wyrzuciłeś ${Random.nextInt(1, 7)}" }
     }
 
-    command {
-        name = "donate"
+    command("donate") {
         help(returns = "link do pp")
 
-        generic { Response(it, text = "https://paypal.me/kugo12\nZ góry dzięki") }
+        text { "https://paypal.me/kugo12\nZ góry dzięki" }
     }
 
-    command {
-        name = "changelog"
+    command("changelog") {
         help(returns = "link do spisu zmian")
 
-        generic { Response(it, text = "https://github.com/kugo12/WiertarBot/commits/main") }
+        text { "https://github.com/kugo12/WiertarBot/commits/main" }
     }
 
-    command {
-        name = "kod"
+    command("kod") {
         help(returns = "link do kodu bota")
 
-        generic { Response(it, text = "https://github.com/kugo12/WiertarBot") }
+        text { "https://github.com/kugo12/WiertarBot" }
     }
 
-    command {
-        name = "sugestia"
+    command("sugestia") {
         help(returns = "https://github.com/kugo12/WiertarBot/issues")
 
-        generic { Response(it, text = "https://github.com/kugo12/WiertarBot/issues") }
+        text { "https://github.com/kugo12/WiertarBot/issues" }
     }
 
-    command {
-        name = "barka"
+    command("barka") {
         help(returns = "tekst barki")
 
-        generic { Response(it, text = barka) }
+        text { barka }
     }
 
-    command {
-        name = "Xd"
-        aliases = listOf("xd")
+    command("Xd", "xd") {
         help(returns = "copypaste o Xd")
 
         val prefixLength = dsl.ref<WiertarbotProperties>().prefix.length
 
-        generic { if (it.text.drop(prefixLength) == "Xd") Response(it, text = pastaXd) else null }
+        text { if (it.text.drop(prefixLength) == "Xd") pastaXd else null }
     }
 
-    command {
-        name = "miejski"
+    command("miejski") {
         help(usage = "<wyraz>", returns = "definicję podanego wyrazu z www.miejski.pl")
 
         val baseUrl = Url("https://www.miejski.pl")
 
-        generic { event ->
-            val text = event.text.split(' ', limit = 2)
+        text { event ->
+            event.text.split(' ', limit = 2)
                 .getOrNull(1)
                 ?.let {
                     val phrase = it.lowercase()
@@ -143,22 +130,18 @@ val standardCommands = commands {
                     }
                 }
                 ?: help
-
-            Response(event, text = text)
         }
     }
 
-    command {
-        name = "niedziela"
-        aliases = listOf("niedziele")
+    command("niedziela", "niedziele") {
         help(returns = "najbliższe niedziele handlowe")
 
-        generic { event ->
+        text { event ->
             val now = Clock.System.now().toLocalDateTime(plZone).date
             val dates = sundays.filter { it >= now }
             val first = dates.firstOrNull()
 
-            val text = buildString {
+            buildString {
                 first?.let {
                     append(
                         if (it == now) "Dzisiejsza niedziela jest handlowa\n\n"
@@ -169,22 +152,19 @@ val standardCommands = commands {
                 append("Kolejne niedziele handlowe: ")
                 dates.drop(1).joinTo(this, separator = ", ")
             }
-
-            Response(event, text = text)
         }
     }
 
-    command {
-        name = "covid"
+    command("covid") {
         help(returns = "aktualne informacje o covid w Polsce")
 
-        generic { event ->
+        text { event ->
             val data =
                 client.get("https://services-eu1.arcgis.com/zk7YlClTgerl62BY/arcgis/rest/services/global_corona_actual_widok3/FeatureServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=1&where=1%3D1&outFields=*")
                     .body<CovidResponse>()
                     .features.first().attributes
 
-            val text = """
+            """
                 Statystyki COVID19 w Polsce na ${data.date}:
                 Dziennie:
                 ${data.dailyInfections} zakażonych
@@ -199,20 +179,16 @@ val standardCommands = commands {
                 ${data.totalRecovered} ozdrowieńców
                 ${data.totalDeaths} zgonów
             """.trimIndent()
-
-            Response(event, text = text)
         }
     }
 
-    command {
-        name = "slownik"
-        aliases = listOf("słownik")
+    command("slownik", "słownik") {
         help(usage = "<wyraz>", returns = "definicje podanego wyrazu z sjp.pwn.pl")
 
         val baseUrl = Url("https://sjp.pwn.pl/slowniki")
 
-        generic { event ->
-            val text = event.text.split(' ', limit = 2)
+        text { event ->
+            event.text.split(' ', limit = 2)
                 .getOrNull(1)
                 ?.let {
                     val phrase = it.lowercase()
@@ -239,18 +215,14 @@ val standardCommands = commands {
                     }
                 }
                 ?: help
-
-            Response(event, text = text)
         }
     }
 
-    command {
-        name = "track"
-        aliases = listOf("tracking")
+    command("track", "tracking") {
         help(usage = "<numer śledzenia>", returns = "status paczki")
 
-        generic { event ->
-            val text = event.text.split(' ', limit = 2)
+        text { event ->
+            event.text.split(' ', limit = 2)
                 .getOrNull(1)
                 ?.let {
                     val response = client.post("https://api.alipaczka.pl/track/$it/") {
@@ -282,13 +254,10 @@ val standardCommands = commands {
                     }
                 }
                 ?: help
-
-            Response(event, text = text)
         }
     }
 
-    command {
-        name = "mc"
+    command("mc") {
         help(usage = "<skin> <nick>", returns = "skin dla podanego nicku")
 
         generic { event ->
@@ -330,8 +299,7 @@ val standardCommands = commands {
         }
     }
 
-    command {
-        name = "szkaluj"
+    command("szkaluj") {
         help(usage = "(oznaczenie/random)", returns = "tekst szkalujący osobę")
 
         val lines by lazy {
@@ -370,14 +338,13 @@ val standardCommands = commands {
         }
     }
 
-    command {
-        name = "czas"
+    command("czas") {
         help(returns = "aktualny czas oraz odliczenia")
 
-        generic { event ->
+        text { event ->
             val now = Clock.System.now()
 
-            val text = buildString {
+            buildString {
                 append("Jest ", dateTimeFormat.format(now.toLocalDateTime(plZone).toJavaLocalDateTime()))
 
                 czasTimers.forEach { (text, date) ->
@@ -395,8 +362,6 @@ val standardCommands = commands {
                         )
                 }
             }
-
-            Response(event, text = text)
         }
     }
 
@@ -471,12 +436,11 @@ val standardCommands = commands {
 //
 //        return response(event, text=msg)
 
-    command {
-        name = "fantano"
+    command("fantano") {
         help(usage = "<nazwa albumu>", returns = "ocene albumu fantano")
 
-        generic { event ->
-            val text = event.text.split(' ', limit = 2)
+        text { event ->
+            event.text.split(' ', limit = 2)
                 .getOrNull(1)
                 ?.let {
                     val review = Fantano.getRate(it)
@@ -488,20 +452,17 @@ val standardCommands = commands {
                     """.trimIndent()
                 }
                 ?: help
-
-            Response(event, text = text)
         }
     }
 
-    command {
-        name = "kurs"
+    command("kurs") {
         help(
             usage = "<z waluty> <do waluty> (ilosc=1)",
             returns = "Kurs aktualizowany dziennie z europejskiego banku centralnego"
         )
 
-        generic { event ->
-            val text = event.text.split(' ', limit = 4)
+        text { event ->
+            event.text.split(' ', limit = 4)
                 .let { if (it.size > 2) it else null }
                 ?.let {
                     val from = it[1].uppercase()
@@ -516,8 +477,6 @@ val standardCommands = commands {
                     )
                 }
                 ?: help
-
-            Response(event, text = text)
         }
     }
 }

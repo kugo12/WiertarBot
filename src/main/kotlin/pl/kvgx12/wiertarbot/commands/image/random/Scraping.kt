@@ -7,14 +7,12 @@ import io.ktor.client.statement.*
 import it.skrape.core.htmlDocument
 import pl.kvgx12.wiertarbot.command.command
 import pl.kvgx12.wiertarbot.command.commands
-import pl.kvgx12.wiertarbot.events.Response
 
 val randomImageScrapingCommands = commands {
-    command {
-        name = "suchar"
+    command("suchar") {
         help(returns = "zdjęcie z sucharem")
 
-        generic { event ->
+        files { event ->
             val response = client.get("https://www.suchary.com/random.html").bodyAsText()
 
             val url = htmlDocument(response) {
@@ -23,7 +21,7 @@ val randomImageScrapingCommands = commands {
                 }
             }
 
-            Response(event, files = event.context.upload(url))
+            listOf(url)
         }
     }
 
