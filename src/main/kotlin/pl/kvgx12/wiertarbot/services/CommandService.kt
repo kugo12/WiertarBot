@@ -8,7 +8,6 @@ import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.config.WiertarbotProperties
 import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.python.Interpreter
 import java.time.Instant
 import java.util.*
 import kotlin.collections.set
@@ -16,7 +15,6 @@ import kotlin.collections.set
 class CommandService(
     private val permissionService: PermissionService,
     private val wiertarbotProperties: WiertarbotProperties,
-    private val interpreter: Interpreter,
     commandRegistrationService: CommandRegistrationService,
 ) {
     private val commands = commandRegistrationService.commands
@@ -52,10 +50,6 @@ class CommandService(
                     )
                 ) {
                     when (val command = commands[commandName]) {
-                        is CommandHandler.PyGeneric -> interpreter.launch {
-                            command(interpreter, event)?.send()
-                        }
-
                         is CommandHandler.ImageEdit -> launch {
                             command(event)?.let {
                                 imageEditQueue[event.editQueueId] = Instant.now().epochSecond to it

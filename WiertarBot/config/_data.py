@@ -26,11 +26,6 @@ class SentryConfig:
     sample_rate: float = 1.0
 
 
-@config.properties("wiertarbot.catApi", optional=True)
-class CatApiConfig:
-    key: str
-
-
 @config.properties("rabbitmq", optional=True)
 class RabbitMQConfig:
     url: str

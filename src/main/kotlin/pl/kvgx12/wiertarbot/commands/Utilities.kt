@@ -9,7 +9,6 @@ import pl.kvgx12.wiertarbot.command.commands
 import pl.kvgx12.wiertarbot.config.WiertarbotProperties
 import pl.kvgx12.wiertarbot.events.Mention
 import pl.kvgx12.wiertarbot.events.Response
-import pl.kvgx12.wiertarbot.python.Interpreter
 import pl.kvgx12.wiertarbot.services.CommandRegistrationService
 import pl.kvgx12.wiertarbot.services.FBMessageService
 import pl.kvgx12.wiertarbot.services.PermissionService
@@ -29,7 +28,6 @@ val utilityCommands = commands {
 
         val prefix = dsl.ref<WiertarbotProperties>().prefix
         val registrationService = dsl.provider<CommandRegistrationService>()
-        val interpreter = dsl.ref<Interpreter>()
 
         text { event ->
             val commands = registrationService.`object`.commands
@@ -37,7 +35,7 @@ val utilityCommands = commands {
 
             if (args.size == 2) {
                 commands[args.last().lowercase()]
-                    ?.help(interpreter)
+                    ?.help()
                     ?: "Nie znaleziono podanej komendy"
             } else {
                 "Prefix: $prefix\nKomendy: ${commands.keys.joinToString(", ")}"

@@ -45,9 +45,6 @@ def add_task(coro) -> asyncio.Task:
         pass
     return fut.result()
 
-def launch_task(coro) -> None:
-    loop.call_soon_threadsafe(loop.create_task, coro)
-
 def __setup_globals():
     global wbglobals, loop
     import types, sys
@@ -98,10 +95,7 @@ class Interpreter(
 
     val startCoroutine: PyCallable = get("start_coroutine")
     val addTask: PyCallable = get("add_task")
-    val launchTask: PyCallable = get("launch_task")
     val formatException: PyCallable = get("format_exception")
-    val wiertarBot: WiertarBotModule = getProxiedValue("WiertarBot")
-    val inspect: Inspect = getProxiedValue("inspect")
     val loop: EventLoop = getProxiedValue("loop")
 
     @PreDestroy

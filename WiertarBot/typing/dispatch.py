@@ -1,10 +1,7 @@
-from typing import Protocol, Optional, Union, TypeVar, ClassVar, TYPE_CHECKING
+from typing import Protocol, Union, TypeVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..abc import PyContext
-    from ..events import MessageEvent
-    from ..response import IResponse
-    from ..commands.ABCImageEdit import ImageEditABC
 
 
 _T_event = TypeVar("_T_event", contravariant=True)
@@ -20,19 +17,7 @@ class EventCallableWithContext(Protocol[_T_event]):
         pass
 
 
-class MessageEventCallable(Protocol):
-    __name__: ClassVar[str]
-
-    async def __call__(self, event: 'MessageEvent') -> Optional['IResponse']:
-        pass
-
-
 EventConsumer = Union[
     EventCallable,
     EventCallableWithContext
-]
-
-MessageEventConsumer = Union[
-    MessageEventCallable,
-    type['ImageEditABC']
 ]

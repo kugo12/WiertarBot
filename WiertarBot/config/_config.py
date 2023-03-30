@@ -25,6 +25,7 @@ env_regex = re.compile(r"\$(?P<b>{)?(?P<env>[A-Za-z_]+)(?(b)})")
 _Coro = Coroutine[Any, Any, _V]
 InitType = Callable[[], Union[_Coro[None], None]]
 
+
 def expand_env(string: str) -> str:
     for match in env_regex.finditer(string):
         name = match.group("env")
@@ -64,10 +65,12 @@ class ConfigInject(Generic[_CI]):
         self.value = value
 
     @overload
-    def __call__(self, func: Callable[Concatenate[_CI, _P], _Coro[_on_T_ret]]) -> Callable[_P, _Coro[Optional[_on_T_ret]]]: ...  # type: ignore
+    def __call__(self, func: Callable[Concatenate[_CI, _P], _Coro[_on_T_ret]]) -> Callable[
+        _P, _Coro[Optional[_on_T_ret]]]: ...  # type: ignore
 
     @overload
-    def __call__(self, func: Callable[_P, _Coro[_on_T_ret]]) -> Callable[_P, _Coro[Optional[_on_T_ret]]]: ...  # type: ignore
+    def __call__(self, func: Callable[_P, _Coro[_on_T_ret]]) -> Callable[
+        _P, _Coro[Optional[_on_T_ret]]]: ...  # type: ignore
 
     @overload
     def __call__(self, func: Callable[Concatenate[_CI, _P], _on_T_ret]) -> Callable[_P, Optional[_on_T_ret]]: ...
@@ -82,7 +85,6 @@ class ConfigInject(Generic[_CI]):
         pass_value = _get_first_arg_type(func) == self.value.__class__
 
         return partial(func, self.value) if pass_value else func
-
 
 
 class Config:
