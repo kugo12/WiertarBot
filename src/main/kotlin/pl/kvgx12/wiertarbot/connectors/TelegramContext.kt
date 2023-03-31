@@ -16,7 +16,6 @@ import dev.inmo.tgbotapi.types.media.*
 import dev.inmo.tgbotapi.types.message.abstracts.Message
 import dev.inmo.tgbotapi.types.message.abstracts.PossiblyReplyMessage
 import dev.inmo.tgbotapi.types.message.content.MediaGroupPartContent
-import dev.inmo.tgbotapi.types.message.textsources.TextSource
 import dev.inmo.tgbotapi.types.message.textsources.mention
 import dev.inmo.tgbotapi.types.message.textsources.regular
 import dev.inmo.tgbotapi.utils.RiskFeature
@@ -46,18 +45,29 @@ class TelegramContext(
 ) : ConnectorContext(interpreter) {
     private suspend inline fun <T : Any> execute(request: Request<T>) = connector.bot.execute(request)
 
-    private fun List<Mention>.toEntities(list: MutableList<TextSource>, text: String) =
-        mapNotNullTo(list) {
-            it.threadId.toLongOrNull()?.let { id ->
-                UserId(id).mention(text.slice(it.offset until it.offset + it.length))
-            }
-        }
+    private fun Mention.toEntity(text: String) =
+        UserId(threadId.toLong())
+            .mention(text.substring(offset, offset + length))
 
-    private fun Response.buildEntities() =
-        buildList {
-            mentions?.toEntities(this, text!!)
-            add(regular(text!!))
-        }
+    private fun Response.buildEntities() = buildList {
+        if (text == null) return@buildList
+
+        mentions?.let { mentions ->
+            val processed = mentions
+                .sortedBy { it.offset }
+                .fold(0) { acc, mention ->
+                    if (acc < mention.offset) {
+                        add(regular(text.substring(acc, mention.offset)))
+                    }
+                    add(mention.toEntity(text))
+
+                    mention.offset + mention.length
+                }
+
+            if (processed < text.length)
+                add(regular(text.substring(processed, text.length)))
+        } ?: add(regular(text))
+    }
 
     @OptIn(RiskFeature::class)
     private suspend fun sendFiles(response: Response, files: List<UploadedFile>) = coroutineScope {
@@ -68,7 +78,7 @@ class TelegramContext(
             val uploadedFile = files.first()
             val mimeType = uploadedFile.mimeType
             val file = uploadedFile.asMultipartFile()
-            val entities = response.text?.let { response.buildEntities() } ?: emptyList()
+            val entities = response.buildEntities()
 
             val request = when {  // TODO: mimetype as enum?
                 mimeType.startsWith("image") -> SendPhoto(
