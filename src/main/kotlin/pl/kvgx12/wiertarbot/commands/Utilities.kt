@@ -12,7 +12,6 @@ import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.services.CommandRegistrationService
 import pl.kvgx12.wiertarbot.services.FBMessageService
 import pl.kvgx12.wiertarbot.services.PermissionService
-import pl.kvgx12.wiertarbot.services.help
 import java.time.Duration
 import kotlin.io.path.div
 
@@ -35,7 +34,7 @@ val utilityCommands = commands {
 
             if (args.size == 2) {
                 commands[args.last().lowercase()]
-                    ?.help()
+                    ?.help
                     ?: "Nie znaleziono podanej komendy"
             } else {
                 "Prefix: $prefix\nKomendy: ${commands.keys.joinToString(", ")}"

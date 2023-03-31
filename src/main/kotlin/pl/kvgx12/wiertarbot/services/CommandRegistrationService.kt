@@ -18,13 +18,13 @@ class CommandRegistrationService(
     private val _aliases = mutableMapOf<String, String>()
     val aliases: Map<String, String> get() = _aliases
 
-    private val _commands = mutableMapOf<String, CommandHandler>()
-    val commands: Map<String, CommandHandler> get() = _commands
+    private val _commands = mutableMapOf<String, CommandData>()
+    val commands: Map<String, CommandData> get() = _commands
 
 
     init {
         commands.forEach {
-            register(it, it.toHandler())
+            register(it)
         }
     }
 
@@ -34,10 +34,10 @@ class CommandRegistrationService(
 //    }
 
 
-    private fun register(data: CommandData, handler: CommandHandler) {
-        _aliases.putAll(data.aliases.map { it to data.name })
-        _aliases[data.name] = data.name
-        _commands[data.name] = handler
+    private fun register(command: CommandData) {
+        _aliases.putAll(command.aliases.map { it to command.name })
+        _aliases[command.name] = command.name
+        _commands[command.name] = command
     }
 
     @Async

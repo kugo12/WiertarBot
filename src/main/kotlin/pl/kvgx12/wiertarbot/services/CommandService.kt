@@ -5,6 +5,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import pl.kvgx12.wiertarbot.Constants
+import pl.kvgx12.wiertarbot.command.Command
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.config.WiertarbotProperties
 import pl.kvgx12.wiertarbot.events.MessageEvent
@@ -50,14 +51,14 @@ class CommandService(
                     )
                 ) {
                     when (val command = commands[commandName]) {
-                        is CommandHandler.ImageEdit -> launch {
-                            command(event)?.let {
+                        is ImageEditCommand -> launch {
+                            command.check(event)?.let {
                                 imageEditQueue[event.editQueueId] = Instant.now().epochSecond to it
                             }
                         }
 
-                        is CommandHandler.KtGeneric -> launch {
-                            command(event)?.send()
+                        is Command -> launch {
+                            command.process(event)?.send()
                         }
 
                         null -> {}
