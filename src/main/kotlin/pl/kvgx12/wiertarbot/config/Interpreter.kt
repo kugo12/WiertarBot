@@ -27,7 +27,14 @@ fun BeanDefinitionDsl.interpreterBeans() {
     bean {
         WbGlobals(
             mapOf(
-                "config" to Json { encodeDefaults = true }.encodeToString(WbGlobals.Config(ref())),
+                "config" to Json { encodeDefaults = true }.encodeToString(
+                    WbGlobals.Config(
+                        WbGlobals.WiertarBot(
+                            fb = ref(),
+                            sentry = WbGlobals.Sentry(python = ref())
+                        )
+                    )
+                ),
                 "permission_repository" to ref<PermissionRepository>(),
                 "fb_message_repository" to ref<FBMessageRepository>(),
                 "milestone_repository" to ref<MessageCountMilestoneRepository>(),
@@ -66,5 +73,11 @@ private val libPath = System.getenv("JEP_LIB_PATH")
 @JvmInline
 private value class WbGlobals(val value: Map<String, Any>) {
     @Serializable
-    data class Config(val wiertarbot: WiertarbotProperties)
+    data class Config(val wiertarbot: WiertarBot)
+
+    @Serializable
+    data class WiertarBot(val fb: FBProperties, val sentry: Sentry)
+
+    @Serializable
+    data class Sentry(val python: PythonSentryProperties)
 }

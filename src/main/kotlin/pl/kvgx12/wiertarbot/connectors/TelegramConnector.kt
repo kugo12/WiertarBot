@@ -25,12 +25,10 @@ import pl.kvgx12.wiertarbot.events.Attachment
 import pl.kvgx12.wiertarbot.events.Event
 import pl.kvgx12.wiertarbot.events.ImageAttachment
 import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.python.Interpreter
 import pl.kvgx12.wiertarbot.utils.longPolling
 import pl.kvgx12.wiertarbot.utils.text
 
 class TelegramConnector(
-    private val interpreter: Interpreter,
     telegramProperties: TelegramProperties,
 ) : Connector {
     val keeper = TelegramAPIUrlsKeeper(telegramProperties.token)
@@ -54,7 +52,7 @@ class TelegramConnector(
 
     fun convert(message: Message): MessageEvent? {
         return MessageEvent(
-            context = TelegramContext(this, message, interpreter),
+            context = TelegramContext(this, message),
             text = message.text ?: "",
             authorId = (message as? FromUser ?: return null).user.id.chatId.toString(),
             threadId = message.chat.id.chatId.toString(),

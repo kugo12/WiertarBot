@@ -79,62 +79,64 @@ val utilityCommands = commands {
         }
     }
 
-    command("see") {
-        help(usage = "(ilosc <= 10)", returns = "jedną lub więcej ostatnio usuniętych wiadomości w wątku")
-        availableIn = ConnectorType.FB.set()
+    bean {
+        provider<FBMessageService>().ifAvailable { fbMessageService ->
+            command("see") {
+                help(usage = "(ilosc <= 10)", returns = "jedną lub więcej ostatnio usuniętych wiadomości w wątku")
+                availableIn = ConnectorType.FB.set()
 
-        val fbMessageService = dsl.ref<FBMessageService>()
+                text { event ->
+                    val count = event.text.split(' ', limit = 2).last()
+                        .toIntOrNull()?.coerceIn(1, 10)
+                        ?: 1
 
-        text { event ->
-            val count = event.text.split(' ', limit = 2).last()
-                .toIntOrNull()?.coerceIn(1, 10)
-                ?: 1
+                    val messages = fbMessageService.getDeletedMessages(event.threadId, count)
 
-            val messages = fbMessageService.getDeletedMessages(event.threadId, count)
+                    coroutineScope {
+                        messages.map { message ->
+                            val mentions = message.mentions.map {
+                                Mention(it.threadId, it.offset, it.length)
+                            }
+                            var voiceClip = false
+                            val attachments = message.attachments.mapNotNull {
+                                when (it.type) {
+                                    "ImageAttachment" -> Constants.attachmentSavePath / "${it.id}.${it.originalExtension}"
+                                    "VideoAttachment" -> Constants.attachmentSavePath / "${it.id}.mp4"
+                                    "AudioAttachment" -> {
+                                        voiceClip = true
+                                        Constants.attachmentSavePath / "${it.filename}"
+                                    }
 
-            coroutineScope {
-                messages.map { message ->
-                    val mentions = message.mentions.map {
-                        Mention(it.threadId, it.offset, it.length)
-                    }
-                    var voiceClip = false
-                    val attachments = message.attachments.mapNotNull {
-                        when (it.type) {
-                            "ImageAttachment" -> Constants.attachmentSavePath / "${it.id}.${it.originalExtension}"
-                            "VideoAttachment" -> Constants.attachmentSavePath / "${it.id}.mp4"
-                            "AudioAttachment" -> {
-                                voiceClip = true
-                                Constants.attachmentSavePath / "${it.filename}"
+                                    else -> null
+                                }
                             }
 
-                            else -> null
-                        }
+                            async {
+                                val files = when {
+                                    attachments.isNotEmpty() -> event.context.upload(
+                                        attachments.map { it.toString() },
+                                        voiceClip
+                                    )
+
+                                    else -> null
+                                }
+
+                                Response(
+                                    event,
+                                    text = message.text,
+                                    mentions = mentions,
+                                    files = files,
+                                    voiceClip = voiceClip
+                                ).send()
+                            }
+                        }.awaitAll()
                     }
 
-                    async {
-                        val files = when {
-                            attachments.isNotEmpty() -> event.context.upload(
-                                attachments.map { it.toString() },
-                                voiceClip
-                            )
-
-                            else -> null
-                        }
-
-                        Response(
-                            event,
-                            text = message.text,
-                            mentions = mentions,
-                            files = files,
-                            voiceClip = voiceClip
-                        ).send()
+                    when {
+                        messages.isEmpty() -> "Nie ma żadnych zapisanych usuniętych wiadomości w tym wątku"
+                        else -> null
                     }
-                }.awaitAll()
-            }
-
-            when {
-                messages.isEmpty() -> "Nie ma żadnych zapisanych usuniętych wiadomości w tym wątku"
-                else -> null
+                }
             }
         }
     }

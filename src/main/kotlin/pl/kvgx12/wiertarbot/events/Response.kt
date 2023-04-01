@@ -11,5 +11,4 @@ data class Response(
     val replyToId: String? = null
 ) {
     suspend fun send() = event.context.sendResponse(this)
-    fun pySend() = event.context.pySendResponse(this)
 }

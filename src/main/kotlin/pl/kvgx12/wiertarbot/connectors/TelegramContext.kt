@@ -29,7 +29,6 @@ import pl.kvgx12.wiertarbot.connector.*
 import pl.kvgx12.wiertarbot.events.Mention
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
-import pl.kvgx12.wiertarbot.python.Interpreter
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.Path
@@ -38,8 +37,7 @@ import kotlin.io.path.readBytes
 class TelegramContext(
     private val connector: TelegramConnector,
     private val message: Message,
-    interpreter: Interpreter,
-) : ConnectorContext(ConnectorType.Telegram, interpreter) {
+) : ConnectorContext(ConnectorType.Telegram) {
     private suspend inline fun <T : Any> execute(request: Request<T>) = connector.bot.execute(request)
 
     private fun Mention.toEntity(text: String) =

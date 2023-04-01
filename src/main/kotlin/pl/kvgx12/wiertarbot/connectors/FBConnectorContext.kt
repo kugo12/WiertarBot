@@ -7,9 +7,9 @@ import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.python.Interpreter
 
 class FBConnectorContext(
-    interpreter: Interpreter,
+    val interpreter: Interpreter,
     private val pyContext: PyContext,
-) : ConnectorContext(ConnectorType.FB, interpreter) {
+) : ConnectorContext(ConnectorType.FB) {
     override suspend fun getBotId() = interpreter {
         pyContext.get_bot_id()
     }

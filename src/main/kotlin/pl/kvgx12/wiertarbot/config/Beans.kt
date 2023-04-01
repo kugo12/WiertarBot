@@ -21,11 +21,9 @@ fun beans() = beans {
     bean { CaffeineCacheManager("permissions") }
 
     bean { binder.bind<WiertarbotProperties>() }
-    interpreterBeans()
     rabbitBeans()
 
     bean<RabbitMQService>()
-    bean<FBMessageService>()
     bean<PermissionDecoderService>()
     bean<PermissionService>()
 
@@ -34,6 +32,10 @@ fun beans() = beans {
     bean<CommandService>()
 
     if (env.get("wiertarbot.fb.enabled", false)) {
+        bean { binder.bind<FBProperties>() }
+        bean { binder.bind<PythonSentryProperties>() }
+        bean<FBMessageService>()
+        interpreterBeans()
         bean<FBConnector>()
     }
 
