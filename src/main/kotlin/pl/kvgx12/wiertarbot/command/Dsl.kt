@@ -2,11 +2,13 @@ package pl.kvgx12.wiertarbot.command
 
 import com.sksamuel.scrimage.ImmutableImage
 import org.springframework.context.support.BeanDefinitionDsl
+import pl.kvgx12.wiertarbot.connector.ConnectorType
 import pl.kvgx12.wiertarbot.connector.FileData
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.utils.toImmutableImage
 import java.awt.image.BufferedImage
+import java.util.*
 
 class CommandDsl(
     val dsl: BeanDefinitionDsl.BeanSupplierContext,
@@ -14,17 +16,18 @@ class CommandDsl(
     val aliases: List<String> = emptyList(),
 ) {
     var help: String? = null
+    var availableIn = ConnectorType.all()
 
     inline fun imageEdit(
         crossinline func: ImageEdit<BufferedImage>
-    ) = object : ImageEditCommand(help!!, name, aliases) {
+    ) = object : ImageEditCommand(help!!, name, aliases, availableIn) {
         override suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage =
             func(state, image)
     }
 
     inline fun immutableImageEdit(
         crossinline func: ImageEdit<ImmutableImage>
-    ) = object : ImageEditCommand(help!!, name, aliases) {
+    ) = object : ImageEditCommand(help!!, name, aliases, availableIn) {
         override suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage =
             func(state, image.toImmutableImage()).awt()
     }
@@ -35,11 +38,13 @@ class CommandDsl(
         val help = help!!
         val name = name
         val aliases = aliases
+        val availableIn = availableIn
 
         return object : Command {
             override val help: String get() = help
             override val name: String get() = name
             override val aliases: List<String> get() = aliases
+            override val availableIn: EnumSet<ConnectorType> get() = availableIn
 
             override suspend fun process(event: MessageEvent): Response? = func(event)
         }

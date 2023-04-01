@@ -6,6 +6,7 @@ import pl.kvgx12.wiertarbot.python.Interpreter
 import pl.kvgx12.wiertarbot.python.PyFuture
 
 abstract class ConnectorContext(
+    val connectorType: ConnectorType,
     val interpreter: Interpreter
 ) {
     abstract suspend fun getBotId(): String

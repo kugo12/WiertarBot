@@ -7,6 +7,7 @@ import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.command
 import pl.kvgx12.wiertarbot.command.commands
 import pl.kvgx12.wiertarbot.config.WiertarbotProperties
+import pl.kvgx12.wiertarbot.connector.ConnectorType
 import pl.kvgx12.wiertarbot.events.Mention
 import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.services.CommandRegistrationService
@@ -29,7 +30,8 @@ val utilityCommands = commands {
         val registrationService = dsl.provider<CommandRegistrationService>()
 
         text { event ->
-            val commands = registrationService.`object`.commands
+            val commands = registrationService.`object`
+                .commandsByConnector[event.context.connectorType]!!
             val args = event.text.split(' ', limit = 2)
 
             if (args.size == 2) {
@@ -79,6 +81,7 @@ val utilityCommands = commands {
 
     command("see") {
         help(usage = "(ilosc <= 10)", returns = "jedną lub więcej ostatnio usuniętych wiadomości w wątku")
+        availableIn = ConnectorType.FB.set()
 
         val fbMessageService = dsl.ref<FBMessageService>()
 

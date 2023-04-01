@@ -1,10 +1,7 @@
 package pl.kvgx12.wiertarbot.connectors
 
 import jep.python.PyObject
-import pl.kvgx12.wiertarbot.connector.ConnectorContext
-import pl.kvgx12.wiertarbot.connector.FileData
-import pl.kvgx12.wiertarbot.connector.ThreadData
-import pl.kvgx12.wiertarbot.connector.UploadedFile
+import pl.kvgx12.wiertarbot.connector.*
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.python.Interpreter
@@ -12,7 +9,7 @@ import pl.kvgx12.wiertarbot.python.Interpreter
 class FBConnectorContext(
     interpreter: Interpreter,
     private val pyContext: PyContext,
-) : ConnectorContext(interpreter) {
+) : ConnectorContext(ConnectorType.FB, interpreter) {
     override suspend fun getBotId() = interpreter {
         pyContext.get_bot_id()
     }

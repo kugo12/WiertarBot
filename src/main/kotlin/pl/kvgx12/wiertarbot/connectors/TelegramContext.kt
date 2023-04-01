@@ -25,10 +25,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import pl.kvgx12.wiertarbot.connector.ConnectorContext
-import pl.kvgx12.wiertarbot.connector.FileData
-import pl.kvgx12.wiertarbot.connector.ThreadData
-import pl.kvgx12.wiertarbot.connector.UploadedFile
+import pl.kvgx12.wiertarbot.connector.*
 import pl.kvgx12.wiertarbot.events.Mention
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
@@ -42,7 +39,7 @@ class TelegramContext(
     private val connector: TelegramConnector,
     private val message: Message,
     interpreter: Interpreter,
-) : ConnectorContext(interpreter) {
+) : ConnectorContext(ConnectorType.Telegram, interpreter) {
     private suspend inline fun <T : Any> execute(request: Request<T>) = connector.bot.execute(request)
 
     private fun Mention.toEntity(text: String) =

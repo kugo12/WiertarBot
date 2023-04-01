@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.Command
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
+import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.config.WiertarbotProperties
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import java.time.Instant
@@ -16,10 +17,10 @@ import kotlin.collections.set
 class CommandService(
     private val permissionService: PermissionService,
     private val wiertarbotProperties: WiertarbotProperties,
+    private val special: List<SpecialCommand>,
     commandRegistrationService: CommandRegistrationService,
 ) {
-    private val commands = commandRegistrationService.commands
-    private val special = commandRegistrationService.specialCommands
+    private val commands = commandRegistrationService.commandsByConnector
     private val aliases = commandRegistrationService.aliases
 
     private val imageEditQueue = Collections.synchronizedMap(
@@ -50,7 +51,7 @@ class CommandService(
                         event.authorId
                     )
                 ) {
-                    when (val command = commands[commandName]) {
+                    when (val command = commands[event.context.connectorType]!![commandName]) {
                         is ImageEditCommand -> launch {
                             command.check(event)?.let {
                                 imageEditQueue[event.editQueueId] = Instant.now().epochSecond to it

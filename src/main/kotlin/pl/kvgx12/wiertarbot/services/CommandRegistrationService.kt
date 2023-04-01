@@ -2,43 +2,37 @@ package pl.kvgx12.wiertarbot.services
 
 import org.springframework.scheduling.annotation.Async
 import pl.kvgx12.wiertarbot.command.CommandData
-import pl.kvgx12.wiertarbot.command.SpecialCommand
+import pl.kvgx12.wiertarbot.connector.ConnectorType
 import pl.kvgx12.wiertarbot.utils.AllOpen
 import kotlin.collections.component1
 import kotlin.collections.component2
-import kotlin.collections.set
+
 
 @AllOpen
 class CommandRegistrationService(
     val permissionService: PermissionService,
-    commands: List<CommandData>
+    commands: List<CommandData>,
 ) {
-    val specialCommands = commands.filterIsInstance<SpecialCommand>()
+    private val commands: Map<String, CommandData> = commands.associateBy { it.name }
 
-    private val _aliases = mutableMapOf<String, String>()
-    val aliases: Map<String, String> get() = _aliases
+    val aliases: Map<String, String> = commands.flatMap { command ->
+        command.aliases.map {
+            it to command.name
+        } + (command.name to command.name)
+    }.toMap()
 
-    private val _commands = mutableMapOf<String, CommandData>()
-    val commands: Map<String, CommandData> get() = _commands
-
-
-    init {
-        commands.forEach {
-            register(it)
+    val commandsByConnector: Map<ConnectorType, Map<String, CommandData>> =
+        ConnectorType.all().associateWith { type ->
+            commands
+                .filter { it.availableIn.contains(type) }
+                .associateBy { it.name }
         }
-    }
 
 //    @PostConstruct
 //    fun postConstruct() {
 //        initCommandPermissions()
 //    }
 
-
-    private fun register(command: CommandData) {
-        _aliases.putAll(command.aliases.map { it to command.name })
-        _aliases[command.name] = command.name
-        _commands[command.name] = command
-    }
 
     @Async
     fun initCommandPermissions() {

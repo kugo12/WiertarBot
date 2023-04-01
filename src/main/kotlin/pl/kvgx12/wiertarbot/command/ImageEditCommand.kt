@@ -7,6 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import pl.kvgx12.wiertarbot.connector.ConnectorType
 import pl.kvgx12.wiertarbot.connector.FileData
 import pl.kvgx12.wiertarbot.events.ImageAttachment
 import pl.kvgx12.wiertarbot.events.MessageEvent
@@ -14,6 +15,7 @@ import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.utils.tryCast
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
+import java.util.*
 import javax.imageio.ImageIO
 
 private const val mime = "image/jpeg"
@@ -26,6 +28,7 @@ abstract class ImageEditCommand(
     override val help: String,
     override val name: String,
     override val aliases: List<String>,
+    override val availableIn: EnumSet<ConnectorType>,
 ) : CommandData {
     inner class ImageEditState(
         private val initialMessage: MessageEvent,
