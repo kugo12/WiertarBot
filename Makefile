@@ -1,2 +1,2 @@
 install:
-	cd fbchat-asyncio && flit install
+	pip install . ./fbchat-asyncio ./ttrs-api
