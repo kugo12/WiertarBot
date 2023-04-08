@@ -1,6 +1,6 @@
 from typing import Protocol, Any, Optional
 
-from WiertarBot.database import FBMessage, MessageCountMilestone, Permission
+from WiertarBot.database import FBMessage, MessageCountMilestone
 import wbglobals
 
 
@@ -20,11 +20,5 @@ class IMessageCountMilestoneRepository(Protocol):
     def findFirstByThreadId(self, threadId: str) -> Optional[MessageCountMilestone]: ...
 
 
-class IPermissionRepository(Protocol):
-    def saveAndFlush(self, permission: Permission) -> Permission: ...
-    def findFirstByCommand(self, command: str) -> Optional[Permission]: ...
-
-
 FBMessageRepository: IFBMessageRepository = wbglobals.fb_message_repository
 MessageCountMilestoneRepository: IMessageCountMilestoneRepository = wbglobals.milestone_repository
-PermissionRepository: IPermissionRepository = wbglobals.permission_repository

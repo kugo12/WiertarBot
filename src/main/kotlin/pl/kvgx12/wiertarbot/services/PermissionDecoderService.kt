@@ -2,18 +2,14 @@ package pl.kvgx12.wiertarbot.services
 
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.cache.concurrent.ConcurrentMapCache
-import org.springframework.stereotype.Service
-import org.springframework.util.ConcurrentLruCache
 import pl.kvgx12.wiertarbot.entities.Permission
 import pl.kvgx12.wiertarbot.repositories.PermissionRepository
+import pl.kvgx12.wiertarbot.utils.AllOpen
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.ConcurrentMap
-import kotlin.jvm.optionals.getOrNull
 
-@Service
+@AllOpen
 class PermissionDecoderService(
     private val permissionRepository: PermissionRepository,
 ) {
@@ -25,4 +21,7 @@ class PermissionDecoderService(
 
     fun Permission.decodeLists(): Pair<PermissionList, PermissionList> =
         Json.decodeFromString<PermissionList>(whitelist) to Json.decodeFromString(blacklist)
+
+    @CacheEvict("permissions", allEntries = true)
+    fun clearCache() = Unit
 }

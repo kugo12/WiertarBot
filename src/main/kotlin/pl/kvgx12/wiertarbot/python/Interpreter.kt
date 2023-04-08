@@ -7,23 +7,28 @@ import jep.python.PyCallable
 import jep.python.PyObject
 import kotlinx.coroutines.*
 import org.intellij.lang.annotations.Language
-import pl.kvgx12.wiertarbot.execute
+import pl.kvgx12.wiertarbot.utils.execute
 import pl.kvgx12.wiertarbot.utils.getLogger
 import pl.kvgx12.wiertarbot.utils.newSingleThreadDispatcher
-import java.util.concurrent.Executors
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
+import kotlin.coroutines.*
 
 @Language("python")
 private const val STARTUP_SCRIPT = """
 import asyncio, threading, inspect
+from traceback import format_exception
 
 loop: asyncio.AbstractEventLoop = asyncio.new_event_loop()
 
+def __run_callback(callback, fut):
+    try:
+        callback(fut.result(), None)
+    except Exception as e:
+        callback(None, e)
+
 def __run_coroutine(fun, callback):
     fut = asyncio.ensure_future(fun, loop=loop)
-    fut.add_done_callback(lambda _: callback(fut.result()))
+    fut.add_done_callback(lambda _: __run_callback(callback, fut))
+    
 
 def __add_task(coro, fut: asyncio.Future):
     task = loop.create_task(coro)
@@ -39,9 +44,6 @@ def add_task(coro) -> asyncio.Task:
     while not fut.done():
         pass
     return fut.result()
-
-def launch_task(coro) -> None:
-    loop.call_soon_threadsafe(loop.create_task, coro)
 
 def __setup_globals():
     global wbglobals, loop
@@ -70,12 +72,15 @@ finally:
     loop.close()
 """
 
+class PythonException(val name: String, override val message: String) : Exception()
+
 class Interpreter(
     config: JepConfig,
     val context: ExecutorCoroutineDispatcher,
-    globals: Map<String, Any>,
-): SharedInterpreter() {
+    globals: Map<String, Any?>,
+) : SharedInterpreter() {
     private val log = getLogger()
+
     init {
         configureInterpreter(config)
         set("wbglobals", globals.toMutableMap().apply {
@@ -90,9 +95,8 @@ class Interpreter(
 
     val startCoroutine: PyCallable = get("start_coroutine")
     val addTask: PyCallable = get("add_task")
-    val launchTask: PyCallable = get("launch_task")
-    val wiertarBot: WiertarBotModule = getProxiedValue("WiertarBot")
-    val inspect: Inspect = getProxiedValue("inspect")
+    val formatException: PyCallable = get("format_exception")
+    val loop: EventLoop = getProxiedValue("loop")
 
     @PreDestroy
     private fun preDestroy() {
@@ -108,7 +112,7 @@ class Interpreter(
         }
     }
 
-    suspend inline operator fun<T> invoke(crossinline f: suspend Interpreter.() -> T) =
+    suspend inline operator fun <T> invoke(crossinline f: suspend Interpreter.() -> T) =
         context { f() }
 
     inline fun launch(crossinline f: suspend Interpreter.() -> Unit) =
@@ -121,44 +125,62 @@ class Interpreter(
         suspendCoroutine { continuation ->
             startCoroutine.call(
                 call(args, kwargs),
-                PyCallable1<Any?, Unit> { continuation.resume(it) }
+                asyncioCallback(continuation)
             )
         }
     }
 
-    suspend inline fun PyObject.pyAwait() = context {
+    suspend inline fun PyObject.pyAwait(): Any? = context {
         suspendCoroutine { continuation ->
             startCoroutine.call(
                 this@pyAwait,
-                PyCallable1<Any?, Unit> { continuation.resume(it) }
+                asyncioCallback(continuation)
             )
         }
     }
 
-    fun<T> createFuture(): PyFuture<T> = runBlocking(context) {
-        getProxiedValue("asyncio.Future(loop=loop)")
+    inline fun asyncioCallback(continuation: Continuation<Any?>) =
+        PyCallable2<Any?, PyObject?, Unit> { result, exception ->
+            if (exception != null) {
+                continuation.resumeWithException(
+                    PythonException(
+                        exception.className(),
+                        formatException.call(exception).toString()
+                    )
+                )
+            } else {
+                continuation.resume(result)
+            }
+        }
+
+    fun <T> createFuture(): PyFuture<T> = runBlocking(context) {
+        getProxiedValue("loop.create_future()")
     }
 
-    fun<T> wrapIntoFuture(f: suspend () -> T): PyFuture<T> {
+    fun <T> wrapIntoFuture(f: suspend () -> T): PyFuture<T> {
         val future = createFuture<T>()
 
         pyFutureScope.launch {
             val result = kotlin.runCatching { f() }
 
             context {
-                result.fold(future::set_result, future::set_exception)
+                loop.call_soon_threadsafe {
+                    result.fold(future::set_result, future::set_exception)
+                }
             }
         }.invokeOnCompletion {
             if (it is CancellationException)
                 runBlocking(context) {
-                    future.cancel(it)
+                    loop.call_soon_threadsafe {
+                        future.cancel(it)
+                    }
                 }
         }
 
         return future
     }
 
-    inline fun<reified T> get(name: String) = getValue(name, T::class.java)
+    inline fun <reified T> get(name: String) = getValue(name, T::class.java)
 
     class SharedAsyncInterpreter {
         val context = newSingleThreadDispatcher("asyncio-loop")

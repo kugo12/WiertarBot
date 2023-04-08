@@ -19,11 +19,37 @@ orbs:
   gradle: circleci/gradle@3.0.0
 
 commands:
+  setup_docker:
+    steps:
+      - setup_remote_docker:
+          version: 20.10.18
+  setup_buildkit:
+    steps:
+      - run:
+          name: Setup BuildKit
+          command: |
+            docker run --privileged --rm tonistiigi/binfmt --install arm64
+            docker context create builder
   docker_login:
     steps:
       - run:
           name: Docker login
           command: docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_TOKEN
+  skip_if_dir_not_changed:
+    parameters:
+      dir_pattern:
+        type: string
+    steps:
+      - run:
+          name: Check if << parameters.dir_pattern >> changed
+          command: |
+            CHANGED=$(git diff --name-only "<< pipeline.git.base_revision >>" | grep -E "^(.circleci|<< parameters.dir_pattern >>)")
+            
+            echo "$CHANGED"
+            if [ -z "$CHANGED" ]; then
+              echo "Found nothing changed matching << parameters.dir_pattern >>, skipping"
+              circleci-agent step halt
+            fi
 
 jobs:
   gradle_build:
@@ -52,28 +78,48 @@ jobs:
       - docker_login
       - run:
           name: Build and push
-          command: docker buildx build --progress=plain --push -f ./docker/Dockerfile -t $DOCKERHUB_USER/wiertarbot:$(uname -m)-${CIRCLE_SHA1} .
+          command: >
+            docker buildx build --progress=plain --push 
+            -t $DOCKERHUB_USER/wiertarbot:$(uname -m)-${CIRCLE_SHA1} 
+            -f ./docker/Dockerfile .
 
   create_manifest:
     executor: default
     steps:
-      - setup_remote_docker:
-          version: 20.10.14
+      - setup_docker
       - docker_login
       - run:
           name: Create and push manifest
           command: |
             set -eu
             export DOCKER_CLI_EXPERIMENTAL=enabled
-            docker manifest create $DOCKERHUB_USER/wiertarbot:latest \
-                                   $DOCKERHUB_USER/wiertarbot:aarch64-${CIRCLE_SHA1} \
-                                   $DOCKERHUB_USER/wiertarbot:x86_64-${CIRCLE_SHA1}
+            docker manifest create "$DOCKERHUB_USER/wiertarbot:latest" \
+                                   "$DOCKERHUB_USER/wiertarbot:aarch64-${CIRCLE_SHA1}" \
+                                   "$DOCKERHUB_USER/wiertarbot:x86_64-${CIRCLE_SHA1}"
             
-            docker manifest create $DOCKERHUB_USER/wiertarbot:${CIRCLE_SHA1} \
-                                   $DOCKERHUB_USER/wiertarbot:aarch64-${CIRCLE_SHA1} \
-                                   $DOCKERHUB_USER/wiertarbot:x86_64-${CIRCLE_SHA1}
+            docker manifest create "$DOCKERHUB_USER/wiertarbot:${CIRCLE_SHA1}" \
+                                   "$DOCKERHUB_USER/wiertarbot:aarch64-${CIRCLE_SHA1}" \
+                                   "$DOCKERHUB_USER/wiertarbot:x86_64-${CIRCLE_SHA1}"
             
-            docker manifest push $DOCKERHUB_USER/wiertarbot:latest
+            docker manifest push "$DOCKERHUB_USER/wiertarbot:latest"
+
+  build_and_push_ttrs_api:
+    executor: default
+    steps:
+      - checkout
+      - skip_if_dir_not_changed:
+          dir_pattern: ttrs-api
+      - setup_docker
+      - docker_login
+      - setup_buildkit
+      - run:
+          name: Build and push docker image
+          command: >
+            docker buildx build --progress=plain --push 
+            --builder builder --platform linux/arm64,linux/amd64 
+            -t "$DOCKERHUB_USER/wiertarbot-ttrs-api:${CIRCLE_SHA1}" 
+            -t "$DOCKERHUB_USER/wiertarbot-ttrs-api:latest" 
+            ttrs-api
 
   trigger_deployment:
     executor: default
@@ -104,6 +150,10 @@ workflows:
       - create_manifest:
           context: [dockerhub]
           requires: [build_and_push]
+
+      - build_and_push_ttrs_api:
+          context: [dockerhub]
+
       - trigger_deployment:
           context: [gitlab]
-          requires: [create_manifest]
+          requires: [create_manifest, build_and_push_ttrs_api]

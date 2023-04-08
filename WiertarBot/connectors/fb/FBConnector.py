@@ -79,7 +79,7 @@ class FBConnector:
                 log.warn('Error at loading session from cookies')
 
         return await fbchat.Session.login(
-            config.wiertarbot.email, config.wiertarbot.password,
+            config.wiertarbot.getEmail(), config.wiertarbot.getPassword(),
             on_2fa_callback=self._2fa_callback,
         )
 

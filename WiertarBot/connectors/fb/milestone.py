@@ -32,7 +32,7 @@ async def _update(thread: fbchat.ThreadABC, context: FBContext) -> Optional[int]
 
             milestone.setCount(milestone.getCount() + 1)
         else:
-            count = (await context.fetch_thread(thread.id)).message_count or 1
+            count = (await context.fetch_thread(thread.id)).getMessageCount() or 1
 
             milestone = MessageCountMilestoneRepository.findFirstByThreadId(thread.id) \
                         or MessageCountMilestone.new(thread_id=thread.id, count=count)

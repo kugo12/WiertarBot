@@ -1,10 +1,21 @@
-from typing import Optional, TYPE_CHECKING, Callable, Protocol, Any
+from typing import Optional, Protocol
 
-from pl.kvgx12.wiertarbot.events import Mention as KtMention
+from pl.kvgx12.wiertarbot.connector import FileData as KtFileData, UploadedFile as KtUploadedFile, \
+    ThreadData as KtThreadData
+from pl.kvgx12.wiertarbot.events import Mention as KtMention, MessageEvent as KtMessageEvent
 
-if TYPE_CHECKING:
-    from .response import IResponse
-    from .abc import PyContext
+
+class ThreadData(Protocol):
+    def __new__(cls, id: str, name: str, message_count: Optional[int], participants: list[str]) -> 'ThreadData':
+        return KtThreadData(id, name, message_count, participants)
+
+    def getId(self) -> str: ...
+
+    def getName(self) -> str: ...
+
+    def getMessageCount(self) -> Optional[int]: ...
+
+    def getParticipants(self) -> list[str]: ...
 
 
 class Mention(Protocol):
@@ -16,6 +27,26 @@ class Mention(Protocol):
     def getOffset(self) -> int: ...
 
     def getLength(self) -> int: ...
+
+
+class FileData(Protocol):
+    def __new__(cls, uri: str, content: bytes, media_type: str) -> 'FileData':
+        return KtFileData(uri, content, media_type)
+
+    def getUri(self) -> str: ...
+
+    def getContent(self) -> bytes: ...
+
+    def getMediaType(self) -> str: ...
+
+
+class UploadedFile(Protocol):
+    def __new__(cls, id: str, mime_type: str) -> 'UploadedFile':
+        return KtUploadedFile(id, mime_type)
+
+    def getId(self) -> str: ...
+
+    def getMimeType(self) -> str: ...
 
 
 class Attachment(Protocol):
@@ -32,27 +63,22 @@ class ImageAttachment(Attachment):
     def isAnimated(self) -> Optional[bool]: ...
 
 
-class Context(Protocol):
-    async def pySendResponse(self, response: 'IResponse') -> None: ...
-
-    async def pyUploadRaw(self, files: list[Any], voiceClip: bool) -> None: ...
-
-    async def pyFetchThread(self, threadId: str) -> Any: ...
-
-    async def pyFetchImageUrl(self, imageId: str) -> str: ...
-
-    async def pySendText(self, event: 'MessageEvent', text: str) -> None: ...
-
-    async def pyReactToMessage(self, event: 'MessageEvent', reaction: str) -> None: ...
-
-    async def pyFetchRepliedTo(self, event: 'MessageEvent') -> Any: ...
-
-    async def pySaveAttachment(self, attachment: Any) -> None: ...
-
-    async def pyUpload(self, files: list[str], voiceClip: bool) -> list[Any]: ...
-
+class Context(Protocol): ...
 
 class MessageEvent(Protocol):
+    def __new__(cls,
+                context: Context,
+                text: str,
+                author_id: str,
+                thread_id: str,
+                at: int,
+                mentions: list[Mention],
+                external_id: str,
+                reply_to_id: Optional[str],
+                attachments: list[Attachment],
+                ) -> 'MessageEvent':
+        return KtMessageEvent(context, text, author_id, thread_id, at, mentions, external_id, reply_to_id, attachments)
+
     def getContext(self) -> Context: ...
 
     def getText(self) -> str: ...
@@ -74,6 +100,3 @@ class MessageEvent(Protocol):
     def isGroup(self) -> bool: ...
 
     async def pyReact(self, reaction: str) -> None: ...
-
-    # FIXME: remove this hack
-    def copyWithDifferentText(cls, event: 'MessageEvent', text: str) -> 'MessageEvent': ...

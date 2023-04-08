@@ -1,2 +1,0 @@
-BASE: str
-TRANSLATE: str

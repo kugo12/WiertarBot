@@ -1,16 +1,12 @@
 package pl.kvgx12.wiertarbot.services
 
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
-import org.springframework.cache.annotation.Cacheable
-import org.springframework.stereotype.Service
 import pl.kvgx12.wiertarbot.entities.Permission
 import pl.kvgx12.wiertarbot.repositories.PermissionRepository
 
 typealias PermissionList = Map<String, JsonElement>
 
-@Service
 class PermissionService(
     private val permissionRepository: PermissionRepository,
     private val permissionDecoderService: PermissionDecoderService,
@@ -20,6 +16,8 @@ class PermissionService(
             ?: Permission(command = command, whitelist = """{"*": 0}""", blacklist = "{}")
                 .let { permissionRepository.saveAndFlush(it) }
     }
+
+    fun findByCommand(name: String) = permissionRepository.findFirstByCommand(name)
 
     fun edit(
         command: String,
@@ -74,6 +72,7 @@ class PermissionService(
         permission.whitelist = Json.encodeToString(whitelist)
         permission.blacklist = Json.encodeToString(blacklist)
         permissionRepository.saveAndFlush(permission)
+        permissionDecoderService.clearCache()
 
         return true
     }

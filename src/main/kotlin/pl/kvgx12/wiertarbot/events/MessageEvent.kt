@@ -12,11 +12,8 @@ data class MessageEvent(
     val externalId: String,
     val replyToId: String?,
     val attachments: List<Attachment>
-): Event {
+) : Event {
     val isGroup get() = threadId != authorId
 
     suspend fun react(reaction: String) = context.reactToMessage(this, reaction)
-    fun pyReact(reaction: String) = context.pyReactToMessage(this, reaction)
-
-    fun copyWithDifferentText(text: String) = copy(text = text)
 }
