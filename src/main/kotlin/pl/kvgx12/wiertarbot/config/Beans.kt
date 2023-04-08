@@ -18,6 +18,7 @@ annotation class ConfigProperties(val value: String)
 fun beans() = beans {
     val binder = env.getBinder()
 
+    bean { binder }
     bean { CaffeineCacheManager("permissions") }
 
     bean { binder.bind<WiertarbotProperties>() }
