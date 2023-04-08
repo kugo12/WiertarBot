@@ -27,9 +27,7 @@ commands:
     steps:
       - run:
           name: Setup BuildKit
-          command: |
-            docker run --privileged --rm tonistiigi/binfmt --install arm64
-            docker context create builder
+          command: docker buildx create --use
   docker_login:
     steps:
       - run:
@@ -140,6 +138,9 @@ workflows:
       equal: [ main, << pipeline.git.branch >> ]
 
     jobs:
+      - build_and_push_ttrs_api:
+          context: [dockerhub]
+
       - gradle_build
       - build_and_push:
           context: [dockerhub]
@@ -150,9 +151,6 @@ workflows:
       - create_manifest:
           context: [dockerhub]
           requires: [build_and_push]
-
-      - build_and_push_ttrs_api:
-          context: [dockerhub]
 
       - trigger_deployment:
           context: [gitlab]
