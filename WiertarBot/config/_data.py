@@ -1,17 +1,21 @@
-from ._config import Config
+from typing import Protocol, Final
+
 import wbglobals
 
-config = Config(wbglobals.config)
+
+class WiertarBotConfig(Protocol):
+    instance: Final['WiertarBotConfig'] = wbglobals.fb_properties
+
+    def getEmail(self) -> str: ...
+
+    def getPassword(self) -> str: ...
 
 
-@config.properties("wiertarbot.fb")
-class WiertarBotConfig:
-    email: str
-    password: str
+class SentryConfig(Protocol):
+    instance: Final['SentryConfig'] = wbglobals.sentry_properties
 
+    def getDsn(self) -> str: ...
 
-@config.properties("wiertarbot.sentry.python", optional=True)
-class SentryConfig:
-    dsn: str
-    environment: str = "dev"
-    sample_rate: float = 1.0
+    def getEnvironment(self) -> str: ...
+
+    def getSampleRate(self) -> float: ...

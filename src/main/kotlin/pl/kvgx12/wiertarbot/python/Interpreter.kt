@@ -77,7 +77,7 @@ class PythonException(val name: String, override val message: String) : Exceptio
 class Interpreter(
     config: JepConfig,
     val context: ExecutorCoroutineDispatcher,
-    globals: Map<String, Any>,
+    globals: Map<String, Any?>,
 ) : SharedInterpreter() {
     private val log = getLogger()
 

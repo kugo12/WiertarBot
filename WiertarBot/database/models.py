@@ -1,23 +1,7 @@
 from typing import Optional, Protocol
 from pl.kvgx12.wiertarbot.entities import \
     FBMessage as _FBMessage, \
-    MessageCountMilestone as _MessageCountMilestone, \
-    Permission as _Permission
-
-
-class Permission(Protocol):
-    @staticmethod
-    def new(command: str, whitelist: str, blacklist: str) -> 'Permission':
-        return _Permission(None, command, whitelist, blacklist)
-
-
-    def getId(self) -> int: ...
-
-    def getCommand(self) -> str: ...
-
-    def getWhitelist(self) -> str: ...
-
-    def getBlacklist(self) -> str: ...
+    MessageCountMilestone as _MessageCountMilestone
 
 
 class FBMessage(Protocol):

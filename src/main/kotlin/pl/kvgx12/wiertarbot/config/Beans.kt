@@ -33,8 +33,10 @@ fun beans() = beans {
     bean<CommandService>()
 
     if (env.get("wiertarbot.fb.enabled", false)) {
+        if (env.getProperty("wiertarbot.sentry.python") != null)
+            bean { binder.bind<PythonSentryProperties>() }
+
         bean { binder.bind<FBProperties>() }
-        bean { binder.bind<PythonSentryProperties>() }
         bean<FBMessageService>()
         interpreterBeans()
         bean<FBConnector>()

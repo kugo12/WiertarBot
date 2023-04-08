@@ -1,2 +1,2 @@
 from .models import *
-from .repositories import FBMessageRepository, MessageCountMilestoneRepository, PermissionRepository
+from .repositories import FBMessageRepository, MessageCountMilestoneRepository

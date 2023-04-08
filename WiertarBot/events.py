@@ -1,11 +1,8 @@
-from typing import Optional, TYPE_CHECKING, Callable, Protocol, Any, Iterable
+from typing import Optional, Protocol
 
-from pl.kvgx12.wiertarbot.events import Mention as KtMention, MessageEvent as KtMessageEvent
 from pl.kvgx12.wiertarbot.connector import FileData as KtFileData, UploadedFile as KtUploadedFile, \
     ThreadData as KtThreadData
-
-if TYPE_CHECKING:
-    from .response import IResponse
+from pl.kvgx12.wiertarbot.events import Mention as KtMention, MessageEvent as KtMessageEvent
 
 
 class ThreadData(Protocol):
