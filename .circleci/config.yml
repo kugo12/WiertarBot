@@ -114,7 +114,7 @@ jobs:
           name: Build and push docker image
           command: >
             docker buildx build --progress=plain --push 
-            --builder builder --platform linux/arm64,linux/amd64 
+            --platform linux/arm64,linux/amd64 
             -t "$DOCKERHUB_USER/wiertarbot-ttrs-api:${CIRCLE_SHA1}" 
             -t "$DOCKERHUB_USER/wiertarbot-ttrs-api:latest" 
             ttrs-api
