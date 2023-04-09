@@ -4,7 +4,7 @@ import collections
 import datetime
 from .._common import log
 from .. import _util, _exception, _session, _graphql, _models
-from typing import MutableMapping, Mapping, Any, Iterable, Tuple, Optional, AsyncGenerator, AsyncIterator
+from typing import MutableMapping, Mapping, Any, Iterable, Tuple, Optional, AsyncGenerator, AsyncIterator, Self
 
 DEFAULT_COLOR = "#0084ff"
 SETABLE_COLORS = (
@@ -50,7 +50,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _to_send_data(self) -> MutableMapping[str, str]:
+    def _to_send_data(self) -> dict[str, Any]:
         raise NotImplementedError
 
     # Note:
@@ -100,10 +100,10 @@ class ThreadABC(metaclass=abc.ABCMeta):
 
     async def send_text(
         self,
-        text: str,
-        mentions: Iterable["_models.Mention"] = None,
-        files: Iterable[Tuple[str, str]] = None,
-        reply_to_id: str = None,
+        text: str | None,
+        mentions: Iterable["_models.Mention"] | None = None,
+        files: Iterable[Tuple[str, str]] | None = None,
+        reply_to_id: str | None = None,
     ) -> str:
         """Send a message to the thread.
 
@@ -144,7 +144,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         if reply_to_id:
             data["replied_to_message_id"] = reply_to_id
 
-        return await self.session._do_send_request(data)
+        return (await self.session._do_send_request(data))[0]
 
     async def send_emoji(self, emoji: str, size: "_models.EmojiSize") -> str:
         """Send an emoji to the thread.
@@ -163,7 +163,8 @@ class ThreadABC(metaclass=abc.ABCMeta):
         data["action_type"] = "ma-type:user-generated-message"
         data["body"] = emoji
         data["tags[0]"] = "hot_emoji_size:{}".format(size.name.lower())
-        return await self.session._do_send_request(data)
+
+        return (await self.session._do_send_request(data))[0]
 
     async def send_sticker(self, sticker_id: str) -> str:
         """Send a sticker to the thread.
@@ -182,17 +183,17 @@ class ThreadABC(metaclass=abc.ABCMeta):
         data = self._to_send_data()
         data["action_type"] = "ma-type:user-generated-message"
         data["sticker_id"] = sticker_id
-        return await self.session._do_send_request(data)
+        return (await self.session._do_send_request(data))[0]
 
-    async def _send_location(self, current, latitude, longitude):
+    async def _send_location(self, current, latitude, longitude) -> str:
         data = self._to_send_data()
         data["action_type"] = "ma-type:user-generated-message"
         data["location_attachment[coordinates][latitude]"] = latitude
         data["location_attachment[coordinates][longitude]"] = longitude
         data["location_attachment[is_current_location]"] = current
-        return await self.session._do_send_request(data)
+        return (await self.session._do_send_request(data))[0]
 
-    async def send_location(self, latitude: float, longitude: float):
+    async def send_location(self, latitude: float, longitude: float) -> str:
         """Send a given location to a thread as the user's current location.
 
         Args:
@@ -206,7 +207,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         """
         return await self._send_location(True, latitude=latitude, longitude=longitude)
 
-    async def send_pinned_location(self, latitude: float, longitude: float):
+    async def send_pinned_location(self, latitude: float, longitude: float) -> str:
         """Send a given location to a thread as a pinned location.
 
         Args:
@@ -220,7 +221,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         """
         return await self._send_location(False, latitude=latitude, longitude=longitude)
 
-    async def send_files(self, files: Iterable[Tuple[str, str]]):
+    async def send_files(self, files: Iterable[tuple[str, str]]):
         """Send files from file IDs to a thread.
 
         `files` should be a list of tuples, with a file's ID and mimetype.
@@ -295,7 +296,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
     #         )
     #         return self.send(Message(text=payload, quick_replies=[new]))
 
-    async def _search_messages(self, query, offset, limit):
+    async def _search_messages(self, query: str, offset: int, limit: int) -> tuple[int, list[_models.MessageSnippet]]:
         data = {
             "query": query,
             "snippetOffset": offset,
@@ -349,7 +350,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
                 return  # No more data to fetch
             offset += limit
 
-    async def _fetch_messages(self, limit, before):
+    async def _fetch_messages(self, limit: int, before: datetime.datetime | None) -> list[_models.MessageData]:
         params = {
             "id": self.id,
             "message_limit": limit,
@@ -399,7 +400,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         # chosen below
         MAX_BATCH_LIMIT = 100
 
-        before = None
+        before: datetime.datetime | None = None
         for limit in _util.get_limits(limit, MAX_BATCH_LIMIT):
             messages = await self._fetch_messages(limit, before)
             messages.reverse()
@@ -417,7 +418,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
 
             before = messages[-1].created_at
 
-    async def _fetch_images(self, limit, after):
+    async def _fetch_images(self, limit: int, after) -> tuple[Any, list[_models.Attachment | None]]:
         data = {"id": self.id, "first": limit, "after": after}
         (j,) = await self.session._graphql_requests(
             _graphql.from_query_id("515216185516880", data)
@@ -428,7 +429,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
 
         result = j[self.id]["message_shared_media"]
 
-        rtn = []
+        rtn: list[_models.Attachment | None] = []
         for edge in result["edges"]:
             node = edge["node"]
             type_ = node["__typename"]
@@ -470,7 +471,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
                 if image:
                     yield image
 
-    async def set_nickname(self, user_id: str, nickname: str):
+    async def set_nickname(self, user_id: str, nickname: str) -> None:
         """Change the nickname of a user in the thread.
 
         Args:
@@ -489,7 +490,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
             "/messaging/save_thread_nickname/?source=thread_settings&dpr=1", data
         )
 
-    async def set_color(self, color: str):
+    async def set_color(self, color: str) -> None:
         """Change thread color.
 
         The new color must be one of the following::
@@ -537,7 +538,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
     #         _graphql.from_doc_id("1768656253222505", {"data": data})
     #     )
 
-    async def set_emoji(self, emoji: Optional[str]):
+    async def set_emoji(self, emoji: Optional[str]) -> None:
         """Change thread emoji.
 
         Args:
@@ -555,7 +556,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
             "/messaging/save_thread_emoji/?source=thread_settings&dpr=1", data
         )
 
-    async def forward_attachment(self, attachment_id: str):
+    async def forward_attachment(self, attachment_id: str) -> None:
         """Forward an attachment.
 
         Args:
@@ -572,7 +573,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         if not j.get("success"):
             raise _exception.ExternalError("Failed forwarding attachment", j["error"])
 
-    async def _set_typing(self, typing):
+    async def _set_typing(self, typing: bool) -> None:
         data = {
             "typ": "1" if typing else "0",
             "thread": self.id,
@@ -582,7 +583,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         }
         j = await self.session._payload_post("/ajax/messaging/typ.php", data)
 
-    async def start_typing(self):
+    async def start_typing(self) -> None:
         """Set the current user to start typing in the thread.
 
         Example:
@@ -590,7 +591,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         """
         await self._set_typing(True)
 
-    async def stop_typing(self):
+    async def stop_typing(self) -> None:
         """Set the current user to stop typing in the thread.
 
         Example:
@@ -598,7 +599,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         """
         await self._set_typing(False)
 
-    async def mute(self, duration: datetime.timedelta = None):
+    async def mute(self, duration: datetime.timedelta | None = None) -> None:
         """Mute the thread.
 
         Args:
@@ -617,7 +618,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
             "/ajax/mercury/change_mute_thread.php?dpr=1", data
         )
 
-    async def unmute(self):
+    async def unmute(self) -> None:
         """Unmute the thread.
 
         Example:
@@ -625,41 +626,41 @@ class ThreadABC(metaclass=abc.ABCMeta):
         """
         return await self.mute(datetime.timedelta(0))
 
-    async def _mute_reactions(self, mode: bool):
+    async def _mute_reactions(self, mode: bool) -> None:
         data = {"reactions_mute_mode": "1" if mode else "0", "thread_fbid": self.id}
         j = await self.session._payload_post(
             "/ajax/mercury/change_reactions_mute_thread/?dpr=1", data
         )
 
-    async def mute_reactions(self):
+    async def mute_reactions(self) -> None:
         """Mute thread reactions."""
         await self._mute_reactions(True)
 
-    async def unmute_reactions(self):
+    async def unmute_reactions(self) -> None:
         """Unmute thread reactions."""
         await self._mute_reactions(False)
 
-    async def _mute_mentions(self, mode: bool):
+    async def _mute_mentions(self, mode: bool) -> None:
         data = {"mentions_mute_mode": "1" if mode else "0", "thread_fbid": self.id}
         j = await self.session._payload_post(
             "/ajax/mercury/change_mentions_mute_thread/?dpr=1", data
         )
 
-    async def mute_mentions(self):
+    async def mute_mentions(self) -> None:
         """Mute thread mentions."""
         await self._mute_mentions(True)
 
-    async def unmute_mentions(self):
+    async def unmute_mentions(self) -> None:
         """Unmute thread mentions."""
         await self._mute_mentions(False)
 
-    async def mark_as_spam(self):
+    async def mark_as_spam(self) -> None:
         """Mark the thread as spam, and delete it."""
         data = {"id": self.id}
         j = await self.session._payload_post("/ajax/mercury/mark_spam.php?dpr=1", data)
 
     @staticmethod
-    async def _delete_many(session, thread_ids):
+    async def _delete_many(session: _session.Session, thread_ids: Iterable[str]) -> None:
         data = {}
         for i, id_ in enumerate(thread_ids):
             data["ids[{}]".format(i)] = id_
@@ -668,7 +669,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         # Both /ajax/mercury/delete_threads.php (with an s) doesn't work
         j = await session._payload_post("/ajax/mercury/delete_thread.php", data)
 
-    async def delete(self):
+    async def delete(self) -> None:
         """Delete the thread.
 
         If you want to delete multiple threads, please use `Client.delete_threads`.
@@ -678,7 +679,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         """
         await self._delete_many(self.session, [self.id])
 
-    async def _forced_fetch(self, message_id: str) -> dict:
+    async def _forced_fetch(self, message_id: str) -> Any:
         params = {
             "thread_and_message_id": {"thread_id": self.id, "message_id": message_id}
         }
@@ -728,7 +729,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
         return rtn
 
     @staticmethod
-    def _parse_participants(session, data) -> Iterable["ThreadABC"]:
+    def _parse_participants(session: _session.Session, data) -> Iterable["ThreadABC"]:
         from . import _user, _group, _page
 
         for node in data["nodes"]:
@@ -764,11 +765,11 @@ class Thread(ThreadABC):
     #: The unique identifier of the thread.
     id: str = attr.ib(converter=str)
 
-    def _to_send_data(self):
+    def _to_send_data(self) -> dict[str, Any]:
         raise NotImplementedError(
             "The method you called is not supported on raw Thread objects."
             " Please use an appropriate User/Group/Page object instead!"
         )
 
-    def _copy(self) -> "Thread":
+    def _copy(self) -> 'Thread':
         return Thread(session=self.session, id=self.id)

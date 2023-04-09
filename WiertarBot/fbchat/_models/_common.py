@@ -3,7 +3,7 @@ import enum
 import attr
 from .. import _util
 
-from typing import Optional
+from typing import Optional, Self
 
 
 class ThreadLocation(enum.Enum):
@@ -15,7 +15,7 @@ class ThreadLocation(enum.Enum):
     OTHER = "OTHER"
 
     @classmethod
-    def _parse(cls, value: str):
+    def _parse(cls, value: str) -> Self:
         return cls(value.lstrip("FOLDER_"))
 
 
@@ -29,7 +29,7 @@ class ActiveStatus:
     in_game: Optional[bool] = None
 
     @classmethod
-    def _from_orca_presence(cls, data):
+    def _from_orca_presence(cls, data) -> Self:
         # TODO: Handle `c` and `vc` keys (Probably some binary data)
         return cls(
             active=data["p"] in [2, 3],
@@ -48,7 +48,7 @@ class Image:
     height: Optional[int] = None
 
     @classmethod
-    def _from_uri(cls, data):
+    def _from_uri(cls, data) -> Self:
         return cls(
             url=data["uri"],
             width=int(data["width"]) if data.get("width") else None,
@@ -56,7 +56,7 @@ class Image:
         )
 
     @classmethod
-    def _from_url(cls, data):
+    def _from_url(cls, data) -> Self:
         return cls(
             url=data["url"],
             width=int(data["width"]) if data.get("width") else None,
@@ -64,7 +64,7 @@ class Image:
         )
 
     @classmethod
-    def _from_uri_or_none(cls, data):
+    def _from_uri_or_none(cls, data) -> Self | None:
         if data is None:
             return None
         if data.get("uri") is None:
@@ -72,7 +72,7 @@ class Image:
         return cls._from_uri(data)
 
     @classmethod
-    def _from_url_or_none(cls, data):
+    def _from_url_or_none(cls, data) -> Self | None:
         if data is None:
             return None
         if data.get("url") is None:

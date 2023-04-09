@@ -5,10 +5,10 @@ from string import Formatter
 from . import _attachment, _location, _file, _quick_reply, _sticker
 from .._common import log
 from .. import _exception, _util
-from typing import Optional, Mapping, Sequence, Any, TYPE_CHECKING
+from typing import Optional, Mapping, Sequence, Any, TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
-    from .. import _threads
+    from .. import _threads, _session
 
 
 class EmojiSize(enum.Enum):
@@ -19,7 +19,7 @@ class EmojiSize(enum.Enum):
     SMALL = "369239263222822"
 
     @classmethod
-    def _from_tags(cls, tags):
+    def _from_tags(cls, tags: str | None) -> 'EmojiSize' | None:
         string_to_emojisize = {
             "large": cls.LARGE,
             "medium": cls.MEDIUM,
@@ -51,7 +51,7 @@ class Mention:
     length: int
 
     @classmethod
-    def _from_range(cls, data):
+    def _from_range(cls, data) -> Self:
         # TODO: Parse data["entity"]["__typename"]
         return cls(
             # Can be missing
@@ -61,10 +61,10 @@ class Mention:
         )
 
     @classmethod
-    def _from_prng(cls, data):
+    def _from_prng(cls, data) -> Self:
         return cls(thread_id=data["i"], offset=data["o"], length=data["l"])
 
-    def _to_send_data(self, i):
+    def _to_send_data(self, i) -> dict[str, Any]:
         return {
             "profile_xmd[{}][id]".format(i): self.thread_id,
             "profile_xmd[{}][offset]".format(i): self.offset,
@@ -88,18 +88,18 @@ class Message:
     id: str = attr.ib(converter=str)
 
     @property
-    def session(self):
+    def session(self) -> '_session.Session':
         """The session to use when making requests."""
         return self.thread.session
 
     @staticmethod
-    async def _delete_many(session, message_ids):
+    async def _delete_many(session, message_ids) -> None:
         data = {}
         for i, id_ in enumerate(message_ids):
             data["message_ids[{}]".format(i)] = id_
         j = await session._payload_post("/ajax/mercury/delete_messages.php?dpr=1", data)
 
-    async def delete(self):
+    async def delete(self) -> None:
         """Delete the message (removes it only for the user).
 
         If you want to delete multiple messages, please use `Client.delete_messages`.
@@ -109,7 +109,7 @@ class Message:
         """
         await self._delete_many(self.session, [self.id])
 
-    async def unsend(self):
+    async def unsend(self) -> None:
         """Unsend the message (removes it for everyone).
 
         The message must to be sent by you, and less than 10 minutes ago.
@@ -120,7 +120,7 @@ class Message:
         data = {"message_id": self.id}
         j = await self.session._payload_post("/messaging/unsend_message/?dpr=1", data)
 
-    async def react(self, reaction: Optional[str]):
+    async def react(self, reaction: Optional[str]) -> None:
         """React to the message, or removes reaction.
 
         Args:
@@ -130,15 +130,16 @@ class Message:
             >>> message.react("😍")
         """
         data = {
-            "action": "ADD_REACTION" if reaction else "REMOVE_REACTION",
-            "client_mutation_id": "1",
-            "actor_id": self.session.user.id,
-            "message_id": self.id,
-            "reaction": reaction,
-        }
-        data = {
             "doc_id": 1491398900900362,
-            "variables": _util.json_minimal({"data": data}),
+            "variables": _util.json_minimal({
+                "data": {
+                    "action": "ADD_REACTION" if reaction else "REMOVE_REACTION",
+                    "client_mutation_id": "1",
+                    "actor_id": self.session.user.id,
+                    "message_id": self.id,
+                    "reaction": reaction,
+                }
+            }),
         }
         j = await self.session._payload_post("/webgraphql/mutation", data)
         _exception.handle_graphql_errors(j)
@@ -222,7 +223,7 @@ class MessageSnippet(Message):
     matched_keywords: Mapping[int, str]
 
     @classmethod
-    def _parse(cls, thread, data):
+    def _parse(cls, thread: '_threads.ThreadABC', data) -> Self:
         return cls(
             thread=thread,
             id=data["message_id"],
@@ -253,7 +254,7 @@ class MessageData(Message):
     #: Whether the message is read
     is_read: Optional[bool] = None
     #: People IDs who read the message, only works with `ThreadABC.fetch_messages`
-    read_by: bool = attr.ib(factory=list)
+    read_by: list[str] = attr.ib(factory=list)
     #: A dictionary with user's IDs as keys, and their reaction as values
     reactions: Mapping[str, str] = attr.ib(factory=dict)
     #: A `Sticker`
@@ -272,13 +273,13 @@ class MessageData(Message):
     forwarded: Optional[bool] = False
 
     @staticmethod
-    def _get_forwarded_from_tags(tags):
+    def _get_forwarded_from_tags(tags) -> bool:
         if tags is None:
             return False
         return any(map(lambda tag: "forward" in tag or "copy" in tag, tags))
 
     @staticmethod
-    def _parse_quick_replies(data):
+    def _parse_quick_replies(data) -> list[_quick_reply.QuickReply]:
         if data:
             data = _util.parse_json(data).get("quick_replies")
             if isinstance(data, list):
@@ -288,7 +289,7 @@ class MessageData(Message):
         return []
 
     @classmethod
-    def _from_graphql(cls, thread, data, read_receipts=None):
+    def _from_graphql(cls, thread: _threads.ThreadABC, data, read_receipts=None) -> Self:
         if data.get("message_sender") is None:
             data["message_sender"] = {}
         if data.get("message") is None:
@@ -336,7 +337,7 @@ class MessageData(Message):
                 str(r["user"]["id"]): r["reaction"] for r in data["message_reactions"]
             },
             sticker=_sticker.Sticker._from_graphql(data.get("sticker")),
-            attachments=attachments,
+            attachments=[it for it in attachments if it],
             quick_replies=cls._parse_quick_replies(data.get("platform_xmd_encoded")),
             unsent=unsent,
             reply_to_id=replied_to.id if replied_to else None,
@@ -345,7 +346,7 @@ class MessageData(Message):
         )
 
     @classmethod
-    def _from_reply(cls, thread, data):
+    def _from_reply(cls, thread: _threads.ThreadABC, data) -> Self:
         tags = data["messageMetadata"].get("tags")
         metadata = data.get("messageMetadata", {})
 
@@ -355,16 +356,16 @@ class MessageData(Message):
         for attachment in data.get("attachments") or ():
             attachment = _util.parse_json(attachment["mercuryJSON"])
             if attachment.get("blob_attachment"):
-                attachments.append(
-                    _file.graphql_to_attachment(attachment["blob_attachment"])
-                )
+                att = _file.graphql_to_attachment(attachment["blob_attachment"])
+                if att:
+                    attachments.append(att)
             if attachment.get("extensible_attachment"):
                 extensible_attachment = graphql_to_extensible_attachment(
                     attachment["extensible_attachment"]
                 )
                 if isinstance(extensible_attachment, _attachment.UnsentMessage):
                     unsent = True
-                else:
+                elif extensible_attachment:
                     attachments.append(extensible_attachment)
             if attachment.get("sticker_attachment"):
                 sticker = _sticker.Sticker._from_graphql(
@@ -393,7 +394,7 @@ class MessageData(Message):
         )
 
     @classmethod
-    def _from_pull(cls, thread, data, author, created_at):
+    def _from_pull(cls, thread: _threads.ThreadABC, data, author: str, created_at: datetime.datetime) -> Self:
         metadata = data["messageMetadata"]
 
         tags = metadata.get("tags")
@@ -452,13 +453,13 @@ class MessageData(Message):
             mentions=mentions,
             emoji_size=EmojiSize._from_tags(tags),
             sticker=sticker,
-            attachments=attachments,
+            attachments=[it for it in attachments if it],
             unsent=unsent,
             forwarded=cls._get_forwarded_from_tags(tags),
         )
 
 
-def graphql_to_extensible_attachment(data):
+def graphql_to_extensible_attachment(data) -> _attachment.Attachment | None:
     story = data.get("story_attachment")
     if not story:
         return None

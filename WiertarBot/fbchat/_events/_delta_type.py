@@ -1,9 +1,9 @@
 import attr
 import datetime
-from ._common import UnknownEvent, ThreadEvent
-from .. import _util, _threads, _models
+from ._common import UnknownEvent, ThreadEvent, Event
+from .. import _util, _threads, _models, _session
 
-from typing import Sequence, Optional
+from typing import Sequence, Optional, Self
 
 
 @attr.s(slots=True, kw_only=True, auto_attribs=True)
@@ -16,7 +16,7 @@ class ColorSet(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         color = _threads.ThreadABC._parse_color(data["untypedData"]["theme_color"])
         return cls(author=author, thread=thread, color=color, at=at)
@@ -32,7 +32,7 @@ class EmojiSet(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         emoji = data["untypedData"]["thread_icon"]
         return cls(author=author, thread=thread, emoji=emoji, at=at)
@@ -43,14 +43,14 @@ class NicknameSet(ThreadEvent):
     """Somebody set the nickname of a person in a thread."""
 
     #: The person whose nickname was set
-    subject: str
+    subject: _threads.User
     #: The new nickname. If ``None``, the nickname was cleared
     nickname: Optional[str]
     #: When the nickname was set
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         subject = _threads.User(
             session=session, id=data["untypedData"]["participant_id"]
@@ -71,7 +71,7 @@ class AdminsAdded(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         subject = _threads.User(session=session, id=data["untypedData"]["TARGET_ID"])
         return cls(author=author, thread=thread, added=[subject], at=at)
@@ -87,7 +87,7 @@ class AdminsRemoved(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         subject = _threads.User(session=session, id=data["untypedData"]["TARGET_ID"])
         return cls(author=author, thread=thread, removed=[subject], at=at)
@@ -102,7 +102,7 @@ class ApprovalModeSet(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         raa = data["untypedData"]["APPROVAL_MODE"] == "1"
         return cls(author=author, thread=thread, require_admin_approval=raa, at=at)
@@ -116,7 +116,7 @@ class CallStarted(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         return cls(author=author, thread=thread, at=at)
 
@@ -131,7 +131,7 @@ class CallEnded(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         duration = _util.seconds_to_timedelta(int(data["untypedData"]["call_duration"]))
         return cls(author=author, thread=thread, duration=duration, at=at)
@@ -145,12 +145,12 @@ class CallJoined(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         return cls(author=author, thread=thread, at=at)
 
 
-def parse_admin_message(session, data):
+def parse_admin_message(session: _session.Session, data) -> Event:
     type_ = data["type"]
     if type_ == "change_thread_theme":
         return ColorSet._parse(session, data)

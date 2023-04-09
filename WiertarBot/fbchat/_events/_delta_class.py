@@ -2,9 +2,9 @@ import attr
 import datetime
 from ._common import Event, UnknownEvent, ThreadEvent
 from . import _delta_type
-from .. import _util, _threads, _models
+from .. import _util, _threads, _models, _session
 
-from typing import Sequence, Optional
+from typing import Sequence, Optional, Self, cast
 
 
 @attr.s(slots=True, kw_only=True, auto_attribs=True)
@@ -13,14 +13,14 @@ class PeopleAdded(ThreadEvent):
 
     # TODO: Add message id
 
-    thread: "_threads.Group"  # Set the correct type
+    thread: "_threads.ThreadABC"  # Set the correct type
     #: The people who got added
     added: Sequence["_threads.User"]
     #: When the people were added
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         added = [
             # TODO: Parse user name
@@ -43,24 +43,24 @@ class PersonRemoved(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         removed = _threads.User(session=session, id=data["leftParticipantFbId"])
-        return cls(author=author, thread=thread, removed=removed, at=at)
+        return cls(author=author, thread=cast(_threads.Group, thread), removed=removed, at=at)
 
 
 @attr.s(slots=True, kw_only=True, auto_attribs=True)
 class TitleSet(ThreadEvent):
     """Somebody changed a group's title."""
 
-    thread: "_threads.Group"  # Set the correct type
+    thread: "_threads.ThreadABC"  # Set the correct type
     #: The new title. If ``None``, the title was removed
     title: Optional[str]
     #: When the title was set
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         return cls(author=author, thread=thread, title=data["name"] or None, at=at)
 
@@ -83,7 +83,7 @@ class UnfetchedThreadEvent(Event):
     message: Optional["_models.Message"]
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         thread = cls._get_thread(session, data)
         message = None
         if "messageId" in data:
@@ -101,12 +101,12 @@ class MessagesDelivered(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         thread = cls._get_thread(session, data)
         if "actorFbId" in data:
             author = _threads.User(session=session, id=data["actorFbId"])
         else:
-            author = thread
+            author = cast(_threads.User, thread)
         messages = [_models.Message(thread=thread, id=x) for x in data["messageIds"]]
         at = _util.millis_to_datetime(int(data["deliveredWatermarkTimestampMs"]))
         return cls(author=author, thread=thread, messages=messages, at=at)
@@ -124,14 +124,14 @@ class ThreadsRead(Event):
     at: datetime.datetime
 
     @classmethod
-    def _parse_read_receipt(cls, session, data):
+    def _parse_read_receipt(cls, session: _session.Session, data) -> Self:
         author = _threads.User(session=session, id=data["actorFbId"])
         thread = cls._get_thread(session, data)
         at = _util.millis_to_datetime(int(data["actionTimestampMs"]))
         return cls(author=author, threads=[thread], at=at)
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         threads = [
             cls._get_thread(session, {"threadKey": x}) for x in data["threadKeys"]
         ]
@@ -149,7 +149,7 @@ class MessageEvent(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author, thread, at = cls._parse_metadata(session, data)
         message = _models.MessageData._from_pull(
             thread, data, author=author.id, created_at=at,
@@ -173,13 +173,13 @@ class ThreadFolder(Event):
     folder: "_models.ThreadLocation"
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         thread = cls._get_thread(session, data)
         folder = _models.ThreadLocation._parse(data["folder"])
         return cls(thread=thread, folder=folder)
 
 
-def parse_delta(session, data):
+def parse_delta(session: _session.Session, data) -> Event | None:
     class_ = data["class"]
     if class_ == "AdminTextMessage":
         return _delta_type.parse_admin_message(session, data)

@@ -3,7 +3,7 @@ import datetime
 from . import Image, Attachment
 from .. import _util
 
-from typing import Set, Optional
+from typing import Set, Optional, Self
 
 
 @attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
@@ -20,7 +20,7 @@ class FileAttachment(Attachment):
     is_malicious: Optional[bool] = None
 
     @classmethod
-    def _from_graphql(cls, data, size=None):
+    def _from_graphql(cls, data, size=None) -> Self:
         return cls(
             url=data.get("url"),
             size=size,
@@ -44,7 +44,7 @@ class AudioAttachment(Attachment):
     audio_type: Optional[str] = None
 
     @classmethod
-    def _from_graphql(cls, data):
+    def _from_graphql(cls, data) -> Self:
         return cls(
             filename=data.get("filename"),
             url=data.get("playable_url"),
@@ -73,7 +73,7 @@ class ImageAttachment(Attachment):
     previews: Set[Image] = attr.ib(factory=set)
 
     @classmethod
-    def _from_graphql(cls, data):
+    def _from_graphql(cls, data) -> Self:
         previews = {
             Image._from_uri_or_none(data.get("thumbnail")),
             Image._from_uri_or_none(data.get("preview") or data.get("preview_image")),
@@ -92,7 +92,7 @@ class ImageAttachment(Attachment):
         )
 
     @classmethod
-    def _from_list(cls, data):
+    def _from_list(cls, data) -> Self:
         previews = {
             Image._from_uri_or_none(data["image"]),
             Image._from_uri(data["image1"]),
@@ -125,7 +125,7 @@ class VideoAttachment(Attachment):
     previews: Set[Image] = attr.ib(factory=set)
 
     @classmethod
-    def _from_graphql(cls, data, size=None):
+    def _from_graphql(cls, data, size=None) -> Self:
         previews = {
             Image._from_uri_or_none(data.get("chat_image")),
             Image._from_uri_or_none(data.get("inbox_image")),
@@ -143,19 +143,19 @@ class VideoAttachment(Attachment):
         )
 
     @classmethod
-    def _from_subattachment(cls, data):
+    def _from_subattachment(cls, data) -> Self:
         media = data["media"]
         image = Image._from_uri_or_none(media.get("image"))
 
         return cls(
             duration=_util.millis_to_timedelta(media.get("playable_duration_in_ms")),
             preview_url=media.get("playable_url"),
-            previews={image} if image else {},
+            previews={image} if image else set(),
             id=data["target"].get("video_id"),
         )
 
     @classmethod
-    def _from_list(cls, data):
+    def _from_list(cls, data) -> Self:
         previews = {
             Image._from_uri(data["image"]),
             Image._from_uri(data["image1"]),
@@ -170,7 +170,7 @@ class VideoAttachment(Attachment):
         )
 
 
-def graphql_to_attachment(data, size=None):
+def graphql_to_attachment(data, size=None) -> Attachment | None:
     _type = data["__typename"]
     if _type in ["MessageImage", "MessageAnimatedImage"]:
         return ImageAttachment._from_graphql(data)
@@ -184,7 +184,7 @@ def graphql_to_attachment(data, size=None):
     return Attachment(id=data.get("legacy_attachment_id"))
 
 
-def graphql_to_subattachment(data):
+def graphql_to_subattachment(data) -> Attachment | None:
     target = data.get("target")
     type_ = target.get("__typename") if target else None
 

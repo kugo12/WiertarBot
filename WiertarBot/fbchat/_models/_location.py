@@ -3,7 +3,7 @@ import attr
 from . import Image, Attachment
 from .. import _util, _exception
 
-from typing import Optional
+from typing import Optional, Self
 
 
 @attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
@@ -25,9 +25,9 @@ class LocationAttachment(Attachment):
     address: Optional[str] = None
 
     @classmethod
-    def _from_graphql(cls, data):
+    def _from_graphql(cls, data) -> Self:
         url = data.get("url")
-        address = _util.get_url_parameter(_util.get_url_parameter(url, "u"), "where1")
+        address = _util.get_url_parameter(_util.get_url_parameter(url, "u") or "", "where1")
         if not address:
             raise _exception.ParseError("Could not find location address", data=data)
         try:
@@ -37,7 +37,7 @@ class LocationAttachment(Attachment):
             latitude, longitude = None, None
 
         return cls(
-            id=int(data["deduplication_key"]),
+            id=str(data["deduplication_key"]),
             latitude=latitude,
             longitude=longitude,
             image=Image._from_uri_or_none(data["media"].get("image"))
@@ -60,7 +60,7 @@ class LiveLocationAttachment(LocationAttachment):
     is_expired: Optional[bool] = None
 
     @classmethod
-    def _from_pull(cls, data):
+    def _from_pull(cls, data) -> Self:
         return cls(
             id=data["id"],
             latitude=data["coordinate"]["latitude"] / (10 ** 8)
@@ -75,7 +75,7 @@ class LiveLocationAttachment(LocationAttachment):
         )
 
     @classmethod
-    def _from_graphql(cls, data):
+    def _from_graphql(cls, data) -> Self:
         target = data["target"]
 
         image = None
@@ -84,7 +84,7 @@ class LiveLocationAttachment(LocationAttachment):
             image = Image._from_uri(media["image"])
 
         return cls(
-            id=int(target["live_location_id"]),
+            id=str(target["live_location_id"]),
             latitude=target["coordinate"]["latitude"]
             if target.get("coordinate")
             else None,

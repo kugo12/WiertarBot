@@ -1,5 +1,7 @@
 import json
 import re
+from typing import Any, Iterable
+
 from ._common import log
 from . import _util, _exception
 
@@ -24,7 +26,7 @@ class ConcatJSONDecoder(json.JSONDecoder):
 # End shameless copy
 
 
-def queries_to_json(*queries):
+def queries_to_json(*queries: Any) -> str:
     """
     Queries should be a list of GraphQL objects
     """
@@ -34,7 +36,7 @@ def queries_to_json(*queries):
     return _util.json_minimal(rtn)
 
 
-def response_to_json(text):
+def response_to_json(text: str) -> Any:
     text = _util.strip_json_cruft(text)  # Usually only needed in some error cases
     try:
         j = json.loads(text, cls=ConcatJSONDecoder)
@@ -61,19 +63,19 @@ def response_to_json(text):
     return rtn
 
 
-def from_query(query, params):
+def from_query(query: str, params):
     return {"priority": 0, "q": query, "query_params": params}
 
 
-def from_query_id(query_id, params):
+def from_query_id(query_id, params) -> dict[str, Any]:
     return {"query_id": query_id, "query_params": params}
 
 
-def from_doc(doc, params):
+def from_doc(doc, params) -> dict[str, Any]:
     return {"doc": doc, "query_params": params}
 
 
-def from_doc_id(doc_id, params):
+def from_doc_id(doc_id: str, params: dict) -> dict[str, Any]:
     return {"doc_id": doc_id, "query_params": params}
 
 

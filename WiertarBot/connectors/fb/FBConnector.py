@@ -98,7 +98,7 @@ class FBConnector:
             callback(event)
             await FBEventDispatcher.dispatch(event, context=self.__context)
 
-    def _update_context(self):
+    def _update_context(self) -> None:
         self.__context = FBContext(self.__client)
         self.__context_hook(self.__context)
 

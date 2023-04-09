@@ -3,7 +3,7 @@ import datetime
 from ._abc import ThreadABC
 from .. import _session, _models
 
-from typing import Optional
+from typing import Optional, Self, Any
 
 
 @attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
@@ -21,7 +21,7 @@ class Page(ThreadABC):
     #: The unique identifier of the page.
     id: str = attr.ib(converter=str)
 
-    def _to_send_data(self):
+    def _to_send_data(self) -> dict[str, Any]:
         return {"other_user_fbid": self.id}
 
     def _copy(self) -> "Page":
@@ -55,7 +55,7 @@ class PageData(Page):
     category: Optional[str] = None
 
     @classmethod
-    def _from_graphql(cls, session, data):
+    def _from_graphql(cls, session: _session.Session, data) -> Self:
         if data.get("profile_picture") is None:
             data["profile_picture"] = {}
         if data.get("city") is None:

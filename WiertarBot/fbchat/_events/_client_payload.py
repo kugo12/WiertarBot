@@ -1,9 +1,9 @@
 import attr
 import datetime
 from ._common import UnknownEvent, ThreadEvent
-from .. import _exception, _util, _threads, _models
+from .. import _exception, _util, _threads, _models, _session, _events
 
-from typing import Optional
+from typing import Optional, Self
 
 
 @attr.s(slots=True, kw_only=True, auto_attribs=True)
@@ -22,7 +22,7 @@ class ReactionEvent(ThreadEvent):
     """
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         thread = cls._get_thread(session, data)
         return cls(
             author=_threads.User(session=session, id=str(data["userId"])),
@@ -38,7 +38,7 @@ class UserStatusEvent(ThreadEvent):
     blocked: bool
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         return cls(
             author=_threads.User(session=session, id=str(data["actorFbid"])),
             thread=cls._get_thread(session, data),
@@ -56,7 +56,7 @@ class UnsendEvent(ThreadEvent):
     at: datetime.datetime
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         thread = cls._get_thread(session, data)
         return cls(
             author=_threads.User(session=session, id=str(data["senderID"])),
@@ -76,7 +76,7 @@ class MessageReplyEvent(ThreadEvent):
     replied_to: "_models.MessageData"
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         metadata = data["message"]["messageMetadata"]
         thread = cls._get_thread(session, metadata)
         return cls(
@@ -89,7 +89,7 @@ class MessageReplyEvent(ThreadEvent):
         )
 
 
-def parse_client_delta(session, data):
+def parse_client_delta(session: _session.Session, data) -> _events.Event | None:
     if "deltaMessageReaction" in data:
         return ReactionEvent._parse(session, data["deltaMessageReaction"])
     elif "deltaChangeViewerStatus" in data:
@@ -105,7 +105,7 @@ def parse_client_delta(session, data):
     return UnknownEvent(source="client payload", data=data)
 
 
-def parse_client_payloads(session, data):
+def parse_client_payloads(session: _session.Session, data):
     payload = _util.parse_json("".join(chr(z) for z in data["payload"]))
 
     try:

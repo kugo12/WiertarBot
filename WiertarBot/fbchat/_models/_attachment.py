@@ -2,7 +2,7 @@ import attr
 from . import Image
 from .. import _util
 
-from typing import Optional, Sequence
+from typing import Optional, Sequence, Self
 
 
 @attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
@@ -42,7 +42,7 @@ class ShareAttachment(Attachment):
     attachments: Sequence[Attachment] = attr.ib(factory=list)
 
     @classmethod
-    def _from_graphql(cls, data):
+    def _from_graphql(cls, data) -> Self:
         from . import _file
 
         image = None
@@ -57,6 +57,10 @@ class ShareAttachment(Attachment):
             )
 
         url = data.get("url")
+        attachments = [
+            _file.graphql_to_subattachment(attachment)
+            for attachment in data.get("subattachments")
+        ]
         return cls(
             id=data.get("deduplication_key"),
             author=data["target"]["actors"][0]["id"]
@@ -73,8 +77,5 @@ class ShareAttachment(Attachment):
             source=data["source"].get("text") if data.get("source") else None,
             image=image,
             original_image_url=original_image_url,
-            attachments=[
-                _file.graphql_to_subattachment(attachment)
-                for attachment in data.get("subattachments")
-            ],
+            attachments=[it for it in attachments if it],
         )

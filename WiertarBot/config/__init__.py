@@ -1,3 +1,5 @@
+from typing import Final
+
 from ._constants import *
 from ._data import *
 

@@ -1,7 +1,9 @@
-import attr
-from .. import _exception, _util, _threads
+import datetime
 
-from typing import Any
+import attr
+from .. import _exception, _util, _threads, _session
+
+from typing import Any, Self
 
 
 @attr.s(slots=True, kw_only=True, auto_attribs=True)
@@ -9,7 +11,7 @@ class Event:
     """Base class for all events."""
 
     @staticmethod
-    def _get_thread(session, data):
+    def _get_thread(session: _session.Session, data) -> _threads.ThreadABC:
         # TODO: Handle pages? Is it even possible?
         key = data["threadKey"]
 
@@ -30,7 +32,7 @@ class UnknownEvent(Event):
     data: Any
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data):
         raise NotImplementedError
 
 
@@ -44,7 +46,7 @@ class ThreadEvent(Event):
     thread: "_threads.ThreadABC"
 
     @classmethod
-    def _parse_metadata(cls, session, data):
+    def _parse_metadata(cls, session: _session.Session, data) -> tuple[_threads.User, _threads.ThreadABC, datetime.datetime]:
         metadata = data["messageMetadata"]
         author = _threads.User(session=session, id=metadata["actorFbId"])
         thread = cls._get_thread(session, metadata)
@@ -52,7 +54,7 @@ class ThreadEvent(Event):
         return author, thread, at
 
     @classmethod
-    def _parse_fetch(cls, session, data):
+    def _parse_fetch(cls, session: _session.Session, data) -> tuple[_threads.User, datetime.datetime]:
         author = _threads.User(session=session, id=data["message_sender"]["id"])
         at = _util.millis_to_datetime(int(data["timestamp_precise"]))
         return author, at

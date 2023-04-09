@@ -23,7 +23,7 @@ class HTTPError(FacebookError):
     #: The returned HTTP status code, if relevant
     status_code: Optional[int] = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         if not self.status_code:
             return self.message
         return "Got {} response: {}".format(self.status_code, self.message)
@@ -39,7 +39,7 @@ class ParseError(FacebookError):
     data_file: str = ""
     data: Any = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.data:
             return f"{self.message}. Please report this, along with the data below:\n{self.data}"
         elif self.data_file:
@@ -67,7 +67,7 @@ class ExternalError(FacebookError):
     #: The error code that Facebook returned
     code: Optional[int] = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.code:
             return "#{} {}: {}".format(self.code, self.message, self.description)
         return "{}: {}".format(self.message, self.description)
@@ -82,7 +82,7 @@ class GraphQLError(ExternalError):
     #: Query debug information
     debug_info: Optional[str] = None
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.debug_info:
             return "{}, {}".format(super().__str__(), self.debug_info)
         return super().__str__()
@@ -113,7 +113,7 @@ class ServerRedirect(FacebookError):
     """Raised by Facebook if the client is suspicious and the user needs to verify the login."""
 
 
-def handle_payload_error(j, ignore_jsmod_redirect: bool = False):
+def handle_payload_error(j, ignore_jsmod_redirect: bool = False) -> None:
     if not ignore_jsmod_redirect:
         try:
             jsmods_require_raw = j["jsmods"]["require"]
@@ -128,6 +128,8 @@ def handle_payload_error(j, ignore_jsmod_redirect: bool = False):
     if "error" not in j:
         return
     code = j["error"]
+
+    error_cls: type[Exception]
     if code == 1357001:
         raise NotLoggedIn(j["errorSummary"])
     elif code == 1357004:
@@ -139,7 +141,7 @@ def handle_payload_error(j, ignore_jsmod_redirect: bool = False):
     raise error_cls(j["errorSummary"], description=j["errorDescription"], code=code)
 
 
-def handle_graphql_errors(j):
+def handle_graphql_errors(j) -> None:
     errors = []
     if j.get("error"):
         errors = [j["error"]]
@@ -157,7 +159,7 @@ def handle_graphql_errors(j):
         )
 
 
-def handle_http_error(code):
+def handle_http_error(code: int) -> None:
     if code == 404:
         raise HTTPError(
             "This might be because you provided an invalid id"
@@ -173,7 +175,7 @@ def handle_http_error(code):
         raise HTTPError("Failed sending request", status_code=code)
 
 
-def handle_requests_error(e):
+def handle_requests_error(e: Exception) -> None:
     if isinstance(e, (aiohttp.ClientConnectionError, aiohttp.ServerConnectionError)):
         raise HTTPError("Connection error") from e
     if isinstance(e, aiohttp.ClientResponseError):

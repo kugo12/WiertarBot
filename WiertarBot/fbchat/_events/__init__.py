@@ -2,7 +2,7 @@ from ._client_payload import *
 from ._delta_class import *
 from ._delta_type import *
 
-from .. import _exception, _threads, _models
+from .. import _exception, _threads, _models, _session
 
 import attr
 
@@ -17,13 +17,13 @@ class Typing(ThreadEvent):
     status: bool
 
     @classmethod
-    def _parse_orca(cls, session, data):
+    def _parse_orca(cls, session: _session.Session, data) -> Self:
         author = _threads.User(session=session, id=str(data["sender_fbid"]))
         status = data["state"] == 1
         return cls(author=author, thread=author, status=status)
 
     @classmethod
-    def _parse_thread_typing(cls, session, data):
+    def _parse_thread_typing(cls, session: _session.Session, data) -> Self:
         author = _threads.User(session=session, id=str(data["sender_fbid"]))
         thread = _threads.Group(session=session, id=str(data["thread"]))
         status = data["state"] == 1
@@ -38,7 +38,7 @@ class FriendRequest(Event):
     author: "_threads.User"
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         author = _threads.User(session=session, id=str(data["from"]))
         return cls(author=author)
 
@@ -58,7 +58,7 @@ class Presence(Event):
     full: bool
 
     @classmethod
-    def _parse(cls, session, data):
+    def _parse(cls, session: _session.Session, data) -> Self:
         statuses = {
             str(d["u"]): _models.ActiveStatus._from_orca_presence(d)
             for d in data["list"]
@@ -90,7 +90,7 @@ class Disconnect(Event):
     reason: str
 
 
-def parse_events(session, topic, data):
+def parse_events(session: _session.Session, topic: str, data):
     # See Mqtt._configure_connect_options for information about these topics
     try:
         if topic == "/t_ms":

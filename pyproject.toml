@@ -11,7 +11,7 @@ license = "GPL-3.0-only"
 packages = [{include="WiertarBot"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.11"
 
 aiofiles = "^0"
 aiohttp = "^3"

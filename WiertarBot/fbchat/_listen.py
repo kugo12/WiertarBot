@@ -131,7 +131,7 @@ class Listener:
     def on_socket_unregister_write(self, client, userdata, sock):
         self._loop.remove_writer(sock)
 
-    def _handle_ms(self, j):
+    def _handle_ms(self, j) -> bool:
         """Handle /t_ms special logic.
 
         Returns whether to continue parsing the message.
@@ -205,7 +205,7 @@ class Listener:
 
         self._messenger_queue_publish()
 
-    def _messenger_queue_publish(self):
+    def _messenger_queue_publish(self) -> None:
         # configure receiving messages.
         payload = {
             "sync_api_version": 10,
@@ -229,7 +229,7 @@ class Listener:
 
         self._mqtt.publish(topic, _util.json_minimal(payload), qos=1)
 
-    def _configure_connect_options(self):
+    def _configure_connect_options(self) -> None:
         # Generate a new session ID on each reconnect
         session_id = generate_session_id()
 

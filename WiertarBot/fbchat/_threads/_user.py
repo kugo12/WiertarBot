@@ -4,8 +4,7 @@ from ._abc import ThreadABC
 from .._common import log
 from .. import _util, _session, _models
 
-from typing import Optional
-
+from typing import Optional, Self, Any
 
 GENDERS = {
     # For standard requests
@@ -50,7 +49,7 @@ class User(ThreadABC):
     #: The user's unique identifier.
     id: str = attr.ib(converter=str)
 
-    def _to_send_data(self):
+    def _to_send_data(self) -> dict[str, Any]:
         return {
             "other_user_fbid": self.id,
             # The entry below is to support .wave
@@ -134,7 +133,7 @@ class UserData(User):
     emoji: Optional[str] = None
 
     @staticmethod
-    def _get_other_user(data):
+    def _get_other_user(data) -> Any:
         (user,) = (
             node["messaging_actor"]
             for node in data["all_participants"]["nodes"]
@@ -143,7 +142,7 @@ class UserData(User):
         return user
 
     @classmethod
-    def _from_graphql(cls, session, data):
+    def _from_graphql(cls, session: _session.Session, data) -> Self:
         c_info = cls._parse_customization_info(data)
 
         return cls(
@@ -165,7 +164,7 @@ class UserData(User):
         )
 
     @classmethod
-    def _from_thread_fetch(cls, session, data):
+    def _from_thread_fetch(cls, session: _session.Session, data) -> Self | None:
         user = cls._get_other_user(data)
         if user["__typename"] != "User":
             # TODO: Add Page._from_thread_fetch, and parse it there
@@ -192,7 +191,7 @@ class UserData(User):
         )
 
     @classmethod
-    def _from_all_fetch(cls, session, data):
+    def _from_all_fetch(cls, session: _session.Session, data) -> Self:
         return cls(
             session=session,
             id=data["id"],

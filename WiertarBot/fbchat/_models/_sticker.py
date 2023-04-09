@@ -1,7 +1,7 @@
 import attr
 from . import Image, Attachment
 
-from typing import Optional
+from typing import Optional, Self
 
 
 @attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
@@ -33,7 +33,7 @@ class Sticker(Attachment):
     label: Optional[str] = None
 
     @classmethod
-    def _from_graphql(cls, data):
+    def _from_graphql(cls, data) -> Self | None:
         if not data:
             return None
 

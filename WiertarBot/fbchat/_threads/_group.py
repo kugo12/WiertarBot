@@ -4,7 +4,7 @@ from ._abc import ThreadABC
 from . import _user
 from .. import _util, _session, _graphql, _models
 
-from typing import Sequence, Iterable, Set, Mapping, Optional
+from typing import Sequence, Iterable, Set, Mapping, Optional, Self, Any
 
 
 @attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
@@ -20,10 +20,10 @@ class Group(ThreadABC):
     #: The group's unique identifier.
     id: str = attr.ib(converter=str)
 
-    def _to_send_data(self):
+    def _to_send_data(self) -> dict[str, Any]:
         return {"thread_fbid": self.id}
 
-    def _copy(self) -> "Group":
+    def _copy(self) -> 'Group':
         return Group(session=self.session, id=self.id)
 
     async def add_participants(self, user_ids: Iterable[str]):
@@ -52,7 +52,7 @@ class Group(ThreadABC):
 
         return await self.session._do_send_request(data)
 
-    async def remove_participant(self, user_id: str):
+    async def remove_participant(self, user_id: str) -> None:
         """Remove user from the group.
 
         Args:
@@ -64,7 +64,7 @@ class Group(ThreadABC):
         data = {"uid": user_id, "tid": self.id}
         j = await self.session._payload_post("/chat/remove_participants/", data)
 
-    async def _admin_status(self, user_ids: Iterable[str], status: bool):
+    async def _admin_status(self, user_ids: Iterable[str], status: bool) -> None:
         data = {"add": status, "thread_fbid": self.id}
 
         for i, user_id in enumerate(user_ids):
@@ -72,7 +72,7 @@ class Group(ThreadABC):
 
         j = await self.session._payload_post("/messaging/save_admins/?dpr=1", data)
 
-    async def add_admins(self, user_ids: Iterable[str]):
+    async def add_admins(self, user_ids: Iterable[str]) -> None:
         """Set specified users as group admins.
 
         Args:
@@ -83,7 +83,7 @@ class Group(ThreadABC):
         """
         await self._admin_status(user_ids, True)
 
-    async def remove_admins(self, user_ids: Iterable[str]):
+    async def remove_admins(self, user_ids: Iterable[str]) -> None:
         """Remove admin status from specified users.
 
         Args:
@@ -94,7 +94,7 @@ class Group(ThreadABC):
         """
         await self._admin_status(user_ids, False)
 
-    async def set_title(self, title: str):
+    async def set_title(self, title: str) -> None:
         """Change title of the group.
 
         Args:
@@ -106,7 +106,7 @@ class Group(ThreadABC):
         data = {"thread_name": title, "thread_id": self.id}
         j = await self.session._payload_post("/messaging/set_thread_name/?dpr=1", data)
 
-    async def set_image(self, image_id: str):
+    async def set_image(self, image_id: str) -> None:
         """Change the group image from an image id.
 
         Args:
@@ -123,7 +123,7 @@ class Group(ThreadABC):
         data = {"thread_image_id": image_id, "thread_id": self.id}
         j = await self.session._payload_post("/messaging/set_thread_image/?dpr=1", data)
 
-    async def set_approval_mode(self, require_admin_approval: bool):
+    async def set_approval_mode(self, require_admin_approval: bool) -> None:
         """Change the group's approval mode.
 
         Args:
@@ -135,7 +135,7 @@ class Group(ThreadABC):
         data = {"set_mode": int(require_admin_approval), "thread_fbid": self.id}
         j = await self.session._payload_post("/messaging/set_approval_mode/?dpr=1", data)
 
-    async def _users_approval(self, user_ids: Iterable[str], approve: bool):
+    async def _users_approval(self, user_ids: Iterable[str], approve: bool) -> None:
         data = {
             "client_mutation_id": "0",
             "actor_id": self.session.user.id,
@@ -148,7 +148,7 @@ class Group(ThreadABC):
             _graphql.from_doc_id("1574519202665847", {"data": data})
         )
 
-    async def accept_users(self, user_ids: Iterable[str]):
+    async def accept_users(self, user_ids: Iterable[str]) -> None:
         """Accept users to the group from the group's approval.
 
         Args:
@@ -159,7 +159,7 @@ class Group(ThreadABC):
         """
         await self._users_approval(user_ids, True)
 
-    async def deny_users(self, user_ids: Iterable[str]):
+    async def deny_users(self, user_ids: Iterable[str]) -> None:
         """Deny users from joining the group.
 
         Args:
@@ -204,7 +204,7 @@ class GroupData(Group):
     join_link: Optional[str] = None
 
     @classmethod
-    def _from_graphql(cls, session, data):
+    def _from_graphql(cls, session: _session.Session, data) -> Self:
         if data.get("image") is None:
             data["image"] = {}
         c_info = cls._parse_customization_info(data)
@@ -217,10 +217,10 @@ class GroupData(Group):
         return cls(
             session=session,
             id=data["thread_key"]["thread_fbid"],
-            participants=list(
+            participants=set(
                 cls._parse_participants(session, data["all_participants"])
             ),
-            nicknames=c_info.get("nicknames"),
+            nicknames=c_info.get("nicknames") or {},
             color=c_info["color"],
             emoji=c_info["emoji"],
             admins=set([node.get("id") for node in data.get("thread_admins")]),
@@ -232,7 +232,7 @@ class GroupData(Group):
                 for node in data["group_approval_queue"]["nodes"]
             )
             if data.get("group_approval_queue")
-            else None,
+            else set(),
             join_link=data["joinable_mode"].get("link"),
             photo=_models.Image._from_uri_or_none(data["image"]),
             name=data.get("name"),
@@ -263,7 +263,7 @@ class NewGroup(ThreadABC):
             " to call the method."
         )
 
-    def _to_send_data(self) -> dict:
+    def _to_send_data(self) -> dict[str, Any]:
         return {
             "specific_to_list[{}]".format(i): "fbid:{}".format(user.id)
             for i, user in enumerate(self._users)

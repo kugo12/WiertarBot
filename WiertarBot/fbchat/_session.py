@@ -10,7 +10,7 @@ import errno
 import string
 import urllib.request
 from yarl import URL
-from http.cookies import SimpleCookie, BaseCookie
+from http.cookies import SimpleCookie, BaseCookie, Morsel
 
 # TODO: Only import when required
 # Or maybe just replace usage with `html.parser`?
@@ -19,7 +19,10 @@ import bs4
 from ._common import log, req_log
 from . import _graphql, _util, _exception
 
-from typing import Optional, Mapping, Callable, Any, Awaitable, Dict, List, NamedTuple
+from typing import Optional, Mapping, Callable, Any, Awaitable, Dict, List, NamedTuple, TYPE_CHECKING, Self, cast
+
+if TYPE_CHECKING:
+    from WiertarBot.fbchat import User
 
 SERVER_JS_DEFINE_REGEX = re.compile(r'(?:'
                                     r'\(new ServerJS\(\)\)(?:;s)?'
@@ -87,12 +90,12 @@ def parse_server_js_define(html: str) -> Mapping[str, Any]:
     return _util.get_jsmods_define(rtn)
 
 
-def parse_kv(vals: List[str]) -> Dict[str, str]:
-    kv = {}
+def parse_kv(vals: list[str]) -> dict[str, str]:
+    kv: dict[str, str] = {}
     for val in vals:
         split = val.strip().split("=", 1)
         if len(split) == 1:
-            kv[split[0]] = True
+            kv[split[0]] = "1"
         else:
             kv[split[0]] = split[1]
     return kv
@@ -119,7 +122,7 @@ def parse_alt_svc(r: aiohttp.ClientResponse) -> Dict[str, AltSvc]:
             protocol_id, alt_authority = vals[0].split("=")
         except ValueError:
             continue
-        alt_authority: str = alt_authority.strip('"')
+        alt_authority = alt_authority.strip('"')
         kv = parse_kv(vals[1:])
         try:
             max_age = int(kv.pop("max_age"))
@@ -159,10 +162,10 @@ def get_user_id(domain: str, session: aiohttp.ClientSession) -> str:
     try:
         rtn = session.cookie_jar.filter_cookies(URL(f"https://{domain}")).get("c_user")
     except (AttributeError, KeyError):
-        raise _exception.ParseError("Could not find user id", data=session.cookie_jar._cookies)
+        raise _exception.ParseError("Could not find user id", data=list(session.cookie_jar))
     if rtn is None:
-        raise _exception.ParseError("Could not find user id", data=session.cookie_jar._cookies)
-    return rtn if isinstance(rtn, str) else str(rtn.value)
+        raise _exception.ParseError("Could not find user id", data=list(session.cookie_jar))
+    return rtn.value
 
 
 def session_factory(domain: str, user_agent: Optional[str] = None) -> aiohttp.ClientSession:
@@ -188,7 +191,7 @@ def find_form_request(html: str):
         raise _exception.ParseError("Could not find form to submit", data=html)
 
     url = form.get("action")
-    if not url:
+    if not url or isinstance(url, list):
         raise _exception.ParseError("Could not find url to submit to", data=form)
 
     # From what I've seen, it'll always do this!
@@ -227,7 +230,7 @@ async def two_factor_helper(datr: str, session: aiohttp.ClientSession, r: aiohtt
         log.debug("2FA location: %s", r.headers.get("Location"))
         url = r.headers.get("Location")
         if url and url.startswith("https://www.messenger.com/login/auth_token/"):
-            return url
+            return str(url)
         url, data = find_form_request(await r.text())
 
     log.info("Starting Facebook checkup flow")
@@ -259,7 +262,7 @@ async def two_factor_helper(datr: str, session: aiohttp.ClientSession, r: aiohtt
     r = await session.post(url, data=data, allow_redirects=False,
                            cookies=login_cookies(datr))
     log.debug("2FA location: %s", r.headers.get("Location"))
-    return r.headers.get("Location")
+    return r.headers["Location"]
 
 
 def get_error_data(html: str) -> Optional[str]:
@@ -273,13 +276,15 @@ def get_error_data(html: str) -> Optional[str]:
 
 
 def get_fb_dtsg(define) -> Optional[str]:
+    token = None
     if "DTSGInitData" in define:
-        return define["DTSGInitData"]["token"]
+        token = define["DTSGInitData"]["token"]
     elif "DTSGInitialData" in define:
-        return define["DTSGInitialData"]["token"]
+        token = define["DTSGInitialData"]["token"]
     elif "MRequestConfig" in define and "dtsg" in define["MRequestConfig"]:
-        return define["MRequestConfig"]["dtsg"]["token"]
-    return None
+        token = define["MRequestConfig"]["dtsg"]["token"]
+
+    return token if isinstance(token, str) else None
 
 
 def prefix_url(domain: str, path: str) -> URL:
@@ -299,7 +304,7 @@ class Session:
     _fb_dtsg: str
     _revision: int
     domain: str
-    _session: aiohttp.ClientSession = attr.ib(factory=session_factory)
+    _session: aiohttp.ClientSession
     _counter: int = 0
     _client_id: str = attr.ib(factory=client_id_factory)
 
@@ -307,7 +312,7 @@ class Session:
         return prefix_url(self.domain, path)
 
     @property
-    def user(self):
+    def user(self) -> 'User':
         """The logged in user."""
         from . import _threads
 
@@ -319,7 +324,7 @@ class Session:
         # An alternative repr, to illustrate that you can't create the class directly
         return "<fbchat.Session user_id={}>".format(self._user_id)
 
-    def _get_params(self):
+    def _get_params(self) -> dict[str, Any]:
         self._counter += 1
         return {
             "__a": 1,
@@ -330,8 +335,8 @@ class Session:
 
     @classmethod
     async def login(cls, email: str, password: str,
-                    on_2fa_callback: Callable[[], Awaitable[int]] = None,
-                    user_agent: Optional[str] = None) -> 'Session':
+                    on_2fa_callback: Callable[[], Awaitable[int]] | None = None,
+                    user_agent: Optional[str] = None) -> Self:
         """Login the user, using ``email`` and ``password``.
 
         Args:
@@ -369,7 +374,7 @@ class Session:
             text = await r.text()
             soup = bs4.BeautifulSoup(text, "html.parser")
             form_data = {input.get("name"): input.get("value") for input in soup.select("form input")}
-            datr = re.search(r'"_js_datr"[^"]+"([^"]+)', text).group(1)
+            datr = re.search(r'"_js_datr"[^"]+"([^"]+)', text).group(1)  # type: ignore[union-attr]
         except aiohttp.ClientError as e:
             _exception.handle_requests_error(e)
             raise e
@@ -405,7 +410,7 @@ class Session:
         # We weren't redirected, hence the email or password was wrong
         if not url:
             error = get_error_data(await r.text())
-            raise _exception.NotLoggedIn(error)
+            raise _exception.NotLoggedIn(error or "")
 
         if "checkpoint" in url:
             if not on_2fa_callback:
@@ -415,7 +420,7 @@ class Session:
             # Get a facebook.com/checkpoint/start url that handles the 2FA flow
             # This probably works differently for Messenger-only accounts
             url = _util.get_url_parameter(url, "next")
-            if not url.startswith("https://www.facebook.com/checkpoint/start/"):
+            if not url or not url.startswith("https://www.facebook.com/checkpoint/start/"):
                 raise _exception.ParseError("Failed 2fa flow (1)", data=url)
 
             r = await session.get(url, allow_redirects=False, cookies=login_cookies(datr))
@@ -493,7 +498,7 @@ class Session:
 
     @classmethod
     async def _from_session(cls, session: aiohttp.ClientSession, domain: str
-                            ) -> Optional['Session']:
+                            ) -> Self:
         # TODO: Automatically set user_id when the cookie changes in the session
         user_id = get_user_id(domain, session)
 
@@ -542,7 +547,7 @@ class Session:
         return {key: morsel.value for key, morsel in cookie.items()}
 
     @classmethod
-    async def from_cookies(cls, cookies: Mapping[str, str], user_agent: Optional[str] = None,
+    async def from_cookies(cls, cookies: Mapping[str, str] | BaseCookie, user_agent: Optional[str] = None,
                            domain: str = "messenger.com") -> 'Session':
         """Load a session from session cookies.
 
@@ -567,7 +572,7 @@ class Session:
 
         return await cls._from_session(session=session, domain=domain)
 
-    async def _post(self, url, data, files=None, as_graphql=False):
+    async def _post(self, url: str, data, files=None, as_graphql: bool = False) -> Any:
         data.update(self._get_params())
         if files:
             payload = aiohttp.FormData()
@@ -577,18 +582,16 @@ class Session:
                 payload.add_field(key, file, filename=name, content_type=content_type)
             data = payload
         real_url = self._prefix_url(url)
-        kwargs = {}
-        attempt = 1
         while True:
             try:
-                r = await self._session.post(real_url, data=data, **kwargs)
+                r = await self._session.post(real_url, data=data)
                 break
             except aiohttp.ClientError as e:
                 _exception.handle_requests_error(e)
                 raise Exception("handle_requests_error did not raise exception")
         _exception.handle_http_error(r.status)
         text = await r.text()
-        if text is None or len(text) == 0:
+        if not text:
             raise _exception.HTTPError("Error when sending request: Got empty response")
         if as_graphql:
             return _graphql.response_to_json(text)
@@ -598,7 +601,7 @@ class Session:
             log.debug(j)
             return j
 
-    async def _payload_post(self, url, data, files=None):
+    async def _payload_post(self, url: str, data, files=None) -> Any:
         if files:
             req_log.debug("POST %s %s with %d files", url, data, len(files))
         else:
@@ -618,7 +621,7 @@ class Session:
         except (KeyError, TypeError) as e:
             raise _exception.ParseError("Missing payload", data=j) from e
 
-    async def _graphql_requests(self, *queries):
+    async def _graphql_requests(self, *queries: Any) -> Any:
         # TODO: Explain usage of GraphQL, probably in the docs
         # Perhaps provide this API as public?
         data = {
@@ -629,7 +632,7 @@ class Session:
         req_log.debug("Making GraphQL queries: %s", queries)
         return await self._post("/api/graphqlbatch/", data, as_graphql=True)
 
-    async def _do_send_request(self, data):
+    async def _do_send_request(self, data: dict) -> tuple[str, str]:
         now = _util.now()
         offline_threading_id = _util.generate_offline_threading_id()
         data["client"] = "mercury"

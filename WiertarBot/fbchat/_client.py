@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, TypeAlias, Any, AsyncGenerator
 import datetime
 
 import attr
@@ -8,6 +8,7 @@ from . import _exception, _util, _graphql, _session, _threads, _models
 
 from typing import Sequence, Iterable, Tuple, Optional, Set, BinaryIO, AsyncIterator
 
+GroupOrUserData: TypeAlias = _threads.GroupData | _threads.UserData
 
 @attr.s(slots=True, kw_only=True, auto_attribs=True)
 class Client:
@@ -134,7 +135,7 @@ class Client:
             for node in j["viewer"]["groups"]["nodes"]
         )
 
-    async def search_for_threads(self, name: str, limit: int) -> Iterable[_threads.ThreadABC]:
+    async def search_for_threads(self, name: str, limit: int) -> AsyncGenerator[_threads.ThreadABC, None]:
         """Find and get threads by their name.
 
         The returned threads are ordered by relevance.
@@ -172,17 +173,17 @@ class Client:
                     "Unknown type {} in {}".format(repr(node["__typename"]), node)
                 )
 
-    async def _search_messages(self, query, offset, limit):
+    async def _search_messages(self, query, offset, limit) -> list[tuple[_threads.ThreadABC | None, int]]:
         data = {"query": query, "offset": offset, "limit": limit}
         j = await self.session._payload_post("/ajax/mercury/search_snippets.php?dpr=1", data)
 
         total_snippets = j["search_snippets"][query]
 
-        rtn = []
+        rtn: list[tuple[_threads.ThreadABC | None, int]] = []
         for node in j["graphql_payload"]["message_threads"]:
             type_ = node["thread_type"]
             if type_ == "GROUP":
-                thread = _threads.Group(
+                thread: _threads.ThreadABC | None = _threads.Group(
                     session=self.session, id=node["thread_key"]["thread_fbid"]
                 )
             elif type_ == "ONE_TO_ONE":
@@ -244,7 +245,7 @@ class Client:
                 return  # No more data to fetch
             offset += limit
 
-    async def _fetch_info(self, *ids):
+    async def _fetch_info(self, *ids: str) -> dict:
         data = {"ids[{}]".format(i): _id for i, _id in enumerate(ids)}
         j = await self.session._payload_post("/chat/user_info/", data)
 
@@ -346,7 +347,7 @@ class Client:
             else:
                 raise _exception.ParseError("Unknown thread type", data=entry)
 
-    async def _fetch_threads(self, limit, before, folders):
+    async def _fetch_threads(self, limit: int, before: datetime.datetime | None, folders) -> list[GroupOrUserData | None]:
         params = {
             "limit": limit,
             "tags": folders,
@@ -366,7 +367,7 @@ class Client:
                 log.debug("Calling back with sequence ID from fetch_threads")
                 self.sequence_id_callback(seq_id)
 
-        rtn = []
+        rtn: list[GroupOrUserData | None] = []
         for node in j["viewer"]["message_threads"]["nodes"]:
             _type = node.get("thread_type")
             if _type == "GROUP":
@@ -406,7 +407,7 @@ class Client:
         MAX_BATCH_LIMIT = 100
 
         # TODO: Clean this up after implementing support for more threads types
-        seen_ids = set()  # type: Set[str]
+        seen_ids: set[str] = set()
         before = None
         for limit in _util.get_limits(limit, MAX_BATCH_LIMIT):
             threads = await self._fetch_threads(limit, before, [location.value])
@@ -416,7 +417,6 @@ class Client:
                 # Don't return seen and unknown threads
                 if thread and thread.id not in seen_ids:
                     seen_ids.add(thread.id)
-                    # TODO: Ensure type-wise that .last_active is available
                     before = thread.last_active
                     yield thread
 
@@ -495,9 +495,9 @@ class Client:
         if "ServerRedirect.redirectPageTo" not in require:
             raise _exception.ParseError("Could not fetch image URL", data=j)
         # Return the first argument
-        return require["ServerRedirect.redirectPageTo"][0]
+        return str(require["ServerRedirect.redirectPageTo"][0])
 
-    async def _get_private_data(self):
+    async def _get_private_data(self) -> Any:
         (j,) = await self.session._graphql_requests(
             _graphql.from_doc_id("1868889766468115", {})
         )
@@ -552,7 +552,7 @@ class Client:
             for item in j["metadata"]
         ]
 
-    async def mark_as_delivered(self, message: _models.Message):
+    async def mark_as_delivered(self, message: _models.Message) -> None:
         """Mark a message as delivered.
 
         Warning:
@@ -567,7 +567,7 @@ class Client:
         }
         j = await self.session._payload_post("/ajax/mercury/delivery_receipts.php", data)
 
-    async def _read_status(self, read, threads, at):
+    async def _read_status(self, read, threads, at) -> None:
         data = {
             "watermarkTimestamp": _util.datetime_to_millis(at),
             "shouldSendReadReceipt": "true",
@@ -580,7 +580,7 @@ class Client:
 
     async def mark_as_read(
         self, threads: Iterable[_threads.ThreadABC], at: datetime.datetime
-    ):
+    ) -> None:
         """Mark threads as read.
 
         All messages inside the specified threads will be marked as read.
@@ -593,7 +593,7 @@ class Client:
 
     async def mark_as_unread(
         self, threads: Iterable[_threads.ThreadABC], at: datetime.datetime
-    ):
+    ) -> None:
         """Mark threads as unread.
 
         All messages inside the specified threads will be marked as unread.
@@ -604,14 +604,14 @@ class Client:
         """
         return await self._read_status(False, threads, at)
 
-    async def mark_as_seen(self, at: datetime.datetime):
+    async def mark_as_seen(self, at: datetime.datetime) -> None:
         # TODO: Documenting this
         data = {"seen_timestamp": _util.datetime_to_millis(at)}
         j = await self.session._payload_post("/ajax/mercury/mark_seen.php", data)
 
     async def move_threads(
         self, location: _models.ThreadLocation, threads: Iterable[_threads.ThreadABC]
-    ):
+    ) -> None:
         """Move threads to specified location.
 
         Args:
@@ -639,7 +639,7 @@ class Client:
                 data["{}[{}]".format(location.name.lower(), i)] = thread.id
             j = await self.session._payload_post("/ajax/mercury/move_threads.php", data)
 
-    async def delete_threads(self, threads: Iterable[_threads.ThreadABC]):
+    async def delete_threads(self, threads: Iterable[_threads.ThreadABC]) -> None:
         """Bulk delete threads.
 
         Args:
@@ -651,7 +651,7 @@ class Client:
         """
         await _threads.ThreadABC._delete_many(self.session, (t.id for t in threads))
 
-    async def delete_messages(self, messages: Iterable[_models.Message]):
+    async def delete_messages(self, messages: Iterable[_models.Message]) -> None:
         """Bulk delete specified messages.
 
         Args:

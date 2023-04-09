@@ -57,7 +57,7 @@ class QuickReplyEmail(QuickReply):
     _type = "user_email"
 
 
-def graphql_to_quick_reply(q, is_response=False):
+def graphql_to_quick_reply(q, is_response=False) -> QuickReply:
     data = dict()
     _type = q.get("content_type").lower()
     if q.get("payload"):
@@ -67,6 +67,8 @@ def graphql_to_quick_reply(q, is_response=False):
     if q.get("image_url") and _type is not QuickReplyLocation._type:
         data["image_url"] = q["image_url"]
     data["is_response"] = is_response
+
+    rtn: QuickReply
     if _type == QuickReplyText._type:
         if q.get("title") is not None:
             data["title"] = q["title"]
@@ -77,4 +79,7 @@ def graphql_to_quick_reply(q, is_response=False):
         rtn = QuickReplyPhoneNumber(**data)
     elif _type == QuickReplyEmail._type:
         rtn = QuickReplyEmail(**data)
+    else:
+        raise Exception(f"Unknown quick reply {_type=} {data=}")
+
     return rtn

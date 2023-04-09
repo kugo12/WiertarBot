@@ -53,7 +53,7 @@ def parse_json(text: str) -> Any:
         raise _exception.ParseError("Error while parsing JSON", data=text) from e
 
 
-def generate_offline_threading_id():
+def generate_offline_threading_id() -> str:
     ret = datetime_to_millis(now())
     value = int(random.random() * 4294967295)
     string = ("0000000000000000000000" + format(value, "b"))[-22:]
@@ -61,12 +61,12 @@ def generate_offline_threading_id():
     return str(int(msgs, 2))
 
 
-def remove_version_from_module(module):
+def remove_version_from_module(module: str) -> str:
     return module.split("@", 1)[0]
 
 
 def get_jsmods_require(require) -> Mapping[str, Sequence[Any]]:
-    rtn = {}
+    rtn: dict[str, list] = {}
     for item in require:
         if len(item) == 1:
             (module,) = item
@@ -183,3 +183,4 @@ def search_for_dtsg(obj: Any) -> Optional[Mapping[str, Any]]:
             s = search_for_dtsg(it)
             if s is not None:
                 return s
+    return None
