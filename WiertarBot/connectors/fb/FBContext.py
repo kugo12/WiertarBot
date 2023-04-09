@@ -22,7 +22,7 @@ def fb_mentions(mentions: Iterable['Mention'] | None) -> list[fbchat.Mention]:
 
 
 def jbyte_array_to_bytes(arr: ByteArray) -> bytes:  # jvm bytes are signed
-    return b"".join(it.to_bytes(signed=True) for it in arr)
+    return b"".join(it.to_bytes(length=1, byteorder="big", signed=True) for it in arr)
 
 
 FBThreadData = fbchat.UserData | fbchat.GroupData | fbchat.PageData
