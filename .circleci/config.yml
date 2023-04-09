@@ -41,7 +41,7 @@ commands:
       - run:
           name: Check if << parameters.dir_pattern >> changed
           command: |
-            CHANGED=$(git diff --name-only "<< pipeline.git.base_revision >>" | grep -E "^(.circleci|<< parameters.dir_pattern >>)")
+            CHANGED=$(git diff --name-only "<< pipeline.git.base_revision >>" | grep -E "^(.circleci|<< parameters.dir_pattern >>)" || true)
             
             echo "$CHANGED"
             if [ -z "$CHANGED" ]; then
