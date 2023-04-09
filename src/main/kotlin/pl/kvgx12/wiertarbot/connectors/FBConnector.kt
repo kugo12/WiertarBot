@@ -27,7 +27,7 @@ class FBConnector(
                 execute(
                     """
                 from WiertarBot.connectors.fb import FBConnector, FBEventDispatcher
-                import fbchat
+                from WiertarBot import fbchat
                 """.trimIndent()
                 )
                 pyConnector = get<PyCallable1<PyCallable1<PyObject, Unit>, PyObject>>("FBConnector")
@@ -97,6 +97,7 @@ class FBConnector(
                 originalExtension = pyObject.get("original_extension"),
                 isAnimated = pyObject.get("is_animated")
             )
+
             else -> Attachment(id = pyObject.get("id"))
         }
 
