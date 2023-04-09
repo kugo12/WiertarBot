@@ -11,7 +11,7 @@ from .generic import fb_attachment_to_generic
 from ... import config
 from ...abc import PyContext
 from ...response import IResponse
-from ...events import MessageEvent, Mention, FileData, UploadedFile, ThreadData
+from ...events import MessageEvent, Mention, FileData, UploadedFile, ThreadData, ByteArray
 
 
 def fb_mentions(mentions: Iterable['Mention'] | None) -> list[fbchat.Mention]:
@@ -19,6 +19,10 @@ def fb_mentions(mentions: Iterable['Mention'] | None) -> list[fbchat.Mention]:
         fbchat.Mention(thread_id=it.getThreadId(), offset=it.getOffset(), length=it.getLength())
         for it in mentions
     ] if mentions else []
+
+
+def jbyte_array_to_bytes(arr: ByteArray) -> bytes:  # jvm bytes are signed
+    return b"".join(it.to_bytes(signed=True) for it in arr)
 
 
 FBThreadData = fbchat.UserData | fbchat.GroupData | fbchat.PageData
@@ -62,7 +66,7 @@ class FBContext(PyContext):
         return [
             UploadedFile(it[0], it[1])
             for it in await self.__client.upload(
-                [(it.getUri(), BytesIO(bytes(it.getContent())), it.getMediaType()) for it in files],
+                [(it.getUri(), BytesIO(jbyte_array_to_bytes(it.getContent())), it.getMediaType()) for it in files],
                 voice_clip
             )
         ]
