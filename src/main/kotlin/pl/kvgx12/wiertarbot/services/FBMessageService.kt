@@ -87,7 +87,7 @@ class FBMessageService(
             val filename: String? = null,
             @SerialName("original_extension")
             val originalExtension: String? = null,
-            val id: String? = null
+            val id: Long? = null
         )
     }
 }
