@@ -9,6 +9,9 @@ from pl.kvgx12.wiertarbot.events import \
     ImageAttachment as KtImageAttachment
 
 
+class ByteArray(Protocol): ...
+
+
 class ThreadData(Protocol):
     def __new__(cls, id: str, name: str, message_count: Optional[int], participants: list[str]) -> 'ThreadData':
         return KtThreadData(id, name, message_count, participants)
@@ -39,7 +42,7 @@ class FileData(Protocol):
 
     def getUri(self) -> str: ...
 
-    def getContent(self) -> bytes: ...
+    def getContent(self) -> ByteArray: ...
 
     def getMediaType(self) -> str: ...
 

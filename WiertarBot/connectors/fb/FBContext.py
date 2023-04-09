@@ -62,7 +62,7 @@ class FBContext(PyContext):
         return [
             UploadedFile(it[0], it[1])
             for it in await self.__client.upload(
-                [(it.getUri(), BytesIO(it.getContent()), it.getMediaType()) for it in files],
+                [(it.getUri(), BytesIO(bytes(it.getContent())), it.getMediaType()) for it in files],
                 voice_clip
             )
         ]
