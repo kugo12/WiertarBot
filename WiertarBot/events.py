@@ -2,7 +2,11 @@ from typing import Optional, Protocol
 
 from pl.kvgx12.wiertarbot.connector import FileData as KtFileData, UploadedFile as KtUploadedFile, \
     ThreadData as KtThreadData
-from pl.kvgx12.wiertarbot.events import Mention as KtMention, MessageEvent as KtMessageEvent
+from pl.kvgx12.wiertarbot.events import \
+    Mention as KtMention, \
+    MessageEvent as KtMessageEvent, \
+    Attachment as KtAttachment, \
+    ImageAttachment as KtImageAttachment
 
 
 class ThreadData(Protocol):
@@ -50,10 +54,23 @@ class UploadedFile(Protocol):
 
 
 class Attachment(Protocol):
+    def __new__(cls, id: str) -> 'Attachment':
+        return KtAttachment(id)
+
     def getId(self) -> Optional[str]: ...
 
 
 class ImageAttachment(Attachment):
+    def __new__(
+            cls,
+            id: Optional[str],
+            width: Optional[int],
+            height: Optional[int],
+            original_extension: Optional[str],
+            is_animated: Optional[bool]
+    ) -> 'ImageAttachment':
+        return KtImageAttachment(id, width, height, original_extension, is_animated)
+
     def getWidth(self) -> Optional[int]: ...
 
     def getHeight(self) -> Optional[int]: ...
@@ -64,6 +81,7 @@ class ImageAttachment(Attachment):
 
 
 class Context(Protocol): ...
+
 
 class MessageEvent(Protocol):
     def __new__(cls,
