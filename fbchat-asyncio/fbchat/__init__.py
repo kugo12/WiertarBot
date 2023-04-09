@@ -53,11 +53,6 @@ from ._models import (
     AudioAttachment,
     ImageAttachment,
     VideoAttachment,
-    Poll,
-    PollOption,
-    GuestStatus,
-    Plan,
-    PlanData,
     QuickReply,
     QuickReplyText,
     QuickReplyLocation,
@@ -82,7 +77,6 @@ from ._events import (
     # _client_payload
     ReactionEvent,
     UserStatusEvent,
-    LiveLocationEvent,
     UnsendEvent,
     MessageReplyEvent,
     # _delta_class
@@ -104,13 +98,6 @@ from ._events import (
     CallStarted,
     CallEnded,
     CallJoined,
-    PollCreated,
-    PollVoted,
-    PlanCreated,
-    PlanEnded,
-    PlanEdited,
-    PlanDeleted,
-    PlanResponded,
     # __init__
     Typing,
     FriendRequest,
@@ -121,11 +108,6 @@ from ._listen import Listener
 from ._client import Client
 
 __version__ = "0.6.24"
-
-from . import _fix_module_metadata
-
-_fix_module_metadata.fixup_module_metadata(globals())
-del _fix_module_metadata
 
 # Set default logging handler to avoid "No handler found" warnings.
 _logging.getLogger(__name__).addHandler(_logging.NullHandler())

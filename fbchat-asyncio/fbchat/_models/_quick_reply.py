@@ -1,9 +1,9 @@
-from .._common import attrs_default
+import attr
 
 from typing import Any, Optional
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class QuickReply:
     """Represents a quick reply."""
 
@@ -17,7 +17,7 @@ class QuickReply:
     is_response: bool = False
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class QuickReplyText(QuickReply):
     """Represents a text quick reply."""
 
@@ -29,7 +29,7 @@ class QuickReplyText(QuickReply):
     _type = "text"
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class QuickReplyLocation(QuickReply):
     """Represents a location quick reply (Doesn't work on mobile)."""
 
@@ -37,7 +37,7 @@ class QuickReplyLocation(QuickReply):
     _type = "location"
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class QuickReplyPhoneNumber(QuickReply):
     """Represents a phone number quick reply (Doesn't work on mobile)."""
 
@@ -47,7 +47,7 @@ class QuickReplyPhoneNumber(QuickReply):
     _type = "user_phone_number"
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class QuickReplyEmail(QuickReply):
     """Represents an email quick reply (Doesn't work on mobile)."""
 

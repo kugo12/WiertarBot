@@ -73,21 +73,6 @@ def mqtt_factory(domain: str) -> paho.mqtt.client.Client:
         protocol=paho.mqtt.client.MQTTv31,
         transport="websockets",
     )
-    try:
-        http_proxy = urllib.request.getproxies()["http"]
-    except KeyError:
-        http_proxy = None
-    if http_proxy and socks and URL:
-        proxy_url = URL(http_proxy)
-        proxy_type = {
-            "http": socks.HTTP,
-            "https": socks.HTTP,
-            "socks": socks.SOCKS5,
-            "socks5": socks.SOCKS5,
-            "socks4": socks.SOCKS4,
-        }[proxy_url.scheme]
-        mqtt.proxy_set(proxy_type=proxy_type, proxy_addr=proxy_url.host, proxy_port=proxy_url.port,
-                       proxy_username=proxy_url.user, proxy_password=proxy_url.password)
     mqtt.enable_logger()
     # mqtt.max_inflight_messages_set(20)  # The rest will get queued
     # mqtt.max_queued_messages_set(0)  # Unlimited messages can be queued

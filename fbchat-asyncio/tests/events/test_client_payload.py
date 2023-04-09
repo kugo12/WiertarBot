@@ -9,7 +9,6 @@ from fbchat import (
     UnknownEvent,
     ReactionEvent,
     UserStatusEvent,
-    LiveLocationEvent,
     UnsendEvent,
     MessageReplyEvent,
 )

@@ -1,7 +1,7 @@
 import attr
 import datetime
 from ._abc import ThreadABC
-from .._common import log, attrs_default
+from .._common import log
 from .. import _util, _session, _models
 
 from typing import Optional
@@ -37,7 +37,7 @@ GENDERS = {
 }
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class User(ThreadABC):
     """Represents a Facebook user. Implements `ThreadABC`.
 
@@ -97,7 +97,7 @@ class User(ThreadABC):
         j = await self.session._payload_post("/messaging/unblock_messages/?dpr=1", data)
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class UserData(User):
     """Represents data about a Facebook user.
 
@@ -118,8 +118,6 @@ class UserData(User):
     last_active: Optional[datetime.datetime] = None
     #: Number of messages in the thread
     message_count: Optional[int] = None
-    #: Set `Plan`
-    plan: Optional[_models.PlanData] = None
     #: The profile URL. ``None`` for Messenger-only users
     url: Optional[str] = None
     #: The user's gender
@@ -148,12 +146,6 @@ class UserData(User):
     def _from_graphql(cls, session, data):
         c_info = cls._parse_customization_info(data)
 
-        plan = None
-        if data.get("event_reminders") and data["event_reminders"].get("nodes"):
-            plan = _models.PlanData._from_graphql(
-                session, data["event_reminders"]["nodes"][0]
-            )
-
         return cls(
             session=session,
             id=data["id"],
@@ -170,7 +162,6 @@ class UserData(User):
             photo=_models.Image._from_uri(data["profile_picture"]),
             name=data["name"],
             message_count=data.get("messages_count"),
-            plan=plan,
         )
 
     @classmethod
@@ -182,12 +173,6 @@ class UserData(User):
             return None
 
         c_info = cls._parse_customization_info(data)
-
-        plan = None
-        if data["event_reminders"]["nodes"]:
-            plan = _models.PlanData._from_graphql(
-                session, data["event_reminders"]["nodes"][0]
-            )
 
         return cls(
             session=session,
@@ -204,7 +189,6 @@ class UserData(User):
             photo=_models.Image._from_uri(user["big_image_src"]),
             message_count=data["messages_count"],
             last_active=_util.millis_to_datetime(int(data["updated_time_precise"])),
-            plan=plan,
         )
 
     @classmethod

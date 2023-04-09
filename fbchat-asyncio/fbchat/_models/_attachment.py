@@ -1,12 +1,11 @@
 import attr
 from . import Image
-from .._common import attrs_default
 from .. import _util
 
 from typing import Optional, Sequence
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class Attachment:
     """Represents a Facebook attachment."""
 
@@ -14,12 +13,12 @@ class Attachment:
     id: Optional[str] = None
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class UnsentMessage(Attachment):
     """Represents an unsent message attachment."""
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class ShareAttachment(Attachment):
     """Represents a shared item (e.g. URL) attachment."""
 

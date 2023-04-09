@@ -1,14 +1,15 @@
-from ._common import attrs_event, Event, UnknownEvent, ThreadEvent
 from ._client_payload import *
 from ._delta_class import *
 from ._delta_type import *
 
 from .. import _exception, _threads, _models
 
+import attr
+
 from typing import Mapping
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class Typing(ThreadEvent):
     """Somebody started/stopped typing in a thread."""
 
@@ -29,7 +30,7 @@ class Typing(ThreadEvent):
         return cls(author=author, thread=thread, status=status)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class FriendRequest(Event):
     """Somebody sent a friend request."""
 
@@ -42,7 +43,7 @@ class FriendRequest(Event):
         return cls(author=author)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class Presence(Event):
     """The list of active statuses was updated.
 
@@ -65,7 +66,7 @@ class Presence(Event):
         return cls(statuses=statuses, full=data["list_type"] == "full")
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class Connect(Event):
     """The client was connected to Facebook.
 
@@ -73,12 +74,12 @@ class Connect(Event):
     """
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class Resync(Event):
     """The sequence ID was reset in _handle_ms."""
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class Disconnect(Event):
     """The client lost the connection to Facebook.
 

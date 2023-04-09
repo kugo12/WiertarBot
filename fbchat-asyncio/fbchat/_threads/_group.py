@@ -2,13 +2,12 @@ import attr
 import datetime
 from ._abc import ThreadABC
 from . import _user
-from .._common import attrs_default
 from .. import _util, _session, _graphql, _models
 
 from typing import Sequence, Iterable, Set, Mapping, Optional
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class Group(ThreadABC):
     """Represents a Facebook group. Implements `ThreadABC`.
 
@@ -172,7 +171,7 @@ class Group(ThreadABC):
         await self._users_approval(user_ids, False)
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class GroupData(Group):
     """Represents data about a Facebook group.
 
@@ -187,8 +186,6 @@ class GroupData(Group):
     last_active: Optional[datetime.datetime] = None
     #: Number of messages in the group
     message_count: Optional[int] = None
-    #: Set `Plan`
-    plan: Optional[_models.PlanData] = None
     #: The group thread's participant user ids
     participants: Set[ThreadABC] = attr.ib(factory=set)
     #: A dictionary, containing user nicknames mapped to their IDs
@@ -216,11 +213,6 @@ class GroupData(Group):
             last_active = _util.millis_to_datetime(
                 int(data["last_message"]["nodes"][0]["timestamp_precise"])
             )
-        plan = None
-        if data.get("event_reminders") and data["event_reminders"].get("nodes"):
-            plan = _models.PlanData._from_graphql(
-                session, data["event_reminders"]["nodes"][0]
-            )
 
         return cls(
             session=session,
@@ -246,11 +238,10 @@ class GroupData(Group):
             name=data.get("name"),
             message_count=data.get("messages_count"),
             last_active=last_active,
-            plan=plan,
         )
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class NewGroup(ThreadABC):
     """Helper class to create new groups.
 

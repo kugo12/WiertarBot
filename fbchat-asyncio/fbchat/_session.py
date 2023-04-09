@@ -21,16 +21,6 @@ from . import _graphql, _util, _exception
 
 from typing import Optional, Mapping, Callable, Any, Awaitable, Dict, List, NamedTuple
 
-try:
-    from aiohttp_socks import ProxyType, ProxyConnector, ProxyTimeoutError
-except ImportError:
-    ProxyType = None
-    ProxyConnector = None
-
-
-    class ProxyTimeoutError(Exception):
-        pass
-
 SERVER_JS_DEFINE_REGEX = re.compile(r'(?:'
                                     r'\(new ServerJS\(\)\)(?:;s)?'
                                     r'|\(require\("ServerJS(?:Define)?"\)\)\(\)'
@@ -176,22 +166,10 @@ def get_user_id(domain: str, session: aiohttp.ClientSession) -> str:
 
 
 def session_factory(domain: str, user_agent: Optional[str] = None) -> aiohttp.ClientSession:
-    from . import __version__
-    connector = None
-    try:
-        http_proxy = urllib.request.getproxies()["http"]
-    except KeyError:
-        pass
-    else:
-        if ProxyConnector:
-            connector = ProxyConnector.from_url(http_proxy)
-        else:
-            log.warning("http_proxy is set, but aiohttp-socks is not installed")
-    return aiohttp.ClientSession(connector=connector,
-                                 headers={
-                                     "Referer": f"https://www.{domain}/",
-                                     "User-Agent": "curl",
-                                 })
+    return aiohttp.ClientSession(headers={
+        "Referer": f"https://www.{domain}/",
+        "User-Agent": "curl",
+    })
 
 
 def login_cookies(datr: str):
@@ -321,7 +299,6 @@ class Session:
     _fb_dtsg: str
     _revision: int
     domain: str
-    _onion: Optional[str] = None
     _session: aiohttp.ClientSession = attr.ib(factory=session_factory)
     _counter: int = 0
     _client_id: str = attr.ib(factory=client_id_factory)
@@ -548,15 +525,9 @@ class Session:
             revision = int(define["SiteData"]["client_revision"])
         except TypeError:
             raise _exception.ParseError("Could not find client revision", data=define)
-        onion = None
-        alt_svc_data = parse_alt_svc(r)
-        if "h2" in alt_svc_data and alt_svc_data["h2"].alt_authority.endswith(".onion:443"):
-            # TODO remember expiry too?
-            onion = alt_svc_data["h2"].alt_authority
-            log.info("Got onion alt-svc %s", onion)
 
         return cls(user_id=user_id, fb_dtsg=fb_dtsg, revision=revision, session=session,
-                   domain=domain, onion=onion)
+                   domain=domain)
 
     def get_cookies(self) -> Optional[Mapping[str, str]]:
         """Retrieve session cookies, that can later be used in `from_cookies`.
@@ -607,13 +578,6 @@ class Session:
             data = payload
         real_url = self._prefix_url(url)
         kwargs = {}
-        if self._onion:
-            # TODO is there some way to change the host aiohttp connects to without changing the
-            #      domain it uses for TLS, cookies and the Host header?
-            kwargs["ssl"] = False
-            kwargs["headers"] = {"Host": real_url.host}
-            kwargs["cookies"] = self._session.cookie_jar.filter_cookies(real_url)
-            real_url = real_url.with_host(real_url.host.replace(self.domain, self._onion))
         attempt = 1
         while True:
             try:
@@ -622,11 +586,6 @@ class Session:
             except aiohttp.ClientError as e:
                 _exception.handle_requests_error(e)
                 raise Exception("handle_requests_error did not raise exception")
-            except ProxyTimeoutError:
-                if attempt >= 3:
-                    raise
-                log.warning("Got ProxyTimeoutError, retrying...")
-                attempt += 1
         _exception.handle_http_error(r.status)
         text = await r.text()
         if text is None or len(text) == 0:

@@ -1,12 +1,13 @@
+import attr
 import datetime
-from ._common import attrs_event, Event, UnknownEvent, ThreadEvent
+from ._common import Event, UnknownEvent, ThreadEvent
 from . import _delta_type
 from .. import _util, _threads, _models
 
 from typing import Sequence, Optional
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class PeopleAdded(ThreadEvent):
     """somebody added people to a group thread."""
 
@@ -29,7 +30,7 @@ class PeopleAdded(ThreadEvent):
         return cls(author=author, thread=thread, added=added, at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class PersonRemoved(ThreadEvent):
     """Somebody removed a person from a group thread."""
 
@@ -48,7 +49,7 @@ class PersonRemoved(ThreadEvent):
         return cls(author=author, thread=thread, removed=removed, at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class TitleSet(ThreadEvent):
     """Somebody changed a group's title."""
 
@@ -64,7 +65,7 @@ class TitleSet(ThreadEvent):
         return cls(author=author, thread=thread, title=data["name"] or None, at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class UnfetchedThreadEvent(Event):
     """A message was received, but the data must be fetched manually.
 
@@ -90,7 +91,7 @@ class UnfetchedThreadEvent(Event):
         return cls(thread=thread, message=message)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class MessagesDelivered(ThreadEvent):
     """Somebody marked messages as delivered in a thread."""
 
@@ -111,7 +112,7 @@ class MessagesDelivered(ThreadEvent):
         return cls(author=author, thread=thread, messages=messages, at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class ThreadsRead(Event):
     """Somebody marked threads as read/seen."""
 
@@ -138,7 +139,7 @@ class ThreadsRead(Event):
         return cls(author=session.user, threads=threads, at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class MessageEvent(ThreadEvent):
     """Somebody sent a message to a thread."""
 
@@ -156,7 +157,7 @@ class MessageEvent(ThreadEvent):
         return cls(author=author, thread=thread, message=message, at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class ThreadFolder(Event):
     """A thread was created in a folder.
 

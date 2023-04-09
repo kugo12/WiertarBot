@@ -3,11 +3,8 @@ from .. import _exception, _util, _threads
 
 from typing import Any
 
-#: Default attrs settings for events
-attrs_event = attr.s(slots=True, kw_only=True, auto_attribs=True)
 
-
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class Event:
     """Base class for all events."""
 
@@ -23,7 +20,7 @@ class Event:
         raise _exception.ParseError("Could not find thread data", data=data)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class UnknownEvent(Event):
     """Represent an unknown event."""
 
@@ -37,7 +34,7 @@ class UnknownEvent(Event):
         raise NotImplementedError
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class ThreadEvent(Event):
     """Represent an event that was done by a user/page in a thread."""
 

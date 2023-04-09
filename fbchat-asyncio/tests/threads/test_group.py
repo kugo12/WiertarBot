@@ -32,7 +32,6 @@ def test_group_from_graphql(session):
         name="Group ABC",
         last_active=None,
         message_count=None,
-        plan=None,
         participants=[
             User(session=session, id="1234"),
             User(session=session, id="2345"),

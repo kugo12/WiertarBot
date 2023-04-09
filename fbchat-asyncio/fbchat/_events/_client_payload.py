@@ -1,11 +1,12 @@
+import attr
 import datetime
-from ._common import attrs_event, UnknownEvent, ThreadEvent
+from ._common import UnknownEvent, ThreadEvent
 from .. import _exception, _util, _threads, _models
 
 from typing import Optional
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class ReactionEvent(ThreadEvent):
     """Somebody reacted to a message."""
 
@@ -31,7 +32,7 @@ class ReactionEvent(ThreadEvent):
         )
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class UserStatusEvent(ThreadEvent):
     #: Whether the user was blocked or unblocked
     blocked: bool
@@ -45,26 +46,7 @@ class UserStatusEvent(ThreadEvent):
         )
 
 
-@attrs_event
-class LiveLocationEvent(ThreadEvent):
-    """Somebody sent live location info."""
-
-    # TODO: This!
-
-    @classmethod
-    def _parse(cls, session, data):
-        from . import _location
-
-        thread = cls._get_thread(session, data)
-        for location_data in data["messageLiveLocations"]:
-            message = _models.Message(thread=thread, id=data["messageId"])
-            author = _threads.User(session=session, id=str(location_data["senderId"]))
-            location = _location.LiveLocationAttachment._from_pull(location_data)
-
-        return None
-
-
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class UnsendEvent(ThreadEvent):
     """Somebody unsent a message (which deletes it for everyone)."""
 
@@ -84,7 +66,7 @@ class UnsendEvent(ThreadEvent):
         )
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class MessageReplyEvent(ThreadEvent):
     """Somebody replied to a message."""
 
@@ -115,7 +97,7 @@ def parse_client_delta(session, data):
         if data["deltaChangeViewerStatus"]["reason"] == 2:
             return UserStatusEvent._parse(session, data["deltaChangeViewerStatus"])
     elif "liveLocationData" in data:
-        return LiveLocationEvent._parse(session, data["liveLocationData"])
+        return None
     elif "deltaRecallMessageData" in data:
         return UnsendEvent._parse(session, data["deltaRecallMessageData"])
     elif "deltaMessageReply" in data:

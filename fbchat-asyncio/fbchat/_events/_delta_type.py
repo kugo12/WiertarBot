@@ -1,11 +1,12 @@
+import attr
 import datetime
-from ._common import attrs_event, UnknownEvent, ThreadEvent
+from ._common import UnknownEvent, ThreadEvent
 from .. import _util, _threads, _models
 
 from typing import Sequence, Optional
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class ColorSet(ThreadEvent):
     """Somebody set the color in a thread."""
 
@@ -21,7 +22,7 @@ class ColorSet(ThreadEvent):
         return cls(author=author, thread=thread, color=color, at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class EmojiSet(ThreadEvent):
     """Somebody set the emoji in a thread."""
 
@@ -37,7 +38,7 @@ class EmojiSet(ThreadEvent):
         return cls(author=author, thread=thread, emoji=emoji, at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class NicknameSet(ThreadEvent):
     """Somebody set the nickname of a person in a thread."""
 
@@ -60,7 +61,7 @@ class NicknameSet(ThreadEvent):
         )
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class AdminsAdded(ThreadEvent):
     """Somebody added admins to a group."""
 
@@ -76,7 +77,7 @@ class AdminsAdded(ThreadEvent):
         return cls(author=author, thread=thread, added=[subject], at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class AdminsRemoved(ThreadEvent):
     """Somebody removed admins from a group."""
 
@@ -92,7 +93,7 @@ class AdminsRemoved(ThreadEvent):
         return cls(author=author, thread=thread, removed=[subject], at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class ApprovalModeSet(ThreadEvent):
     """Somebody changed the approval mode in a group."""
 
@@ -107,7 +108,7 @@ class ApprovalModeSet(ThreadEvent):
         return cls(author=author, thread=thread, require_admin_approval=raa, at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class CallStarted(ThreadEvent):
     """Somebody started a call."""
 
@@ -120,7 +121,7 @@ class CallStarted(ThreadEvent):
         return cls(author=author, thread=thread, at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class CallEnded(ThreadEvent):
     """Somebody ended a call."""
 
@@ -136,7 +137,7 @@ class CallEnded(ThreadEvent):
         return cls(author=author, thread=thread, duration=duration, at=at)
 
 
-@attrs_event
+@attr.s(slots=True, kw_only=True, auto_attribs=True)
 class CallJoined(ThreadEvent):
     """Somebody joined a call."""
 
@@ -147,136 +148,6 @@ class CallJoined(ThreadEvent):
     def _parse(cls, session, data):
         author, thread, at = cls._parse_metadata(session, data)
         return cls(author=author, thread=thread, at=at)
-
-
-@attrs_event
-class PollCreated(ThreadEvent):
-    """Somebody created a group poll."""
-
-    #: The new poll
-    poll: "_models.Poll"
-    #: When the poll was created
-    at: datetime.datetime
-
-    @classmethod
-    def _parse(cls, session, data):
-        author, thread, at = cls._parse_metadata(session, data)
-        poll_data = _util.parse_json(data["untypedData"]["question_json"])
-        poll = _models.Poll._from_graphql(session, poll_data)
-        return cls(author=author, thread=thread, poll=poll, at=at)
-
-
-@attrs_event
-class PollVoted(ThreadEvent):
-    """Somebody voted in a group poll."""
-
-    #: The updated poll
-    poll: "_models.Poll"
-    #: Ids of the voted options
-    added_ids: Sequence[str]
-    #: Ids of the un-voted options
-    removed_ids: Sequence[str]
-    #: When the poll was voted in
-    at: datetime.datetime
-
-    @classmethod
-    def _parse(cls, session, data):
-        author, thread, at = cls._parse_metadata(session, data)
-        poll_data = _util.parse_json(data["untypedData"]["question_json"])
-        poll = _models.Poll._from_graphql(session, poll_data)
-        added_ids = _util.parse_json(data["untypedData"]["added_option_ids"])
-        removed_ids = _util.parse_json(data["untypedData"]["removed_option_ids"])
-        return cls(
-            author=author,
-            thread=thread,
-            poll=poll,
-            added_ids=[str(x) for x in added_ids],
-            removed_ids=[str(x) for x in removed_ids],
-            at=at,
-        )
-
-
-@attrs_event
-class PlanCreated(ThreadEvent):
-    """Somebody created a plan in a group."""
-
-    #: The new plan
-    plan: "_models.PlanData"
-    #: When the plan was created
-    at: datetime.datetime
-
-    @classmethod
-    def _parse(cls, session, data):
-        author, thread, at = cls._parse_metadata(session, data)
-        plan = _models.PlanData._from_pull(session, data["untypedData"])
-        return cls(author=author, thread=thread, plan=plan, at=at)
-
-
-@attrs_event
-class PlanEnded(ThreadEvent):
-    """A plan ended."""
-
-    #: The ended plan
-    plan: "_models.PlanData"
-    #: When the plan ended
-    at: datetime.datetime
-
-    @classmethod
-    def _parse(cls, session, data):
-        author, thread, at = cls._parse_metadata(session, data)
-        plan = _models.PlanData._from_pull(session, data["untypedData"])
-        return cls(author=author, thread=thread, plan=plan, at=at)
-
-
-@attrs_event
-class PlanEdited(ThreadEvent):
-    """Somebody changed a plan in a group."""
-
-    #: The updated plan
-    plan: "_models.PlanData"
-    #: When the plan was updated
-    at: datetime.datetime
-
-    @classmethod
-    def _parse(cls, session, data):
-        author, thread, at = cls._parse_metadata(session, data)
-        plan = _models.PlanData._from_pull(session, data["untypedData"])
-        return cls(author=author, thread=thread, plan=plan, at=at)
-
-
-@attrs_event
-class PlanDeleted(ThreadEvent):
-    """Somebody removed a plan in a group."""
-
-    #: The removed plan
-    plan: "_models.PlanData"
-    #: When the plan was removed
-    at: datetime.datetime
-
-    @classmethod
-    def _parse(cls, session, data):
-        author, thread, at = cls._parse_metadata(session, data)
-        plan = _models.PlanData._from_pull(session, data["untypedData"])
-        return cls(author=author, thread=thread, plan=plan, at=at)
-
-
-@attrs_event
-class PlanResponded(ThreadEvent):
-    """Somebody responded to a plan in a group."""
-
-    #: The plan that was responded to
-    plan: "_models.PlanData"
-    #: Whether the author will go to the plan or not
-    take_part: bool
-    #: When the plan was removed
-    at: datetime.datetime
-
-    @classmethod
-    def _parse(cls, session, data):
-        author, thread, at = cls._parse_metadata(session, data)
-        plan = _models.PlanData._from_pull(session, data["untypedData"])
-        take_part = data["untypedData"]["guest_status"] == "GOING"
-        return cls(author=author, thread=thread, plan=plan, take_part=take_part, at=at)
 
 
 def parse_admin_message(session, data):
@@ -309,22 +180,4 @@ def parse_admin_message(session, data):
             pass
     elif type_ == "participant_joined_group_call":
         return CallJoined._parse(session, data)
-    elif type_ == "group_poll":
-        event_type = data["untypedData"]["event_type"]
-        if event_type == "question_creation":
-            return PollCreated._parse(session, data)
-        elif event_type == "update_vote":
-            return PollVoted._parse(session, data)
-        else:
-            pass
-    elif type_ == "lightweight_event_create":
-        return PlanCreated._parse(session, data)
-    elif type_ == "lightweight_event_notify":
-        return PlanEnded._parse(session, data)
-    elif type_ == "lightweight_event_update":
-        return PlanEdited._parse(session, data)
-    elif type_ == "lightweight_event_delete":
-        return PlanDeleted._parse(session, data)
-    elif type_ == "lightweight_event_rsvp":
-        return PlanResponded._parse(session, data)
     return UnknownEvent(source="Delta type", data=data)

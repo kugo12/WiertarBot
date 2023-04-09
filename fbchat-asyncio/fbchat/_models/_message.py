@@ -3,7 +3,7 @@ import datetime
 import enum
 from string import Formatter
 from . import _attachment, _location, _file, _quick_reply, _sticker
-from .._common import log, attrs_default
+from .._common import log
 from .. import _exception, _util
 from typing import Optional, Mapping, Sequence, Any, TYPE_CHECKING
 
@@ -35,7 +35,7 @@ class EmojiSize(enum.Enum):
         return None
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class Mention:
     """Represents a ``@mention``.
 
@@ -73,7 +73,7 @@ class Mention:
         }
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class Message:
     """Represents a Facebook message.
 
@@ -205,7 +205,7 @@ class Message:
         return result, mentions
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class MessageSnippet(Message):
     """Represents data in a Facebook message snippet.
 
@@ -233,7 +233,7 @@ class MessageSnippet(Message):
         )
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class MessageData(Message):
     """Represents data in a Facebook message.
 

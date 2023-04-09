@@ -1,13 +1,12 @@
 import attr
 import datetime
 from . import Image, Attachment
-from .._common import attrs_default
 from .. import _util
 
 from typing import Set, Optional
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class FileAttachment(Attachment):
     """Represents a file that has been sent as a Facebook attachment."""
 
@@ -31,7 +30,7 @@ class FileAttachment(Attachment):
         )
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class AudioAttachment(Attachment):
     """Represents an audio file that has been sent as a Facebook attachment."""
 
@@ -54,7 +53,7 @@ class AudioAttachment(Attachment):
         )
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class ImageAttachment(Attachment):
     """Represents an image that has been sent as a Facebook attachment.
 
@@ -108,7 +107,7 @@ class ImageAttachment(Attachment):
         )
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class VideoAttachment(Attachment):
     """Represents a video that has been sent as a Facebook attachment."""
 

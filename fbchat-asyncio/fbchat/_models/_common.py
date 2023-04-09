@@ -1,6 +1,6 @@
 import datetime
 import enum
-from .._common import attrs_default
+import attr
 from .. import _util
 
 from typing import Optional
@@ -19,7 +19,7 @@ class ThreadLocation(enum.Enum):
         return cls(value.lstrip("FOLDER_"))
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class ActiveStatus:
     #: Whether the user is active now
     active: bool
@@ -38,7 +38,7 @@ class ActiveStatus:
         )
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class Image:
     #: URL to the image
     url: str

@@ -2,7 +2,7 @@ import abc
 import attr
 import collections
 import datetime
-from .._common import log, attrs_default
+from .._common import log
 from .. import _util, _exception, _session, _graphql, _models
 from typing import MutableMapping, Mapping, Any, Iterable, Tuple, Optional, AsyncGenerator, AsyncIterator
 
@@ -598,57 +598,6 @@ class ThreadABC(metaclass=abc.ABCMeta):
         """
         await self._set_typing(False)
 
-    async def create_plan(
-        self,
-        name: str,
-        at: datetime.datetime,
-        location_name: str = None,
-        location_id: str = None,
-    ):
-        """Create a new plan.
-
-        # TODO: Arguments
-
-        Args:
-            name: Name of the new plan
-            at: When the plan is for
-
-        Example:
-            >>> thread.create_plan(...)
-        """
-        return await _models.Plan._create(self, name, at, location_name, location_id)
-
-    async def create_poll(self, question: str, options: Mapping[str, bool]):
-        """Create poll in a thread.
-
-        Args:
-            question: The question
-            options: Options and whether you want to select the option
-
-        Example:
-            >>> thread.create_poll("Test poll", {"Option 1": True, "Option 2": False})
-        """
-        # We're using ordered dictionaries, because the Facebook endpoint that parses
-        # the POST parameters is badly implemented, and deals with ordering the options
-        # wrongly. If you can find a way to fix this for the endpoint, or if you find
-        # another endpoint, please do suggest it ;)
-        data = collections.OrderedDict(
-            [("question_text", question), ("target_id", self.id)]
-        )
-
-        for i, (text, vote) in enumerate(options.items()):
-            data["option_text_array[{}]".format(i)] = text
-            data["option_is_selected_array[{}]".format(i)] = "1" if vote else "0"
-
-        j = await self.session._payload_post(
-            "/messaging/group_polling/create_poll/?dpr=1", data
-        )
-        if j.get("status") != "success":
-            raise _exception.ExternalError(
-                "Failed creating poll: {}".format(j.get("errorTitle")),
-                j.get("errorMessage"),
-            )
-
     async def mute(self, duration: datetime.timedelta = None):
         """Mute the thread.
 
@@ -800,7 +749,7 @@ class ThreadABC(metaclass=abc.ABCMeta):
                 log.warning("Unknown type %r in %s", typename, data)
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class Thread(ThreadABC):
     """Represents a Facebook thread, where the actual type is unknown.
 

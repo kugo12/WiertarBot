@@ -1,12 +1,12 @@
 import datetime
+import attr
 from . import Image, Attachment
-from .._common import attrs_default
 from .. import _util, _exception
 
 from typing import Optional
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class LocationAttachment(Attachment):
     """Represents a user location.
 
@@ -48,7 +48,7 @@ class LocationAttachment(Attachment):
         )
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class LiveLocationAttachment(LocationAttachment):
     """Represents a live user location."""
 

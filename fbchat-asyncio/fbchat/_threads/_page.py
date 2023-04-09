@@ -1,13 +1,12 @@
 import attr
 import datetime
 from ._abc import ThreadABC
-from .._common import attrs_default
 from .. import _session, _models
 
 from typing import Optional
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class Page(ThreadABC):
     """Represents a Facebook page. Implements `ThreadABC`.
 
@@ -29,7 +28,7 @@ class Page(ThreadABC):
         return Page(session=self.session, id=self.id)
 
 
-@attrs_default
+@attr.s(frozen=True, slots=True, kw_only=True, auto_attribs=True)
 class PageData(Page):
     """Represents data about a Facebook page.
 
@@ -44,8 +43,6 @@ class PageData(Page):
     last_active: Optional[datetime.datetime] = None
     #: Number of messages in the thread
     message_count: Optional[int] = None
-    #: Set `Plan`
-    plan: Optional[_models.PlanData] = None
     #: The page's custom URL
     url: Optional[str] = None
     #: The name of the page's location city
@@ -63,11 +60,6 @@ class PageData(Page):
             data["profile_picture"] = {}
         if data.get("city") is None:
             data["city"] = {}
-        plan = None
-        if data.get("event_reminders") and data["event_reminders"].get("nodes"):
-            plan = _models.PlanData._from_graphql(
-                session, data["event_reminders"]["nodes"][0]
-            )
 
         return cls(
             session=session,
@@ -78,5 +70,4 @@ class PageData(Page):
             photo=_models.Image._from_uri(data["profile_picture"]),
             name=data["name"],
             message_count=data.get("messages_count"),
-            plan=plan,
         )
