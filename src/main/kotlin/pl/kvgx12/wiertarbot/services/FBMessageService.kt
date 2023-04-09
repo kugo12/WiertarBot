@@ -22,6 +22,7 @@ class FBMessageService(
     companion object {
         private val json = Json {
             ignoreUnknownKeys = true
+            isLenient = true
         }
     }
 
@@ -87,7 +88,7 @@ class FBMessageService(
             val filename: String? = null,
             @SerialName("original_extension")
             val originalExtension: String? = null,
-            val id: Long? = null
+            val id: String? = null
         )
     }
 }
