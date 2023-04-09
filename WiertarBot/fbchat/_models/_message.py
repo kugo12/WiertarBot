@@ -19,7 +19,7 @@ class EmojiSize(enum.Enum):
     SMALL = "369239263222822"
 
     @classmethod
-    def _from_tags(cls, tags: str | None) -> 'EmojiSize' | None:
+    def _from_tags(cls, tags: str | None) -> Optional['EmojiSize']:
         string_to_emojisize = {
             "large": cls.LARGE,
             "medium": cls.MEDIUM,
