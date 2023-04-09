@@ -1,4 +1,4 @@
-from typing import Optional, Protocol
+from typing import Optional, Protocol, Iterator, Iterable, Self, cast
 
 from pl.kvgx12.wiertarbot.connector import FileData as KtFileData, UploadedFile as KtUploadedFile, \
     ThreadData as KtThreadData
@@ -9,12 +9,13 @@ from pl.kvgx12.wiertarbot.events import \
     ImageAttachment as KtImageAttachment
 
 
-class ByteArray(Protocol): ...
+class ByteArray(Protocol, Iterable[int]): ...
 
 
 class ThreadData(Protocol):
-    def __new__(cls, id: str, name: str, message_count: Optional[int], participants: list[str]) -> 'ThreadData':
-        return KtThreadData(id, name, message_count, participants)
+    @staticmethod
+    def new(id: str, name: str, message_count: Optional[int], participants: list[str]) -> 'ThreadData':
+        return cast(ThreadData, KtThreadData(id, name, message_count, participants))
 
     def getId(self) -> str: ...
 
@@ -26,8 +27,9 @@ class ThreadData(Protocol):
 
 
 class Mention(Protocol):
-    def __new__(cls, thread_id: str, offset: int, length: int) -> 'Mention':
-        return KtMention(thread_id, offset, length)
+    @staticmethod
+    def new(thread_id: str, offset: int, length: int) -> 'Mention':
+        return cast(Mention, KtMention(thread_id, offset, length))
 
     def getThreadId(self) -> str: ...
 
@@ -37,8 +39,9 @@ class Mention(Protocol):
 
 
 class FileData(Protocol):
-    def __new__(cls, uri: str, content: bytes, media_type: str) -> 'FileData':
-        return KtFileData(uri, content, media_type)
+    @staticmethod
+    def new(uri: str, content: bytes, media_type: str) -> 'FileData':
+        return cast(FileData, KtFileData(uri, content, media_type))
 
     def getUri(self) -> str: ...
 
@@ -48,8 +51,9 @@ class FileData(Protocol):
 
 
 class UploadedFile(Protocol):
-    def __new__(cls, id: str, mime_type: str) -> 'UploadedFile':
-        return KtUploadedFile(id, mime_type)
+    @staticmethod
+    def new(id: str, mime_type: str) -> 'UploadedFile':
+        return cast(UploadedFile, KtUploadedFile(id, mime_type))
 
     def getId(self) -> str: ...
 
@@ -57,22 +61,25 @@ class UploadedFile(Protocol):
 
 
 class Attachment(Protocol):
-    def __new__(cls, id: str) -> 'Attachment':
-        return KtAttachment(id)
+    @staticmethod
+    def new(id: str) -> 'Attachment':
+        return cast(Attachment, KtAttachment(id))
 
     def getId(self) -> Optional[str]: ...
 
 
 class ImageAttachment(Attachment):
-    def __new__(
-            cls,
+    @staticmethod
+    def new(  # type: ignore[override]
             id: Optional[str],
             width: Optional[int],
             height: Optional[int],
             original_extension: Optional[str],
             is_animated: Optional[bool]
     ) -> 'ImageAttachment':
-        return KtImageAttachment(id, width, height, original_extension, is_animated)
+        return cast(ImageAttachment, KtImageAttachment(id, width, height, original_extension, is_animated))
+
+    def getId(self) -> Optional[str]: ...
 
     def getWidth(self) -> Optional[int]: ...
 
@@ -87,18 +94,22 @@ class Context(Protocol): ...
 
 
 class MessageEvent(Protocol):
-    def __new__(cls,
-                context: Context,
-                text: str,
-                author_id: str,
-                thread_id: str,
-                at: int,
-                mentions: list[Mention],
-                external_id: str,
-                reply_to_id: Optional[str],
-                attachments: list[Attachment],
-                ) -> 'MessageEvent':
-        return KtMessageEvent(context, text, author_id, thread_id, at, mentions, external_id, reply_to_id, attachments)
+    @staticmethod
+    def new(
+            context: Context,
+            text: str,
+            author_id: str,
+            thread_id: str,
+            at: int,
+            mentions: list[Mention],
+            external_id: str,
+            reply_to_id: Optional[str],
+            attachments: list[Attachment],
+    ) -> 'MessageEvent':
+        return cast(
+            MessageEvent,
+            KtMessageEvent(context, text, author_id, thread_id, at, mentions, external_id, reply_to_id, attachments)
+        )
 
     def getContext(self) -> Context: ...
 

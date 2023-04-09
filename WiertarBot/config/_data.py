@@ -1,10 +1,10 @@
-from typing import Protocol, Final
+from typing import Protocol, ClassVar, Optional, Self
 
 import wbglobals
 
 
 class WiertarBotConfig(Protocol):
-    instance: Final['WiertarBotConfig'] = wbglobals.fb_properties
+    instance: ClassVar[Self] = wbglobals.fb_properties
 
     def getEmail(self) -> str: ...
 
@@ -12,7 +12,7 @@ class WiertarBotConfig(Protocol):
 
 
 class SentryConfig(Protocol):
-    instance: Final['SentryConfig'] = wbglobals.sentry_properties
+    instance: ClassVar[Optional[Self]] = wbglobals.sentry_properties
 
     def getDsn(self) -> str: ...
 

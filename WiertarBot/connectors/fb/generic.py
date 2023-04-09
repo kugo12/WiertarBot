@@ -1,15 +1,14 @@
-import fbchat
-
-from WiertarBot.events import Attachment, ImageAttachment
+from ... import fbchat
+from ...events import Attachment, ImageAttachment
 
 
 def fb_attachment_to_generic(attachment: fbchat.Attachment) -> Attachment:
     if isinstance(attachment, fbchat.ImageAttachment):
-        return ImageAttachment(
+        return ImageAttachment.new(
             id=attachment.id,
             width=attachment.width,
             height=attachment.height,
             original_extension=attachment.original_extension,
             is_animated=attachment.is_animated
         )
-    return Attachment(attachment.id)
+    return Attachment.new(attachment.id or "")

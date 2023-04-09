@@ -1,14 +1,13 @@
 import mimetypes
 from io import BytesIO
 from os import path
-from typing import Optional, Iterable, Union, cast
+from typing import Optional, Iterable, Union, cast, TypeAlias
 
 import aiofiles
 import aiohttp
-import fbchat
 
 from .generic import fb_attachment_to_generic
-from ... import config
+from ... import config, fbchat
 from ...abc import PyContext
 from ...response import IResponse
 from ...events import MessageEvent, Mention, FileData, UploadedFile, ThreadData, ByteArray
@@ -25,7 +24,7 @@ def jbyte_array_to_bytes(arr: ByteArray) -> bytes:  # jvm bytes are signed
     return b"".join(it.to_bytes(length=1, byteorder="big", signed=True) for it in arr)
 
 
-FBThreadData = fbchat.UserData | fbchat.GroupData | fbchat.PageData
+FBThreadData: TypeAlias = fbchat.UserData | fbchat.GroupData | fbchat.PageData
 
 
 class FBContext(PyContext):
@@ -64,7 +63,7 @@ class FBContext(PyContext):
             self, files: list[FileData], voice_clip: bool = False
     ) -> list[UploadedFile]:
         return [
-            UploadedFile(it[0], it[1])
+            UploadedFile.new(it[0], it[1])
             for it in await self.__client.upload(
                 [(it.getUri(), BytesIO(jbyte_array_to_bytes(it.getContent())), it.getMediaType()) for it in files],
                 voice_clip
@@ -74,9 +73,9 @@ class FBContext(PyContext):
     async def fetch_thread(self, id: str) -> ThreadData:
         data: FBThreadData = await self.__client.fetch_thread_info([id]).__anext__()  # type: ignore
 
-        return ThreadData(
+        return ThreadData.new(
             id=data.id,
-            name=data.name,
+            name=data.name or "",
             message_count=data.message_count,
             participants=[it.id for it in data.participants] if isinstance(data, fbchat.GroupData) else []
         )
@@ -100,13 +99,13 @@ class FBContext(PyContext):
 
         message = await fbchat.Message(thread=thread, id=event.getReplyToId()).fetch()
 
-        return MessageEvent(
+        return MessageEvent.new(
             context=event.getContext(),
-            text=message.text,
+            text=message.text or "",
             author_id=message.author,
             thread_id=message.thread.id,
             at=int(message.created_at.timestamp()),
-            mentions=[Mention(it.thread_id, it.offset, it.length) for it in message.mentions],
+            mentions=[Mention.new(it.thread_id, it.offset, it.length) for it in message.mentions],
             external_id=message.id,
             reply_to_id=message.reply_to_id,
             attachments=[fb_attachment_to_generic(it) for it in message.attachments]
@@ -148,13 +147,13 @@ class FBContext(PyContext):
                     if mime == 'video/mp4' and voice_clip:
                         mime = 'audio/mp4'
 
-                    final_files.append(FileData(true_fn, f, mime))
+                    final_files.append(FileData.new(true_fn, f, mime))
 
                 elif fn.startswith(('http://', 'https://')):
                     async with aiohttp.ClientSession() as session:
                         async with session.get(fn) as r:
                             if r.status == 200:
-                                final_files.append(FileData(true_fn, await r.read(), mime))
+                                final_files.append(FileData.new(true_fn, await r.read(), mime))
 
         if final_files:
             return await self.upload_raw(final_files, voice_clip)

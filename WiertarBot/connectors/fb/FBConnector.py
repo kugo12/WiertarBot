@@ -1,13 +1,12 @@
 import atexit
 
-import fbchat
 import json
 from asyncio import get_running_loop
 from typing import Optional, NoReturn, Any, Callable
 
 from .FBContext import FBContext
 from .dispatch import FBEventDispatcher
-from ... import config
+from ... import config, fbchat
 from ...services import RabbitMQService
 from ...utils import execute_after_delay
 from ...log import log
@@ -99,7 +98,7 @@ class FBConnector:
             callback(event)
             await FBEventDispatcher.dispatch(event, context=self.__context)
 
-    def _update_context(self):
+    def _update_context(self) -> None:
         self.__context = FBContext(self.__client)
         self.__context_hook(self.__context)
 
