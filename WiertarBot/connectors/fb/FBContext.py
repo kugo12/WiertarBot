@@ -14,11 +14,11 @@ from ...response import IResponse
 from ...events import MessageEvent, Mention, FileData, UploadedFile, ThreadData
 
 
-def fb_mentions(mentions: Iterable['Mention']) -> list[fbchat.Mention]:
+def fb_mentions(mentions: Iterable['Mention'] | None) -> list[fbchat.Mention]:
     return [
         fbchat.Mention(thread_id=it.getThreadId(), offset=it.getOffset(), length=it.getLength())
         for it in mentions
-    ]
+    ] if mentions else []
 
 
 FBThreadData = fbchat.UserData | fbchat.GroupData | fbchat.PageData
