@@ -1,13 +1,12 @@
 import atexit
 
-import fbchat
 import json
 from asyncio import get_running_loop
 from typing import Optional, NoReturn, Any, Callable
 
 from .FBContext import FBContext
 from .dispatch import FBEventDispatcher
-from ... import config
+from ... import config, fbchat
 from ...services import RabbitMQService
 from ...utils import execute_after_delay
 from ...log import log

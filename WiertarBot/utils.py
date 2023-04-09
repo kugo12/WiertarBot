@@ -1,8 +1,8 @@
-import fbchat
 import json
 import asyncio
 from typing import Awaitable, Any
 from datetime import datetime
+from . import fbchat
 
 
 async def execute_after_delay(delay: int, async_function: Awaitable):

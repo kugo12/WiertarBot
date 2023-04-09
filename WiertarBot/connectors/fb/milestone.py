@@ -1,4 +1,3 @@
-import fbchat
 import asyncio
 
 from typing import Optional
@@ -7,6 +6,7 @@ from collections import defaultdict
 from .dispatch import FBEventDispatcher
 from .FBContext import FBContext
 from ...database import MessageCountMilestoneRepository, MessageCountMilestone
+from ... import fbchat
 
 _counts: dict[str, MessageCountMilestone] = {}
 _locks: defaultdict[str, asyncio.Lock] = defaultdict(asyncio.Lock)

@@ -1,6 +1,5 @@
-import fbchat
-
-from WiertarBot.events import Attachment, ImageAttachment
+from ... import fbchat
+from ...events import Attachment, ImageAttachment
 
 
 def fb_attachment_to_generic(attachment: fbchat.Attachment) -> Attachment:

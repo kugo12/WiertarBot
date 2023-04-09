@@ -3,8 +3,7 @@ import json
 import asyncio
 from datetime import datetime
 
-import fbchat
-
+from ... import fbchat
 from .FBContext import FBContext
 from .dispatch import FBEventDispatcher
 from ...services import PermissionService, RabbitMQService

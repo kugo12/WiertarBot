@@ -1,5 +1,4 @@
-import fbchat
-
+from ... import fbchat
 from ...dispatch import EventDispatcher, EventConsumer
 
 

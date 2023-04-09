@@ -5,10 +5,9 @@ from typing import Optional, Iterable, Union, cast
 
 import aiofiles
 import aiohttp
-import fbchat
 
 from .generic import fb_attachment_to_generic
-from ... import config
+from ... import config, fbchat
 from ...abc import PyContext
 from ...response import IResponse
 from ...events import MessageEvent, Mention, FileData, UploadedFile, ThreadData, ByteArray
