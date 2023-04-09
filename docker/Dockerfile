@@ -4,11 +4,10 @@ WORKDIR /app
 
 # setup - jdk + libraries + python stuff + new user
 RUN apt -y update && \
-    apt install -y python3.11-minimal && \
+    apt install -y python3.11-minimal python3.11-dev gcc && \
     apt clean -y && \
     useradd -U user && \
     curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11 && \
-    pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir poetry requests wheel && \
     poetry config virtualenvs.create false
 
