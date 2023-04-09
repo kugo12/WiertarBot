@@ -289,7 +289,7 @@ class MessageData(Message):
         return []
 
     @classmethod
-    def _from_graphql(cls, thread: _threads.ThreadABC, data, read_receipts=None) -> Self:
+    def _from_graphql(cls, thread: "_threads.ThreadABC", data, read_receipts=None) -> Self:
         if data.get("message_sender") is None:
             data["message_sender"] = {}
         if data.get("message") is None:
@@ -346,7 +346,7 @@ class MessageData(Message):
         )
 
     @classmethod
-    def _from_reply(cls, thread: _threads.ThreadABC, data) -> Self:
+    def _from_reply(cls, thread: "_threads.ThreadABC", data) -> Self:
         tags = data["messageMetadata"].get("tags")
         metadata = data.get("messageMetadata", {})
 
@@ -394,7 +394,7 @@ class MessageData(Message):
         )
 
     @classmethod
-    def _from_pull(cls, thread: _threads.ThreadABC, data, author: str, created_at: datetime.datetime) -> Self:
+    def _from_pull(cls, thread: '_threads.ThreadABC', data, author: str, created_at: datetime.datetime) -> Self:
         metadata = data["messageMetadata"]
 
         tags = metadata.get("tags")
