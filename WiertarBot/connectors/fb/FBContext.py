@@ -132,28 +132,21 @@ class FBContext(PyContext):
     async def upload(self, files: list[str], voice_clip=False) -> Optional[list[UploadedFile]]:
         final_files: list[FileData] = []
         for fn in files:
-            if fn.startswith(('http://', 'https://')):
-                true_fn: str = path.basename(fn.split('?', 1)[0])  # without get params
-                mime, _ = mimetypes.guess_type(true_fn)
-            else:
+            if path.exists(fn):
                 mime, _ = mimetypes.guess_type(fn)
+                with open(fn, 'rb') as file:
+                    f = file.read()
+                true_fn = path.basename(fn)
 
-            if mime:
-                if path.exists(fn):
-                    with open(fn, 'rb') as file:
-                        f = file.read()
-                    true_fn = path.basename(fn)
+                if mime == 'video/mp4' and voice_clip:
+                    mime = 'audio/mp4'
 
-                    if mime == 'video/mp4' and voice_clip:
-                        mime = 'audio/mp4'
-
-                    final_files.append(FileData.new(true_fn, f, mime))
-
-                elif fn.startswith(('http://', 'https://')):
-                    async with aiohttp.ClientSession() as session:
-                        async with session.get(fn) as r:
-                            if r.status == 200:
-                                final_files.append(FileData.new(true_fn, await r.read(), mime))
+                final_files.append(FileData.new(true_fn, f, mime))
+            elif fn.startswith(('http://', 'https://')):
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(fn) as r:
+                        if r.status == 200:
+                            final_files.append(FileData.new(fn, await r.read(), r.content_type))
 
         if final_files:
             return await self.upload_raw(final_files, voice_clip)
