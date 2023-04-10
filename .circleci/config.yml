@@ -13,19 +13,19 @@ orbs:
   gradle: circleci/gradle@3.0.0
 
 commands:
-  skip_if_dir_not_changed:
+  skip_if_files_not_changed:
     parameters:
-      dir_pattern:
+      files:
         type: string
     steps:
       - run:
-          name: Check if << parameters.dir_pattern >> changed
+          name: Check if << parameters.files >> changed
           command: |
-            CHANGED=$(git diff --name-only "<< pipeline.git.base_revision >>" | grep -E "^(.circleci|<< parameters.dir_pattern >>)" || true)
+            CHANGED=$(git diff --name-only "<< pipeline.git.base_revision >>" -- .circleci << parameters.files >>)
             
             echo "$CHANGED"
             if [ -z "$CHANGED" ]; then
-              echo "Found nothing changed matching << parameters.dir_pattern >>, skipping"
+              echo "Found nothing changed matching << parameters.files >>, skipping"
               circleci-agent step halt
             fi
   docker_build:
@@ -56,8 +56,8 @@ jobs:
     executor: jdk
     steps:
       - checkout
-      - skip_if_dir_not_changed:
-          dir_pattern: services/core|build.gradle.kts
+      - skip_if_files_not_changed:
+          files: services/core build.gradle.kts
       - gradle/with_cache:
           deps_checksum_file: build.gradle.kts services/core/build.gradle.kts
           steps:
@@ -70,8 +70,8 @@ jobs:
     executor: default
     steps:
       - checkout
-      - skip_if_dir_not_changed:
-          dir_pattern: services/ttrs-api
+      - skip_if_files_not_changed:
+          files: services/ttrs-api
       - docker_build:
           image: wiertarbot-ttrs-api
           context: services/ttrs-api
