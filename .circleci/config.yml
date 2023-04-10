@@ -36,7 +36,7 @@ commands:
         type: string
       dockerfile:
         type: string
-        default: "<< parameters.context >>/Dockerfile"
+        default: Dockerfile
     steps:
       - setup_remote_docker:
           version: 20.10.18
@@ -49,7 +49,7 @@ commands:
             docker buildx build --progress=plain --push
             -t "$DOCKERHUB_USER/<< parameters.image >>:$(uname -m)-${CIRCLE_SHA1}"
             -t "$DOCKERHUB_USER/<< parameters.image >>:latest"
-            -f "<< parameters.dockerfile >>" "<< parameters.context >>"
+            -f "<< parameters.context >>/<< parameters.dockerfile >>" "<< parameters.context >>"
 
 jobs:
   build_and_push_core:
