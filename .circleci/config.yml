@@ -1,38 +1,18 @@
 version: 2.1
 
 executors:
-  x86:
-    machine: &machine
-      image: ubuntu-2004:current
-      docker_layer_caching: true
-    resource_class: medium
-
-  arm:
-    machine: *machine
-    resource_class: arm.large
-
   default:
     docker:
       - image: cimg/base:current
+
+  jdk:
+    docker:
+      - image: cimg/openjdk:17.0
 
 orbs:
   gradle: circleci/gradle@3.0.0
 
 commands:
-  setup_docker:
-    steps:
-      - setup_remote_docker:
-          version: 20.10.18
-  setup_buildkit:
-    steps:
-      - run:
-          name: Setup BuildKit
-          command: docker buildx create --use
-  docker_login:
-    steps:
-      - run:
-          name: Docker login
-          command: docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_TOKEN
   skip_if_dir_not_changed:
     parameters:
       dir_pattern:
@@ -48,76 +28,53 @@ commands:
               echo "Found nothing changed matching << parameters.dir_pattern >>, skipping"
               circleci-agent step halt
             fi
+  docker_build:
+    parameters:
+      context:
+        type: string
+      image:
+        type: string
+      dockerfile:
+        type: string
+        default: "<< parameters.context >>/Dockerfile"
+    steps:
+      - setup_remote_docker:
+          version: 20.10.18
+      - run:
+          name: Docker login
+          command: docker login --username=$DOCKERHUB_USER --password=$DOCKERHUB_TOKEN
+      - run:
+          name: Build and push docker image
+          command: >
+            docker buildx build --progress=plain --push
+            -t "$DOCKERHUB_USER/<< parameters.image >>:$(uname -m)-${CIRCLE_SHA1}"
+            -t "$DOCKERHUB_USER/<< parameters.image >>:latest"
+            -f "<< parameters.dockerfile >>" "<< parameters.context >>"
 
 jobs:
-  gradle_build:
-    docker:
-      - image: cimg/openjdk:17.0
+  build_and_push_core:
+    executor: jdk
     steps:
       - checkout
+      - skip_if_dir_not_changed:
+          dir_pattern: services/core|build.gradle.kts
       - gradle/with_cache:
-          deps_checksum_file: build.gradle.kts
+          deps_checksum_file: build.gradle.kts services/core/build.gradle.kts
           steps:
-            - run: ./gradlew bootJar
-      - persist_to_workspace:
-          root: .
-          paths: [build/libs]
-
-  build_and_push:
-    parameters:
-      executor:
-        type: executor
-    executor: << parameters.executor >>
-
-    steps:
-      - checkout
-      - attach_workspace:
-          at: .
-      - docker_login
-      - run:
-          name: Build and push
-          command: >
-            docker buildx build --progress=plain --push 
-            -t $DOCKERHUB_USER/wiertarbot:$(uname -m)-${CIRCLE_SHA1} 
-            -f ./docker/Dockerfile .
-
-  create_manifest:
-    executor: default
-    steps:
-      - setup_docker
-      - docker_login
-      - run:
-          name: Create and push manifest
-          command: |
-            set -eu
-            export DOCKER_CLI_EXPERIMENTAL=enabled
-            docker manifest create "$DOCKERHUB_USER/wiertarbot:latest" \
-                                   "$DOCKERHUB_USER/wiertarbot:aarch64-${CIRCLE_SHA1}" \
-                                   "$DOCKERHUB_USER/wiertarbot:x86_64-${CIRCLE_SHA1}"
-            
-            docker manifest create "$DOCKERHUB_USER/wiertarbot:${CIRCLE_SHA1}" \
-                                   "$DOCKERHUB_USER/wiertarbot:aarch64-${CIRCLE_SHA1}" \
-                                   "$DOCKERHUB_USER/wiertarbot:x86_64-${CIRCLE_SHA1}"
-            
-            docker manifest push "$DOCKERHUB_USER/wiertarbot:latest"
+            - run: ./gradlew :services:core:bootJar
+      - docker_build:
+          image: wiertarbot
+          context: services/core
 
   build_and_push_ttrs_api:
     executor: default
     steps:
       - checkout
       - skip_if_dir_not_changed:
-          dir_pattern: ttrs-api
-      - setup_docker
-      - docker_login
-      - setup_buildkit
-      - run:
-          name: Build and push docker image
-          command: >
-            docker buildx build --progress=plain --push 
-            --platform linux/arm64,linux/amd64 
-            -t "$DOCKERHUB_USER/wiertarbot-ttrs-api:${CIRCLE_SHA1}" 
-            -t "$DOCKERHUB_USER/wiertarbot-ttrs-api:latest" 
-            ttrs-api
+          dir_pattern: services/ttrs-api
+      - docker_build:
+          image: wiertarbot-ttrs-api
+          context: services/ttrs-api
 
   trigger_deployment:
     executor: default
@@ -141,17 +98,10 @@ workflows:
       - build_and_push_ttrs_api:
           context: [dockerhub]
 
-      - gradle_build
-      - build_and_push:
+      - build_and_push_core:
           context: [dockerhub]
           requires: [gradle_build]
-          matrix:
-            parameters:
-              executor: [x86, arm]
-      - create_manifest:
-          context: [dockerhub]
-          requires: [build_and_push]
 
       - trigger_deployment:
           context: [gitlab]
-          requires: [create_manifest, build_and_push_ttrs_api]
+          requires: [build_and_push_core, build_and_push_ttrs_api]

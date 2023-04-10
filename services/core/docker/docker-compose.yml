@@ -2,9 +2,7 @@ version: "3.3"
 
 services:
   bot:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
+    build: ..
     volumes:
       - ./application.yml:/app/application.yml
       - ./data:/app/data:Z
