@@ -59,7 +59,7 @@ class CommandService(
                         }
 
                         is Command -> launch {
-                            command.process(event)?.send()
+                            command.process(event)?.also { println(it.toString()) }?.send()
                         }
 
                         null -> {}

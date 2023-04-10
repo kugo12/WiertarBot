@@ -52,28 +52,29 @@ commands:
             -f "<< parameters.dockerfile >>" "<< parameters.context >>"
 
 jobs:
-  build_and_push:
+  build_and_push_core:
     executor: jdk
     steps:
       - checkout
+      - skip_if_dir_not_changed:
+          dir_pattern: services/core|build.gradle.kts
       - gradle/with_cache:
-          deps_checksum_file: build.gradle.kts
+          deps_checksum_file: build.gradle.kts services/core/build.gradle.kts
           steps:
-            - run: ./gradlew bootJar
+            - run: ./gradlew :services:core:bootJar
       - docker_build:
           image: wiertarbot
-          context: .
-          dockerfile: ./docker/Dockerfile
+          context: services/core
 
   build_and_push_ttrs_api:
     executor: default
     steps:
       - checkout
       - skip_if_dir_not_changed:
-          dir_pattern: ttrs-api
+          dir_pattern: services/ttrs-api
       - docker_build:
           image: wiertarbot-ttrs-api
-          context: ttrs-api
+          context: services/ttrs-api
 
   trigger_deployment:
     executor: default
@@ -97,10 +98,10 @@ workflows:
       - build_and_push_ttrs_api:
           context: [dockerhub]
 
-      - build_and_push:
+      - build_and_push_core:
           context: [dockerhub]
           requires: [gradle_build]
 
       - trigger_deployment:
           context: [gitlab]
-          requires: [build_and_push, build_and_push_ttrs_api]
+          requires: [build_and_push_core, build_and_push_ttrs_api]
