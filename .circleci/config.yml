@@ -100,7 +100,6 @@ workflows:
 
       - build_and_push_core:
           context: [dockerhub]
-          requires: [gradle_build]
 
       - trigger_deployment:
           context: [gitlab]
