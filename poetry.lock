@@ -884,26 +884,26 @@ files = [
 
 [[package]]
 name = "types-aiofiles"
-version = "0.8.11"
+version = "23.1.0.1"
 description = "Typing stubs for aiofiles"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-aiofiles-0.8.11.tar.gz", hash = "sha256:1f93aa68e47de1379f45eef9acd34faa0f9341628921cd6aede666e6e559a5a8"},
-    {file = "types_aiofiles-0.8.11-py3-none-any.whl", hash = "sha256:be6715fffd1c7f84c9316000ba8bbc66a884246dbd2902c163ebc2d67315206b"},
+    {file = "types-aiofiles-23.1.0.1.tar.gz", hash = "sha256:be8030019f7be67f4b0f0c00acd28f4942b34cf719e1715f5d99d868c7b1a776"},
+    {file = "types_aiofiles-23.1.0.1-py3-none-any.whl", hash = "sha256:9f04650092b1f3423bd6834c850f20916d499e3b59ea5bab64d8de95b9e6b196"},
 ]
 
 [[package]]
 name = "types-beautifulsoup4"
-version = "4.12.0.2"
+version = "4.12.0.3"
 description = "Typing stubs for beautifulsoup4"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-beautifulsoup4-4.12.0.2.tar.gz", hash = "sha256:4d689bc581af6832ab7c47d67de9d4875eb8c23f6dea4d1c9efb2d28999c7ce9"},
-    {file = "types_beautifulsoup4-4.12.0.2-py3-none-any.whl", hash = "sha256:b09bb3062ad3fbae02f38cc7de2d1acfa494b34818445be57b18b733b4cac370"},
+    {file = "types-beautifulsoup4-4.12.0.3.tar.gz", hash = "sha256:64b71d44d6a6030e39bb324dd51ef176bec158cd4d2994ed7213c1b2b8fa0785"},
+    {file = "types_beautifulsoup4-4.12.0.3-py3-none-any.whl", hash = "sha256:019e1a9096ecd12a37981d562cfed405398e6ed3c7717852c1f01871d052906a"},
 ]
 
 [package.dependencies]
@@ -923,14 +923,14 @@ files = [
 
 [[package]]
 name = "types-pytz"
-version = "2022.7.1.2"
+version = "2023.3.0.0"
 description = "Typing stubs for pytz"
 category = "dev"
 optional = false
 python-versions = "*"
 files = [
-    {file = "types-pytz-2022.7.1.2.tar.gz", hash = "sha256:487d3e8e9f4071eec8081746d53fa982bbc05812e719dcbf2ebf3d55a1a4cd28"},
-    {file = "types_pytz-2022.7.1.2-py3-none-any.whl", hash = "sha256:40ca448a928d566f7d44ddfde0066e384f7ffbd4da2778e42a4570eaca572446"},
+    {file = "types-pytz-2023.3.0.0.tar.gz", hash = "sha256:ecdc70d543aaf3616a7e48631543a884f74205f284cefd6649ddf44c6a820aac"},
+    {file = "types_pytz-2023.3.0.0-py3-none-any.whl", hash = "sha256:4fc2a7fbbc315f0b6630e0b899fd6c743705abe1094d007b0e612d10da15e0f3"},
 ]
 
 [[package]]
@@ -1104,4 +1104,4 @@ multidict = ">=4.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "4ee5e7ad4d23a0744abcdb4aeb72e8ce0b4b0d7090fd5cbd20f28f97976a0532"
+content-hash = "d9820c6ac290bf93d76d63f5fb23a798aec4d5b17b64a6e7a7ae8a9dc918a22a"

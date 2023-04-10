@@ -1,7 +1,6 @@
 import attr
 import random
 import paho.mqtt.client
-import urllib.request
 import asyncio
 import aiohttp
 from ._common import log
@@ -10,11 +9,6 @@ from . import _util, _exception, _session, _events
 from typing import AsyncGenerator, Optional, List
 
 from yarl import URL
-
-try:
-    import socks
-except ImportError:
-    socks = None
 
 TOPICS = [
     # Things that happen in chats (e.g. messages)
@@ -108,7 +102,7 @@ class Listener:
     _sequence_id: Optional[int] = None
     _sequence_id_wait: Optional[asyncio.Future] = None
     _tmp_events: List[_events.Event] = attr.ib(factory=list)
-    _message_queue: asyncio.Queue = attr.ib(factory=lambda: asyncio.Queue(maxsize=64))
+    _message_queue: asyncio.Queue = attr.ib(factory=lambda: asyncio.Queue())
 
     def __attrs_post_init__(self):
         self._mqtt = mqtt_factory(self.session.domain)
@@ -295,10 +289,10 @@ class Listener:
         try:
             self._mqtt.reconnect()
         except (
-            # Taken from .loop_forever
-            paho.mqtt.client.socket.error,
-            OSError,
-            paho.mqtt.client.WebsocketConnectionError,
+                # Taken from .loop_forever
+                paho.mqtt.client.socket.error,
+                OSError,
+                paho.mqtt.client.WebsocketConnectionError,
         ) as e:
             raise _exception.NotLoggedIn("MQTT reconnection failed") from e
 
@@ -309,6 +303,60 @@ class Listener:
             self._sequence_id_wait = None
         else:
             log.debug("Got unexpected set_sequence_id call")
+
+    async def _mqtt_reconnect_loop(self) -> None:
+        exit_if_not_connected = False
+        put = self._message_queue.put_nowait
+
+        while True:
+            try:
+                await asyncio.sleep(5)
+            except asyncio.CancelledError:
+                self.disconnect()
+                # this might not be necessary
+                self._mqtt.loop_misc()
+                break
+            rc = self._mqtt.loop_misc()
+
+            # The sequence ID was reset in _handle_ms
+            if self._sequence_id is None:
+                fut = self._sequence_id_wait = self._loop.create_future()
+                self._messenger_queue_publish()
+                put(_events.Resync())
+                log.debug("Waiting for sequence ID after resync...")
+                self._sequence_id = await fut
+                log.debug("Got sequence ID: %d", self._sequence_id)
+
+            # If disconnect() has been called
+            # Beware, internal API, may have to change this to something more stable!
+            if self._mqtt._state == paho.mqtt.client.mqtt_cs_disconnecting:
+                break  # Stop listening
+
+            if rc != paho.mqtt.client.MQTT_ERR_SUCCESS:
+                # If known/expected error
+                if rc == paho.mqtt.client.MQTT_ERR_CONN_LOST:
+                    put(_events.Disconnect(reason="Connection lost, retrying"))
+                elif rc == paho.mqtt.client.MQTT_ERR_NOMEM:
+                    # This error is wrongly classified
+                    # See https://github.com/eclipse/paho.mqtt.python/issues/340
+                    put(_events.Disconnect(reason="Connection error, retrying"))
+                elif rc == paho.mqtt.client.MQTT_ERR_CONN_REFUSED:
+                    raise _exception.NotLoggedIn("MQTT connection refused")
+                elif rc == paho.mqtt.client.MQTT_ERR_NO_CONN:
+                    if exit_if_not_connected:
+                        raise _exception.NotConnected("MQTT error: no connection")
+                    put(_events.Disconnect(reason="MQTT Error: no connection, retrying"))
+                else:
+                    err = paho.mqtt.client.error_string(rc)
+                    log.error("MQTT Error: %s", err)
+                    put(_events.Disconnect(reason=f"MQTT Error: {err}, retrying"))
+
+                await self._reconnect()
+                exit_if_not_connected = True
+                put(_events.Connect())
+                self._mqtt.subscribe([(topic, 0) for topic in TOPICS])
+            else:
+                exit_if_not_connected = False
 
     async def listen(self) -> AsyncGenerator[_events.Event, Optional[bool]]:
         """Run the listening loop continually.
@@ -330,63 +378,28 @@ class Listener:
 
         await self._reconnect()
         yield _events.Connect()
-        exit_if_not_connected = False
+
+        mqtt_task = asyncio.get_running_loop().create_task(self._mqtt_reconnect_loop())
 
         while True:
             try:
-                await asyncio.sleep(0.1)
+                async with asyncio.timeout(10):
+                    yield await self._message_queue.get()
             except asyncio.CancelledError:
-                self.disconnect()
-                # this might not be necessary
-                self._mqtt.loop_misc()
                 break
-            rc = self._mqtt.loop_misc()
-
-            # The sequence ID was reset in _handle_ms
-            if self._sequence_id is None:
-                fut = self._sequence_id_wait = self._loop.create_future()
-                self._messenger_queue_publish()
-                yield _events.Resync()
-                log.debug("Waiting for sequence ID after resync...")
-                self._sequence_id = await fut
-                log.debug("Got sequence ID: %d", self._sequence_id)
-
-            # If disconnect() has been called
-            # Beware, internal API, may have to change this to something more stable!
-            if self._mqtt._state == paho.mqtt.client.mqtt_cs_disconnecting:
-                break  # Stop listening
-
-            if rc != paho.mqtt.client.MQTT_ERR_SUCCESS:
-                # If known/expected error
-                if rc == paho.mqtt.client.MQTT_ERR_CONN_LOST:
-                    yield _events.Disconnect(reason="Connection lost, retrying")
-                elif rc == paho.mqtt.client.MQTT_ERR_NOMEM:
-                    # This error is wrongly classified
-                    # See https://github.com/eclipse/paho.mqtt.python/issues/340
-                    yield _events.Disconnect(reason="Connection error, retrying")
-                elif rc == paho.mqtt.client.MQTT_ERR_CONN_REFUSED:
-                    raise _exception.NotLoggedIn("MQTT connection refused")
-                elif rc == paho.mqtt.client.MQTT_ERR_NO_CONN:
-                    if exit_if_not_connected:
-                        raise _exception.NotConnected("MQTT error: no connection")
-                    yield _events.Disconnect(reason="MQTT Error: no connection, retrying")
-                else:
-                    err = paho.mqtt.client.error_string(rc)
-                    log.error("MQTT Error: %s", err)
-                    yield _events.Disconnect(reason=f"MQTT Error: {err}, retrying")
-
-                await self._reconnect()
-                exit_if_not_connected = True
-                yield _events.Connect()
-                self._mqtt.subscribe([(topic, 0) for topic in TOPICS])
-            else:
-                exit_if_not_connected = False
-
-            while True:
-                try:
-                    yield self._message_queue.get_nowait()
-                except asyncio.QueueEmpty:
+            except asyncio.TimeoutError:
+                if mqtt_task.done():
                     break
+
+        mqtt_task.cancel()
+        try:
+            await mqtt_task
+        except asyncio.CancelledError:
+            pass
+
+        while not self._message_queue.empty():
+            yield self._message_queue.get_nowait()
+
         if self._disconnect_error:
             log.info("disconnect_error is set, raising and clearing variable")
             err = self._disconnect_error
