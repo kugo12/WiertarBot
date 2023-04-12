@@ -1,0 +1,84 @@
+[versions]
+kotlin = "1.8.0"
+kotlinx-benchmark = "0.4.7"
+kotlinx-serialization = "1.4.1"
+kotlinx-coroutines = "1.6.4"
+kotlinx-datetime = "0.4.0"
+
+spring = "3.0.1"
+spring-dependency-management = "1.1.0"
+
+ktor = "2.2.4"
+imageio = "3.9.4"
+caffeine = "3.1.2"
+jep = "4.1.1"
+scrimage = "4.0.33"
+sentry = "6.14.0"
+skrape = "1.2.2"
+inmo-telegram = "5.2.1"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+kotlin-allopen = { id = "org.jetbrains.kotlin.plugin.allopen", version.ref = "kotlin" }
+kotlinx-benchmark = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "kotlinx-benchmark" }
+
+spring-boot = { id = "org.springframework.boot", version.ref = "spring" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+
+[libraries]
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinx-benchmark" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
+
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
+
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+
+imageio-core = { module = "com.twelvemonkeys.imageio:imageio-core", version.ref = "imageio" }
+imageio = { module = "com.twelvemonkeys.imageio:imageio", version.ref = "imageio" }
+imageio-jpeg = { module = "com.twelvemonkeys.imageio:imageio-jpeg", version.ref = "imageio" }
+
+sentry-spring = { module = "io.sentry:sentry-spring-boot-starter-jakarta", version.ref = "sentry" }
+sentry-logback = { module = "io.sentry:sentry-logback", version.ref = "sentry" }
+
+caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
+jep = { module = "black.ninia:jep", version.ref = "jep" }
+scrimage-core = { module = "com.sksamuel.scrimage:scrimage-core", version.ref = "scrimage" }
+skrape-html = { module = "it.skrape:skrapeit-html-parser", version.ref = "skrape" }
+inmo-telegram = { module = "dev.inmo:tgbotapi.core", version.ref = "inmo-telegram" }
+
+spring-starter = { module = "org.springframework.boot:spring-boot-starter" }
+spring-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+spring-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
+spring-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
+
+spring-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
+spring-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
+spring-postgresql = { module = "org.postgresql:postgresql" }
+spring-rabbitmq-test = { module = "org.springframework.amqp:spring-rabbit-test"}
+
+[bundles]
+ktor-client = [
+    "ktor-client-core",
+    "ktor-client-cio",
+    "ktor-client-content-negotiation",
+    "ktor-serialization-kotlinx-json"
+]
+spring = [
+    "sentry-spring",
+    "sentry-logback",
+    "spring-starter",
+    "kotlin-reflect",
+    "kotlin-stdlib-jdk8"
+]
+imageio = ["imageio-core", "imageio", "imageio-jpeg"]
+sentry-spring = ["sentry-spring", "sentry-logback"]

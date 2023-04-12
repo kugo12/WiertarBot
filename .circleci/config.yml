@@ -59,7 +59,7 @@ jobs:
       - skip_if_files_not_changed:
           files: services/core build.gradle.kts
       - gradle/with_cache:
-          deps_checksum_file: build.gradle.kts services/core/build.gradle.kts
+          deps_checksum_file: gradle/libs.versions.toml
           steps:
             - run: ./gradlew :services:core:bootJar
       - docker_build:
