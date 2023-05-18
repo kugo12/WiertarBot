@@ -1,3 +1,6 @@
 rootProject.name = "wiertarbot"
 
-include("services:core")
+include(
+    "services:core",
+    "libs:fbchat-kt"
+)
