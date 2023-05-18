@@ -8,8 +8,8 @@ import org.springframework.context.support.beans
 import org.springframework.core.env.ConfigurableEnvironment
 import pl.kvgx12.wiertarbot.Runner
 import pl.kvgx12.wiertarbot.commands.commandBeans
-import pl.kvgx12.wiertarbot.connectors.FBConnector
-import pl.kvgx12.wiertarbot.connectors.TelegramConnector
+import pl.kvgx12.wiertarbot.connectors.fb.*
+import pl.kvgx12.wiertarbot.connectors.telegram.TelegramConnector
 import pl.kvgx12.wiertarbot.services.*
 import kotlin.reflect.full.findAnnotation
 
@@ -33,13 +33,19 @@ fun beans() = beans {
     bean<CommandService>()
 
     if (env.get("wiertarbot.fb.enabled", false)) {
-        if (env.getProperty("wiertarbot.sentry.python") != null)
-            bean { binder.bind<PythonSentryProperties>() }
-
         bean { binder.bind<FBProperties>() }
         bean<FBMessageService>()
-        interpreterBeans()
-        bean<FBConnector>()
+
+        if (env.get("wiertarbot.fb.new-connector", false)) {
+            bean<FBKtEventConsumer>()
+            bean<FBKtConnector>()
+            bean<FBKtMilestoneTracker>()
+        } else {
+            bean<FBConnector>()
+            interpreterBeans()
+            if (env.getProperty("wiertarbot.sentry.python") != null)
+                bean { binder.bind<PythonSentryProperties>() }
+        }
     }
 
     if (env.get("wiertarbot.telegram.enabled", false)) {

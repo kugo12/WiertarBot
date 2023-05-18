@@ -28,6 +28,8 @@ benchmark {
 }
 
 dependencies {
+    implementation(project(":libs:fbchat-kt"))
+
     implementation(libs.bundles.spring)
     implementation(libs.spring.starter.data.jpa)
     implementation(libs.spring.starter.amqp)
@@ -36,7 +38,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
-    
+
     implementation(libs.bundles.ktor.client)
 
     implementation(libs.caffeine)

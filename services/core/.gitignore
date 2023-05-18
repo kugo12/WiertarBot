@@ -1,3 +1,4 @@
 data/*
 !/data/media
 docker/data/
+/application.yml

@@ -1,4 +1,4 @@
-package pl.kvgx12.wiertarbot.connectors
+package pl.kvgx12.wiertarbot.connectors.fb
 
 import jep.python.PyCallable
 import jep.python.PyObject
@@ -6,8 +6,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.stereotype.Component
 import pl.kvgx12.wiertarbot.connector.Connector
 import pl.kvgx12.wiertarbot.events.*
 import pl.kvgx12.wiertarbot.utils.execute
@@ -82,10 +80,10 @@ class FBConnector(
                 authorId = pyObject.pyGet("author").get("id"),
                 threadId = pyObject.pyGet("thread").get("id"),
                 at = message.pyGet("created_at").get<PyCallable>("timestamp").call().let { (it as Double).toLong() },
-                mentions = message.get<List<PyObject>>("mentions").map(::mention),
+                mentions = message.get<List<PyObject>>("mentions").map(FBToGeneric::mention),
                 externalId = message.get("id"),
                 replyToId = message.get("reply_to_id"),
-                attachments = message.get<List<PyObject>>("attachments").map(::attachment)
+                attachments = message.get<List<PyObject>>("attachments").map(FBToGeneric::attachment)
             )
         }
 

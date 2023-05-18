@@ -14,6 +14,7 @@ sealed interface ThreadEvent : Event {
     @Serializable
     sealed interface WithMessage : ThreadEvent {
         val message: MessageData
+        override val author: UserId
     }
 
     @Serializable

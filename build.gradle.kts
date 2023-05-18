@@ -21,7 +21,7 @@ allprojects {
     tasks {
         // disable generating *-plain.jar
         withType<Jar> {
-            if (name == "jar")
+            if (name == "jar" && findByName("bootJar") != null)
                 enabled = false
         }
 

@@ -8,10 +8,10 @@ import pl.kvgx12.wiertarbot.command.command
 import pl.kvgx12.wiertarbot.command.commands
 import pl.kvgx12.wiertarbot.config.WiertarbotProperties
 import pl.kvgx12.wiertarbot.connector.ConnectorType
+import pl.kvgx12.wiertarbot.connectors.fb.FBMessageService
 import pl.kvgx12.wiertarbot.events.Mention
 import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.services.CommandRegistrationService
-import pl.kvgx12.wiertarbot.services.FBMessageService
 import pl.kvgx12.wiertarbot.services.PermissionService
 import java.time.Duration
 import kotlin.io.path.div

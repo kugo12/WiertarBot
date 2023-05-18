@@ -1,4 +1,4 @@
-package pl.kvgx12.wiertarbot.connectors
+package pl.kvgx12.wiertarbot.connectors.fb
 
 import jep.python.PyObject
 import pl.kvgx12.wiertarbot.connector.*

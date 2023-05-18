@@ -3,6 +3,7 @@ package pl.kvgx12.wiertarbot
 import io.ktor.util.logging.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.CommandLineRunner
 import pl.kvgx12.wiertarbot.connector.Connector
@@ -11,7 +12,6 @@ import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.services.CommandService
 import pl.kvgx12.wiertarbot.utils.getLogger
 import kotlin.system.exitProcess
-
 
 
 class Runner(
@@ -24,23 +24,23 @@ class Runner(
         require(connectors.isNotEmpty()) { "No connectors available" }
     }
 
-    private suspend fun collector(event: Event) {
-        try {
+    private suspend fun consume(event: Event) {
+        runCatching {
             when (event) {
                 is MessageEvent -> commandService.dispatch(event)
             }
-        } catch (e: Throwable) {
-            log.error(e)
-        }
+        }.onFailure(log::error)
     }
 
     override fun run(vararg args: String) {
         runBlocking {
-            connectors
-                .map { it.run().onEach(::collector).launchIn(this) }
-                .forEach { it.join() }
-
-            exitProcess(0)
+            connectors.forEach {
+                it.run().onEach {
+                    launch { consume(it) }
+                }.launchIn(this)
+            }
         }
+
+        exitProcess(0)
     }
 }

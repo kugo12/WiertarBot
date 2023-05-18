@@ -1,4 +1,4 @@
-package pl.kvgx12.wiertarbot.connectors
+package pl.kvgx12.wiertarbot.connectors.telegram
 
 import dev.inmo.tgbotapi.requests.abstracts.FileId
 import dev.inmo.tgbotapi.requests.abstracts.MultipartFile
@@ -7,17 +7,19 @@ import dev.inmo.tgbotapi.requests.chat.get.GetChat
 import dev.inmo.tgbotapi.requests.get.GetFile
 import dev.inmo.tgbotapi.requests.send.SendTextMessage
 import dev.inmo.tgbotapi.requests.send.media.*
-import dev.inmo.tgbotapi.types.*
+import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.types.UserId
 import dev.inmo.tgbotapi.types.chat.ExtendedChatWithUsername
 import dev.inmo.tgbotapi.types.chat.PublicChat
 import dev.inmo.tgbotapi.types.chat.UsernameChat
-import dev.inmo.tgbotapi.types.files.*
+import dev.inmo.tgbotapi.types.files.fullUrl
 import dev.inmo.tgbotapi.types.media.*
 import dev.inmo.tgbotapi.types.message.abstracts.Message
 import dev.inmo.tgbotapi.types.message.abstracts.PossiblyReplyMessage
 import dev.inmo.tgbotapi.types.message.content.MediaGroupPartContent
 import dev.inmo.tgbotapi.types.message.textsources.mention
 import dev.inmo.tgbotapi.types.message.textsources.regular
+import dev.inmo.tgbotapi.types.threadId
 import dev.inmo.tgbotapi.utils.RiskFeature
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -29,8 +31,7 @@ import pl.kvgx12.wiertarbot.connector.*
 import pl.kvgx12.wiertarbot.events.Mention
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
-import java.nio.file.Files
-import java.nio.file.Path
+import pl.kvgx12.wiertarbot.utils.contentType
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
@@ -189,7 +190,6 @@ class TelegramContext(
     }
 
     companion object {
-        suspend fun Path.contentType() = withContext(Dispatchers.IO) { Files.probeContentType(this@contentType) }
 
         private suspend fun downloadFile(urlString: String): UploadedFile {
             val url = Url(urlString)

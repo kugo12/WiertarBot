@@ -1,4 +1,4 @@
-package pl.kvgx12.wiertarbot.connectors
+package pl.kvgx12.wiertarbot.connectors.telegram
 
 import dev.inmo.micro_utils.coroutines.subscribe
 import dev.inmo.tgbotapi.abstracts.FromUser
