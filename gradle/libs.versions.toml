@@ -23,6 +23,8 @@ okio = "3.3.0"
 jaffree = "2022.06.03"
 logback = "1.4.6"
 
+commons-codec = "1.15"
+
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
@@ -101,6 +103,8 @@ jaffree = { module = "com.github.kokorin.jaffree:jaffree", version.ref = "jaffre
 
 logback = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
+
+commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec" }
 
 [bundles]
 ktor-client = [
