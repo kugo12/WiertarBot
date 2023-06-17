@@ -194,6 +194,7 @@ jobs:
     - 'docker-ttrs-api'
     - 'check_yaml_consistency'
     if: '${{ github.ref_name == ''main'' && github.event_name == ''push'' }}'
+    environment: 'production'
     steps:
     - id: 'step-0'
       name: 'Trigger deployment'

@@ -117,6 +117,7 @@ workflow(
         runsOn = UbuntuLatest,
         needs = serviceJobs,
         condition = isMainAndPush,
+        _customArguments = mapOf("environment" to "production"),
     ) {
         run(
             name = "Trigger deployment",
