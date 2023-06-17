@@ -1,4 +1,4 @@
-rootProject.name = "wiertarbot"
+rootProject.name = "WiertarBot"
 
 include(
     "services:core",

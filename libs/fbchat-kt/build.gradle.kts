@@ -37,4 +37,5 @@ dependencies {
     testImplementation(libs.logback)
     testImplementation(libs.logback.classic)
     testImplementation(libs.kotlinx.benchmark.runtime)
+    testImplementation(libs.kotlin.test)
 }
