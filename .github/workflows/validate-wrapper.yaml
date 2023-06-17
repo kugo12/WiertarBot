@@ -1,0 +1,17 @@
+name: Validate gradle wrapper
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ gradle/wrapper/gradle-wrapper.jar ]
+  pull_request:
+    paths: [ gradle/wrapper/gradle-wrapper.jar ]
+
+jobs:
+  validate-wrapper:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+      - name: Validate wrapper
+        uses: gradle/wrapper-validation-action@v1
