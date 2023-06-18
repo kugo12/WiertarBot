@@ -25,3 +25,7 @@ dependencies {
 
     developmentOnly(libs.spring.devtools)
 }
+
+tasks.bootJar {
+    launchScript()
+}
