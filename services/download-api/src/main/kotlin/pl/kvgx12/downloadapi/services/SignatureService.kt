@@ -26,10 +26,11 @@ class SignatureService(private val properties: SignatureProperties) {
     val expires = properties.expiresDuration
 
     fun sign(name: String) = Url(properties.baseUrl) {
-        pathSegments = name.split('/')
+        pathSegments += name.split('/')
 
         val expires = Clock.System.now().plus(expires).toEpochMilliseconds()
         parameters["e"] = expires.toString()
-        parameters["sig"] = hmac.hmac("/$name@$expires").encodeBase64()
+        parameters["sig"] = hmac.hmac("${pathSegments.joinToString("/")}@$expires")
+            .encodeBase64()
     }
 }

@@ -5,8 +5,13 @@ import aws.sdk.kotlin.services.s3.*
 import aws.sdk.kotlin.services.s3.model.MetadataDirective
 import aws.sdk.kotlin.services.s3.model.NotFound
 import aws.sdk.kotlin.services.s3.model.S3Exception
+import aws.smithy.kotlin.runtime.auth.awssigning.AwsSigningAttributes
+import aws.smithy.kotlin.runtime.auth.awssigning.HashSpecification
+import aws.smithy.kotlin.runtime.client.ProtocolRequestInterceptorContext
 import aws.smithy.kotlin.runtime.content.ByteStream
 import aws.smithy.kotlin.runtime.content.FileContent
+import aws.smithy.kotlin.runtime.http.interceptors.HttpInterceptor
+import aws.smithy.kotlin.runtime.http.request.HttpRequest
 import aws.smithy.kotlin.runtime.net.Url
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
@@ -27,6 +32,18 @@ data class S3Properties(
 
 @EnableConfigurationProperties(S3Properties::class)
 class S3Service(private val properties: S3Properties) {
+    // https://github.com/awslabs/aws-sdk-kotlin/issues/949
+    // https://github.com/awslabs/aws-sdk-kotlin/issues/950
+    private object DisableChunkedSigning : HttpInterceptor {
+        override suspend fun modifyBeforeSigning(
+            context: ProtocolRequestInterceptorContext<Any, HttpRequest>,
+        ): HttpRequest {
+            context.executionContext[AwsSigningAttributes.HashSpecification] = HashSpecification.UnsignedPayload
+            return super.modifyBeforeSigning(context)
+        }
+    }
+
+
     private val client = S3Client {
         region = properties.region
         endpointUrl = Url.parse(properties.url)
@@ -36,6 +53,7 @@ class S3Service(private val properties: S3Properties) {
             accessKeyId = properties.accessKeyId
             secretAccessKey = properties.secretAccessKey
         }
+        interceptors = mutableListOf(DisableChunkedSigning)
     }
 
     suspend fun upload(name: String, data: ByteStream) = client.putObject {
