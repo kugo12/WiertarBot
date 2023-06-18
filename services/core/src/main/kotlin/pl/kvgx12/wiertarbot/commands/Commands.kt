@@ -7,7 +7,7 @@ import pl.kvgx12.wiertarbot.commands.image.random.localMediaCommands
 import pl.kvgx12.wiertarbot.commands.image.random.randomImageApiCommands
 import pl.kvgx12.wiertarbot.commands.image.random.randomImageScrapingCommands
 import pl.kvgx12.wiertarbot.commands.standard.standardCommands
-import pl.kvgx12.wiertarbot.config.TTRSProperties
+import pl.kvgx12.wiertarbot.config.properties.TTRSProperties
 import pl.kvgx12.wiertarbot.config.bind
 
 val commandBeans = commands {

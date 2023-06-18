@@ -8,7 +8,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.util.*
 import it.skrape.core.htmlDocument
 import kotlinx.datetime.*
 import kotlinx.serialization.SerialName
@@ -19,7 +18,7 @@ import pl.kvgx12.wiertarbot.command.command
 import pl.kvgx12.wiertarbot.command.commands
 import pl.kvgx12.wiertarbot.commands.modules.Fantano
 import pl.kvgx12.wiertarbot.commands.modules.TheForexAPI
-import pl.kvgx12.wiertarbot.config.WiertarbotProperties
+import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.events.Mention
 import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.utils.appendElement

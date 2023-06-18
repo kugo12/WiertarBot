@@ -19,7 +19,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.runBlocking
-import pl.kvgx12.wiertarbot.config.TelegramProperties
+import pl.kvgx12.wiertarbot.config.properties.TelegramProperties
 import pl.kvgx12.wiertarbot.connector.Connector
 import pl.kvgx12.wiertarbot.events.Attachment
 import pl.kvgx12.wiertarbot.events.Event

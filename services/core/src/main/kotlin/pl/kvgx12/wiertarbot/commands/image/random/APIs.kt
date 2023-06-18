@@ -13,7 +13,7 @@ import kotlinx.serialization.json.Json
 import org.springframework.context.support.BeanDefinitionDsl
 import pl.kvgx12.wiertarbot.command.command
 import pl.kvgx12.wiertarbot.command.commands
-import pl.kvgx12.wiertarbot.config.WiertarbotProperties
+import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.connector.FileData
 import pl.kvgx12.wiertarbot.events.Response
 import kotlin.random.Random

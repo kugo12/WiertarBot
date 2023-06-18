@@ -8,7 +8,7 @@ import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.Command
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.command.SpecialCommand
-import pl.kvgx12.wiertarbot.config.WiertarbotProperties
+import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import java.time.Instant
 import java.util.*

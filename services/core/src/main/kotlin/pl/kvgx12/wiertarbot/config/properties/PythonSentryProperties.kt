@@ -1,6 +1,7 @@
-package pl.kvgx12.wiertarbot.config
+package pl.kvgx12.wiertarbot.config.properties
 
 import kotlinx.serialization.Serializable
+import pl.kvgx12.wiertarbot.config.ConfigProperties
 
 @ConfigProperties("wiertarbot.sentry.python")
 @Serializable

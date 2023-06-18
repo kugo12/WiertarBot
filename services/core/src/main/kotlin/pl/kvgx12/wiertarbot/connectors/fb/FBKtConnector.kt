@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.flow
 import pl.kvgx12.fbchat.data.events.ThreadEvent
 import pl.kvgx12.fbchat.mqtt.Listener
 import pl.kvgx12.fbchat.session.Session
-import pl.kvgx12.wiertarbot.config.FBProperties
+import pl.kvgx12.wiertarbot.config.properties.FBProperties
 import pl.kvgx12.wiertarbot.connector.Connector
 import pl.kvgx12.wiertarbot.events.*
 import pl.kvgx12.wiertarbot.utils.getLogger

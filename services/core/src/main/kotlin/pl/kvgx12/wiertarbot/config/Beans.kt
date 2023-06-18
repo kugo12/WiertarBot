@@ -8,6 +8,10 @@ import org.springframework.context.support.beans
 import org.springframework.core.env.ConfigurableEnvironment
 import pl.kvgx12.wiertarbot.Runner
 import pl.kvgx12.wiertarbot.commands.commandBeans
+import pl.kvgx12.wiertarbot.config.properties.FBProperties
+import pl.kvgx12.wiertarbot.config.properties.PythonSentryProperties
+import pl.kvgx12.wiertarbot.config.properties.TelegramProperties
+import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.connectors.fb.*
 import pl.kvgx12.wiertarbot.connectors.telegram.TelegramConnector
 import pl.kvgx12.wiertarbot.services.*
