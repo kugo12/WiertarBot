@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.services
 
+import jakarta.annotation.PostConstruct
 import org.springframework.scheduling.annotation.Async
 import pl.kvgx12.wiertarbot.command.CommandData
 import pl.kvgx12.wiertarbot.connector.ConnectorType
@@ -28,10 +29,10 @@ class CommandRegistrationService(
                 .associateBy { it.name }
         }
 
-//    @PostConstruct
-//    fun postConstruct() {
-//        initCommandPermissions()
-//    }
+    @PostConstruct
+    fun postConstruct() {
+        initCommandPermissions()
+    }
 
 
     @Async
