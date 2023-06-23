@@ -106,7 +106,7 @@ jobs:
       with:
         name: 'jars'
     - id: 'step-4'
-      name: 'Build and push docker image'
+      name: 'Build docker image'
       uses: 'docker/build-push-action@v4'
       with:
         context: 'services/core'
@@ -144,7 +144,7 @@ jobs:
       with:
         name: 'jars'
     - id: 'step-5'
-      name: 'Build and push docker image'
+      name: 'Build docker image'
       uses: 'docker/build-push-action@v4'
       with:
         context: 'services/download-api'
@@ -179,7 +179,7 @@ jobs:
       with:
         name: 'jars'
     - id: 'step-4'
-      name: 'Build and push docker image'
+      name: 'Build docker image'
       uses: 'docker/build-push-action@v4'
       with:
         context: 'services/ttrs-api'

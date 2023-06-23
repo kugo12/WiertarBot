@@ -121,7 +121,7 @@ workflow(
                 action = DownloadArtifactV3(name = "jars")
             )
             uses(
-                name = "Build and push docker image",
+                name = "Build docker image",
                 action = BuildPushActionV4(
                     context = "services/$service",
                     file = "services/$service/Dockerfile",
