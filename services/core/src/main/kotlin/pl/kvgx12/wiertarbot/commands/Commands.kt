@@ -7,8 +7,9 @@ import pl.kvgx12.wiertarbot.commands.image.random.localMediaCommands
 import pl.kvgx12.wiertarbot.commands.image.random.randomImageApiCommands
 import pl.kvgx12.wiertarbot.commands.image.random.randomImageScrapingCommands
 import pl.kvgx12.wiertarbot.commands.standard.standardCommands
-import pl.kvgx12.wiertarbot.config.TTRSProperties
 import pl.kvgx12.wiertarbot.config.bind
+import pl.kvgx12.wiertarbot.config.properties.DownloadApiProperties
+import pl.kvgx12.wiertarbot.config.properties.TTRSProperties
 
 val commandBeans = commands {
     specialCommands()
@@ -25,5 +26,10 @@ val commandBeans = commands {
     if (env.getProperty("wiertarbot.ttrs.url") != null) {
         bean { ref<Binder>().bind<TTRSProperties>() }
         ttrsCommands()
+    }
+
+    if (env.getProperty("wiertarbot.download-api.url") != null) {
+        bean { ref<Binder>().bind<DownloadApiProperties>() }
+        downloadCommand()
     }
 }

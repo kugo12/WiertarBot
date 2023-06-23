@@ -8,6 +8,8 @@ import kotlinx.coroutines.runBlocking
 import org.slf4j.LoggerFactory
 import org.springframework.context.support.BeanDefinitionDsl
 import pl.kvgx12.wiertarbot.Runner
+import pl.kvgx12.wiertarbot.config.properties.FBProperties
+import pl.kvgx12.wiertarbot.config.properties.PythonSentryProperties
 import pl.kvgx12.wiertarbot.python.Interpreter
 import pl.kvgx12.wiertarbot.repositories.FBMessageRepository
 import pl.kvgx12.wiertarbot.repositories.MessageCountMilestoneRepository

@@ -1,10 +1,6 @@
 package pl.kvgx12.wiertarbot
 
-import jep.python.PyObject
-import pl.kvgx12.wiertarbot.connector.ConnectorContext
-import pl.kvgx12.wiertarbot.connector.FileData
-import pl.kvgx12.wiertarbot.connector.ThreadData
-import pl.kvgx12.wiertarbot.connector.UploadedFile
+import pl.kvgx12.wiertarbot.connector.*
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.python.Interpreter
@@ -13,7 +9,7 @@ import pl.kvgx12.wiertarbot.utils.getLogger
 
 class MockContext(
     interpreter: Interpreter
-) : ConnectorContext(interpreter) {
+) : ConnectorContext(ConnectorType.FB) {
     private val log = getLogger()
 
     override suspend fun getBotId(): String = "test"

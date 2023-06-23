@@ -98,7 +98,7 @@ inline fun BeanDefinitionDsl.command(
     vararg aliases: String,
     crossinline func: CommandDsl.() -> CommandData
 ) =
-    bean {
+    bean(name) {
         CommandDsl(this, name = name, aliases = aliases.toList())
             .let(func)
     }

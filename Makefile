@@ -1,2 +1,2 @@
-install:
-	pip install . ./fbchat-asyncio ./ttrs-api
+gen-ci:
+	./.github/workflows/build.main.kts

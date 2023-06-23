@@ -1,6 +1,6 @@
 package pl.kvgx12.wiertarbot.command
 
-import pl.kvgx12.wiertarbot.config.WiertarbotProperties
+import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 
 data class HelpEvaluationContext(
     val prefix: String,

@@ -14,7 +14,7 @@ RUN apt -y update && \
 # dependencies
 COPY poetry.lock pyproject.toml ./
 
-RUN poetry install --no-root --no-cache --without local \
+RUN poetry install --no-root --no-cache \
     && ln -s "$(find / -wholename */libjep.so 2>/dev/null)" /usr/lib/libjep.so
 
 ENV JEP_LIB_PATH=/usr/lib/libjep.so
