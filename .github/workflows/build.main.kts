@@ -13,6 +13,7 @@ import io.github.typesafegithub.workflows.actions.docker.SetupBuildxActionV2
 import io.github.typesafegithub.workflows.actions.gradle.GradleBuildActionV2
 import io.github.typesafegithub.workflows.domain.Concurrency
 import io.github.typesafegithub.workflows.domain.RunnerType.UbuntuLatest
+import io.github.typesafegithub.workflows.domain.actions.CustomAction
 import io.github.typesafegithub.workflows.domain.triggers.PullRequest
 import io.github.typesafegithub.workflows.domain.triggers.Push
 import io.github.typesafegithub.workflows.domain.triggers.WorkflowDispatch
@@ -34,10 +35,15 @@ val isMainAndPush = expr {
     "${github.ref_name} == '${DEFAULT_BRANCH}' && ${github.event_name} == 'push'"
 }
 
-val services = mapOf(
-    "core" to "wiertarbot",
-    "download-api" to "wiertarbot-download-api",
-    "ttrs-api" to "wiertarbot-ttrs-api",
+val amd64 = setOf("linux/amd64")
+val arm64 = setOf("linux/arm64")
+
+data class Service(val name: String, val image: String, val platforms: Set<String> = amd64)
+
+val services = listOf(
+    Service("core", "wiertarbot"),
+    Service("download-api", "wiertarbot-download-api", amd64 + arm64),
+    Service("ttrs-api", "wiertarbot-ttrs-api"),
 )
 
 workflow(
@@ -84,14 +90,32 @@ workflow(
         )
     }
 
-    val serviceJobs = services.map { (service, image) ->
+    val serviceJobs = services.map {
+        val service = it.name
+        val image = it.image
+        val platforms = it.platforms
+
         job(
             id = "docker-$service",
             runsOn = UbuntuLatest,
             needs = listOf(gradleBuild),
         ) {
             checkout()
-            setupDocker()
+
+            if (platforms != amd64) uses(
+                name = "Setup QEMU",
+                action = CustomAction("docker", "setup-qemu-action", "v2")
+            )
+
+            uses(name = "Setup docker buildx", action = SetupBuildxActionV2())
+            uses(
+                name = "Login to docker registry",
+                condition = isMainAndPush,
+                action = LoginActionV2(
+                    username = expr(DOCKER_USERNAME),
+                    password = expr(DOCKER_PASSWORD),
+                )
+            )
             uses(
                 name = "Download build artifacts",
                 action = DownloadArtifactV3(name = "jars")
@@ -101,7 +125,7 @@ workflow(
                 action = BuildPushActionV4(
                     context = "services/$service",
                     file = "services/$service/Dockerfile",
-                    platforms = listOf("linux/amd64"),
+                    platforms = platforms.toList(),
                     tags = listOf(
                         "${expr(DOCKERHUB_USER)}/${image}:latest",
                         "${expr(DOCKERHUB_USER)}/${image}:ci-${expr { github.run_id }}",
@@ -155,15 +179,3 @@ fun JB.setupJava() = uses(
         distribution = SetupJavaV3.Distribution.Temurin,
     )
 )
-
-fun JB.setupDocker() {
-    uses(name = "Setup docker buildx", action = SetupBuildxActionV2())
-    uses(
-        name = "Login to docker registry",
-        condition = isMainAndPush,
-        action = LoginActionV2(
-            username = expr(DOCKER_USERNAME),
-            password = expr(DOCKER_PASSWORD),
-        )
-    )
-}
