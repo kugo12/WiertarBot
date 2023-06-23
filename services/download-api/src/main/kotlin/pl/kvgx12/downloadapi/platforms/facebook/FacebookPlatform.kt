@@ -59,7 +59,7 @@ class FacebookPlatform : Platform {
 
     companion object {
         private val hostPredicate = HostPredicate("fb.watch", "facebook.com", "fb.me", "fb.com")
-        private val mCapablePredicate = HostPredicate("facebook.cok")
+        private val mCapablePredicate = HostPredicate("facebook.com")
         private val traversal = FindUrlWithKeyTraversal("src")
     }
 }
