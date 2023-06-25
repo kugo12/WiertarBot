@@ -119,7 +119,9 @@ val standardCommands = commands {
                                 append("Definicja:\n")
                                 appendElement(this)
                             }
-                            findFirst("main blockquote") {
+
+                            relaxed = true
+                            findAll("main blockquote").firstOrNull()?.apply {
                                 if (text.isNotEmpty()) {
                                     append("\n\nPrzyklad/y:\n")
                                     appendElement(this)
