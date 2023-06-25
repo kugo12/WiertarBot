@@ -27,7 +27,21 @@ val randomImageApiCommands = commands {
     randomImageCommand<Message>("doggo", "z pieskiem", "https://dog.ceo/api/breeds/image/random", "dog", "pies")
     randomImageCommand<Message>("beagle", "z pieskiem rasy beagle", "https://dog.ceo/api/breed/beagle/images/random")
 
-    randomImageCommand<Meme>("mem", "z memem", "https://meme-api.com/gimme", "meme")
+    command("mem", "meme") {
+        help(returns = "losowy mem")
+
+        generic { event ->
+            val meme = client.get("https://api.imgflip.com/get_memes")
+                .body<ImgFlipResponse>()
+                .data.memes.random()
+
+            Response(
+                event,
+                text = meme.name,
+                files = event.context.upload(meme.url)
+            )
+        }
+    }
 
     command("shiba") {
         help(usage = "(ilość<=10)", returns = "zdjęcie/a z pieskami rasy shiba")
@@ -127,12 +141,16 @@ private data class Message(
 ) : WithFileAndMessage
 
 @Serializable
-private data class Meme(
-    @SerialName("title")
-    override val message: String,
-    @SerialName("url")
-    override val file: String,
-) : WithFileAndMessage
+private data class ImgFlipResponse(
+    val success: Boolean,
+    val data: Data,
+) {
+    @Serializable
+    data class Data(val memes: List<Meme>)
+
+    @Serializable
+    data class Meme(val name: String, val url: String)
+}
 
 @Serializable
 private data class CatApiResponse(val url: String)
