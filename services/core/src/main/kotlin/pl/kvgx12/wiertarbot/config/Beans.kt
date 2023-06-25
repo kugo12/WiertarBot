@@ -1,6 +1,5 @@
 package pl.kvgx12.wiertarbot.config
 
-import org.springframework.boot.context.properties.bind.Bindable
 import org.springframework.boot.context.properties.bind.Binder
 import org.springframework.boot.context.properties.source.ConfigurationPropertySource
 import org.springframework.cache.caffeine.CaffeineCacheManager
@@ -65,8 +64,7 @@ inline fun <reified T : Any> ConfigurableEnvironment.get(key: String, default: T
 
 fun ConfigurableEnvironment.getBinder() = Binder(propertySources.mapNotNull { ConfigurationPropertySource.from(it) })
 
-inline fun <reified T : Any> Binder.bind(): T =
-    bind(
-        T::class.findAnnotation<ConfigProperties>()!!.value,
-        Bindable.of(T::class.java)
-    ).get()
+inline fun <reified T : Any> Binder.bind(): T = bindOrCreate(
+    T::class.findAnnotation<ConfigProperties>()!!.value,
+    T::class.java
+)

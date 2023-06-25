@@ -4,8 +4,15 @@ spring:
     username: ${DB_USER:postgres}
     password: ${DB_PASS:postgres}
 
+
   rabbitmq:
     host: ${RMQ_HOST:localhost}
     port: ${RMQ_PORT:5672}
     username: ${RMQ_USER:guest}
     password: ${RMQ_PASS:guest}
+
+  jpa:
+    generate-ddl: true
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
