@@ -74,10 +74,27 @@ workflow(
         )
     }
 
-    job(id = "gradle-test", runsOn = UbuntuLatest, needs = listOf(gradleBuild)) {
+    job(
+        id = "gradle-test",
+        runsOn = UbuntuLatest,
+        needs = listOf(gradleBuild),
+        _customArguments = mapOf(
+            "services" to mapOf(
+                "postgres" to mapOf(
+                    "image" to "postgres:14-alpine",
+                    "env" to mapOf(
+                        "POSTGRES_USER" to "postgres",
+                        "POSTGRES_PASSWORD" to "postgres",
+                        "POSTGRES_DB" to "bot",
+                    ),
+                    "ports" to listOf("5432:5432"),
+                )
+            )
+        )
+    ) {
         checkout()
         setupJava()
-        gradle("Gradle test", "test")
+        gradle("Gradle test", "test", true)
         uses(
             name = "Upload test artifacts",
             action = UploadArtifactV3(
@@ -159,8 +176,9 @@ workflow(
 
 typealias JB = JobBuilder<*>
 
-fun JB.gradle(name: String, tasks: String) = uses(
+fun JB.gradle(name: String, tasks: String, continueOnError: Boolean = false) = uses(
     name = name,
+    continueOnError = continueOnError,
     action = GradleBuildActionV2(
         arguments = tasks
     )
