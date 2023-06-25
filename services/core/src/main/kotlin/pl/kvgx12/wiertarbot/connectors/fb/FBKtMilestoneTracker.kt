@@ -55,6 +55,7 @@ class FBKtMilestoneTracker(
             val thread = session.fetch(event.thread)
 
             val count = when (thread) {
+                null -> return null
                 is GroupData -> thread.messageCount
                 is PageData -> thread.messageCount
                 is UserData -> thread.messageCount

@@ -54,6 +54,8 @@ class FBKtContext(
     override suspend fun fetchThread(threadId: String): ThreadData {
         val thread = session.fetch(UnknownThread(threadId))
 
+        check(thread != null)  // TODO
+
         return when (thread) {
             is GroupData -> ThreadData(
                 id = thread.id,
