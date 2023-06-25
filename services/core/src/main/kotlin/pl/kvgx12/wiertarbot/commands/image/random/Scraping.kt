@@ -25,6 +25,24 @@ val randomImageScrapingCommands = commands {
         }
     }
 
+    command("frog", "zabka", "żabka", "zaba", "żaba") {
+        help(returns = "zdjęcie z żabką")
+
+        val baseUrl = "https://generatorfun.com"
+
+        files {
+            val response = client.get("$baseUrl/random-frog-image").bodyAsText()
+
+            val url = htmlDocument(response) {
+                findFirst(".main-template img") {
+                    attribute("src")
+                }
+            }
+
+            listOf(if (url.startsWith("http")) url else "$baseUrl/$url")
+        }
+    }
+
 // FIXME:
 //    @MessageEventDispatcher.register(aliases=['jeż'])
 //    async def jez(event: MessageEvent) -> IResponse:
@@ -40,7 +58,6 @@ val randomImageScrapingCommands = commands {
 //        h = bs.find_all('a', {'title': True})
 //        image_url = random.choice(h).img['src']  # type: ignore
 //        return await file_upload_response(event, [image_url])
-
 }
 
 private val client = HttpClient(CIO)
