@@ -85,18 +85,39 @@ workflow(
                     "env" to mapOf(
                         "POSTGRES_USER" to "postgres",
                         "POSTGRES_PASSWORD" to "postgres",
-                        "POSTGRES_DB" to "bot",
+                        "POSTGRES_DB" to "wiertarbot_test",
                     ),
                     "ports" to listOf("5432:5432"),
+                    "options" to """
+                        --health-cmd pg_isready \
+                        --health-interval 2s \
+                        --health-timeout 2s \
+                        --health-retries 30
+                    """.trimIndent()
+                ),
+                "rabbitmq" to mapOf(
+                    "image" to "rabbitmq:3.12-alpine",
+                    "ports" to listOf("5672:5672"),
+                    "env" to mapOf(
+                        "RABBITMQ_DEFAULT_USER" to "guest",
+                        "RABBITMQ_DEFAULT_PASS" to "guest",
+                    ),
+                    "options" to """
+                        --health-cmd "rabbitmq-diagnostics -q ping" \
+                        --health-interval 2s \
+                        --health-timeout 2s \
+                        --health-retries 30
+                    """.trimIndent()
                 )
             )
         )
     ) {
         checkout()
         setupJava()
-        gradle("Gradle test", "test", true)
+        gradle("Gradle test", "test")
         uses(
             name = "Upload test artifacts",
+            condition = expr { always() },
             action = UploadArtifactV3(
                 name = "test-results",
                 path = listOf(
@@ -164,10 +185,10 @@ workflow(
             name = "Trigger deployment",
             command = """
                 curl -fX POST \
-                  -F "token=${expr(GITLAB_WB_D_TOKEN)}" \
-                  -F ref=main \
-                  -F "variables[CI_SOURCE]=WiertarBot" \
-                  "${expr(GITLAB_WB_D_URL)}" > /dev/null
+                    -F "token=${expr(GITLAB_WB_D_TOKEN)}" \
+                    -F ref=main \
+                    -F "variables[CI_SOURCE]=WiertarBot" \
+                    "${expr(GITLAB_WB_D_URL)}" > /dev/null
             """.trimIndent()
         )
     }
@@ -176,9 +197,8 @@ workflow(
 
 typealias JB = JobBuilder<*>
 
-fun JB.gradle(name: String, tasks: String, continueOnError: Boolean = false) = uses(
+fun JB.gradle(name: String, tasks: String) = uses(
     name = name,
-    continueOnError = continueOnError,
     action = GradleBuildActionV2(
         arguments = tasks
     )
