@@ -68,11 +68,7 @@ jobs:
           POSTGRES_DB: 'wiertarbot_test'
         ports:
         - '5432:5432'
-        options: |-
-          --health-cmd pg_isready \
-          --health-interval 2s \
-          --health-timeout 2s \
-          --health-retries 30
+        options: '--health-cmd "pg_isready" --health-interval "2s" --health-timeout "2s" --health-retries "30"'
       rabbitmq:
         image: 'rabbitmq:3.12-alpine'
         ports:
@@ -80,11 +76,7 @@ jobs:
         env:
           RABBITMQ_DEFAULT_USER: 'guest'
           RABBITMQ_DEFAULT_PASS: 'guest'
-        options: |-
-          --health-cmd "rabbitmq-diagnostics -q ping" \
-          --health-interval 2s \
-          --health-timeout 2s \
-          --health-retries 30
+        options: '--health-cmd "rabbitmq-diagnostics -q ping" --health-interval "2s" --health-timeout "2s" --health-retries "30"'
     steps:
     - id: 'step-0'
       name: 'Check out'

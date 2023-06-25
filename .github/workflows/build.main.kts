@@ -88,12 +88,7 @@ workflow(
                         "POSTGRES_DB" to "wiertarbot_test",
                     ),
                     "ports" to listOf("5432:5432"),
-                    "options" to """
-                        --health-cmd pg_isready \
-                        --health-interval 2s \
-                        --health-timeout 2s \
-                        --health-retries 30
-                    """.trimIndent()
+                    "options" to dockerHealthOpts("pg_isready")
                 ),
                 "rabbitmq" to mapOf(
                     "image" to "rabbitmq:3.12-alpine",
@@ -102,12 +97,7 @@ workflow(
                         "RABBITMQ_DEFAULT_USER" to "guest",
                         "RABBITMQ_DEFAULT_PASS" to "guest",
                     ),
-                    "options" to """
-                        --health-cmd "rabbitmq-diagnostics -q ping" \
-                        --health-interval 2s \
-                        --health-timeout 2s \
-                        --health-retries 30
-                    """.trimIndent()
+                    "options" to dockerHealthOpts("rabbitmq-diagnostics -q ping")
                 )
             )
         )
@@ -217,3 +207,10 @@ fun JB.setupJava() = uses(
         distribution = SetupJavaV3.Distribution.Temurin,
     )
 )
+
+fun dockerHealthOpts(cmd: String) = """
+    --health-cmd "$cmd"
+    --health-interval "2s"
+    --health-timeout "2s"
+    --health-retries "30"
+""".trimIndent().replace('\n', ' ')
