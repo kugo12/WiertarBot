@@ -7,6 +7,7 @@ import io.ktor.client.statement.*
 import it.skrape.core.htmlDocument
 import pl.kvgx12.wiertarbot.command.command
 import pl.kvgx12.wiertarbot.command.commands
+import pl.kvgx12.wiertarbot.commands.modules.GeneratorFun
 
 val randomImageScrapingCommands = commands {
     command("suchar") {
@@ -28,36 +29,18 @@ val randomImageScrapingCommands = commands {
     command("frog", "zabka", "żabka", "zaba", "żaba") {
         help(returns = "zdjęcie z żabką")
 
-        val baseUrl = "https://generatorfun.com"
-
         files {
-            val response = client.get("$baseUrl/random-frog-image").bodyAsText()
-
-            val url = htmlDocument(response) {
-                findFirst(".main-template img") {
-                    attribute("src")
-                }
-            }
-
-            listOf(if (url.startsWith("http")) url else "$baseUrl/$url")
+            listOf(GeneratorFun.fetchRandomImage("frog"))
         }
     }
 
-// FIXME:
-//    @MessageEventDispatcher.register(aliases=['jeż'])
-//    async def jez(event: MessageEvent) -> IResponse:
-//        """
-//        Użycie:
-//            {command}
-//        Zwraca:
-//            zdjęcie z jeżykiem
-//        """
-//        url = f'http://www.cutestpaw.com/tag/hedgehogs/page/{random.randint(1, 10)}/'
-//        r = requests.get(url)
-//        bs = BeautifulSoup(r.text, 'html.parser')
-//        h = bs.find_all('a', {'title': True})
-//        image_url = random.choice(h).img['src']  # type: ignore
-//        return await file_upload_response(event, [image_url])
+    command("jez", "jeż", "hedgehog") {
+        help(returns = "zdjęcie z jeżykiem")
+
+        files {
+            listOf(GeneratorFun.fetchRandomImage("hedgehog"))
+        }
+    }
 }
 
 private val client = HttpClient(CIO)
