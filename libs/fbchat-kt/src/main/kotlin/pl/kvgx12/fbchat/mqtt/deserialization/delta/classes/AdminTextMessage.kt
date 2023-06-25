@@ -146,7 +146,7 @@ internal val callLogDeserializer = surrogateDeserializer<AdminMessage<CallLog>, 
     flowOf(event)
 }
 
-internal val participantJoinedGroupCallDeserializer = surrogateDeserializer<AdminMessage<Nothing?>, _> {
+internal val participantJoinedGroupCallDeserializer = surrogateDeserializer<AdminMessage<Unit?>, _> {
     flowOf(
         ThreadEvent.CallJoined(
             thread = it.thread,
