@@ -25,7 +25,7 @@ object FBMessageSerialization {
             threadId = event.thread.id,
             messageId = event.message.id,
             authorId = event.author.id,
-            at = event.message.createdAt,
+            at = event.message.createdAt?.toDouble(),
             text = event.message.text,
             replyToId = if (event is ThreadEvent.MessageReply) event.repliedTo.id else null,
             forwarded = event.message.forwarded,
@@ -95,7 +95,7 @@ object FBMessageSerialization {
         val messageId: String,
         @SerialName("author_id")
         val authorId: String,
-        val at: Long? = null,
+        val at: Double? = null,
         val text: String? = null,
         @SerialName("reply_to_id")
         val replyToId: String? = null,

@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.connectors.fb
 
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -36,7 +37,11 @@ class FBKtConnector(
         coroutineScope {
             listener.await().listen()
                 .collect {
-                    launch { eventConsumer.consume(session, it) }
+                    launch {
+                        runCatching {
+                            eventConsumer.consume(session, it)
+                        }.onFailure(log::error)
+                    }
 
                     if (it is ThreadEvent.WithMessage)
                         emit(it.toGeneric(context))

@@ -4,6 +4,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import org.springframework.transaction.PlatformTransactionManager
+import org.springframework.transaction.TransactionManager
+import org.springframework.transaction.reactive.TransactionalOperator
+import org.springframework.transaction.reactive.executeAndAwait
+import org.springframework.transaction.support.TransactionTemplate
 import pl.kvgx12.fbchat.data.events.Event
 import pl.kvgx12.fbchat.data.events.ThreadEvent
 import pl.kvgx12.fbchat.requests.react
@@ -20,6 +25,7 @@ class FBKtEventConsumer(
     private val rabbitMQService: RabbitMQService,
     private val fbMessageRepository: FBMessageRepository,
     private val fbMilestoneTracker: FBKtMilestoneTracker,
+    private val transaction: TransactionTemplate,
 ) {
     private val log = getLogger()
 
@@ -47,20 +53,7 @@ class FBKtEventConsumer(
             }
 
             is ThreadEvent.UnsendMessage -> withContext(Dispatchers.IO) {
-                runCatching {
-                    rabbitMQService.publishMessageDelete(
-                        buildJsonObject {
-                            put("message_id", event.message.id)
-                            put("thread_id", event.thread.id)
-                            put("author_id", event.author.id)
-                            put("at", event.timestamp)
-                        }.toString()
-                    )
-                }.onFailure {
-                    log.error("Failed to publish message delete to RabbitMQ", it)
-                }
-
-                fbMessageRepository.markDeleted(event.message.id, event.timestamp)
+                unsendMessage(event)
             }
 
             is ThreadEvent.WithMessage -> withContext(Dispatchers.IO) {
@@ -84,14 +77,35 @@ class FBKtEventConsumer(
             log.error("Failed to publish message to RabbitMQ", it)
         }
 
-        fbMessageRepository.save(
-            FBMessage(
-                messageId = event.message.id,
-                threadId = event.thread.id,
-                authorId = event.author.id,
-                time = event.message.createdAt ?: 0,
-                message = serialized,
+        transaction.executeWithoutResult {
+            fbMessageRepository.save(
+                FBMessage(
+                    messageId = event.message.id,
+                    threadId = event.thread.id,
+                    authorId = event.author.id,
+                    time = event.message.createdAt ?: 0,
+                    message = serialized,
+                )
             )
-        )
+        }
+    }
+
+    private suspend fun unsendMessage(event: ThreadEvent.UnsendMessage) {
+        runCatching {
+            rabbitMQService.publishMessageDelete(
+                buildJsonObject {
+                    put("message_id", event.message.id)
+                    put("thread_id", event.thread.id)
+                    put("author_id", event.author.id)
+                    put("at", event.timestamp)
+                }.toString()
+            )
+        }.onFailure {
+            log.error("Failed to publish message delete to RabbitMQ", it)
+        }
+
+        transaction.executeWithoutResult {
+            fbMessageRepository.markDeleted(event.message.id, event.timestamp)
+        }
     }
 }

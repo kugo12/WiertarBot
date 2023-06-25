@@ -2,6 +2,8 @@
 
 package pl.kvgx12.wiertarbot.utils
 
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import jep.Jep
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -14,3 +16,9 @@ inline fun <reified T : Any> Any?.tryCast(): T? = this as? T
 inline fun Jep.execute(@Language("python") code: String) = exec(code)
 
 suspend fun Path.contentType() = withContext(Dispatchers.IO) { Files.probeContentType(this@contentType) }
+
+fun HttpResponse.contentTypeOrNull() = try {
+    contentType()
+} catch (e: BadContentTypeFormatException) {
+    null
+}
