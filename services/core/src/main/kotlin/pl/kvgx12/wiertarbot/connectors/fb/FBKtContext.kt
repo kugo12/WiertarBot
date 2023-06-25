@@ -93,11 +93,11 @@ class FBKtContext(
     }
 
     override suspend fun fetchRepliedTo(event: MessageEvent): MessageEvent? {
-        if (!event.replyToId.isNullOrEmpty())
+        if (event.replyToId.isNullOrEmpty())
             return null
 
         val message = session.fetch(
-            MessageId(event.thread, event.replyToId!!)
+            MessageId(event.thread, event.replyToId)
         )
 
         return MessageEvent(
