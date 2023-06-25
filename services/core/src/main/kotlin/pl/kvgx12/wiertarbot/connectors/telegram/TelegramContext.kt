@@ -32,6 +32,7 @@ import pl.kvgx12.wiertarbot.events.Mention
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.utils.contentType
+import pl.kvgx12.wiertarbot.utils.contentTypeOrNull
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
@@ -204,7 +205,7 @@ class TelegramContext(
             }
 
             val response = client.get(url)
-            val contentType = response.contentType()
+            val contentType = response.contentTypeOrNull()
                 ?.let { "${it.contentType}/${it.contentSubtype}" }
                 ?: Path(urlString).contentType()
 
