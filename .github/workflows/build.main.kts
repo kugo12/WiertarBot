@@ -49,7 +49,7 @@ val services = listOf(
 workflow(
     name = "Build",
     on = listOf(
-        Push(listOf(DEFAULT_BRANCH)),
+        Push(listOf(DEFAULT_BRANCH, "dev")),
         PullRequest(branches = listOf(DEFAULT_BRANCH)),
         WorkflowDispatch(),
     ),
