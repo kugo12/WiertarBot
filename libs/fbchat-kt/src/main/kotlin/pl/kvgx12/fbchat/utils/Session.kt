@@ -55,7 +55,7 @@ internal object SessionUtils {
             this["MRequestConfig"]?.tryGet("dtsg")?.tryGet("token")?.tryAsString()
 
         else -> null
-    }
+    }?.ifEmpty { null }
 
     fun getJsModsDefine(array: JsonArray): ServerJSDefine = buildMap {
         array.forEach {
