@@ -14,7 +14,7 @@ interface Resource {
 }
 
 class FileResource(
-    val file: File
+    val file: File,
 ) : Resource {
     override suspend fun deallocate() {
         file.delete()
@@ -44,7 +44,6 @@ class ResourceAllocator {
                     resources.add(FileResource(it))
                 }
             }
-
 }
 
 suspend inline fun <T> withResourceAllocator(func: ResourceAllocator.() -> T): T {

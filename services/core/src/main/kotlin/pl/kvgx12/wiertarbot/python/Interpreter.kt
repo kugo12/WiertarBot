@@ -83,9 +83,12 @@ class Interpreter(
 
     init {
         configureInterpreter(config)
-        set("wbglobals", globals.toMutableMap().apply {
-            put("log", log)
-        })
+        set(
+            "wbglobals",
+            globals.toMutableMap().apply {
+                put("log", log)
+            },
+        )
         execute(STARTUP_SCRIPT)
     }
 
@@ -125,7 +128,7 @@ class Interpreter(
         suspendCoroutine { continuation ->
             startCoroutine.call(
                 call(args, kwargs),
-                asyncioCallback(continuation)
+                asyncioCallback(continuation),
             )
         }
     }
@@ -134,7 +137,7 @@ class Interpreter(
         suspendCoroutine { continuation ->
             startCoroutine.call(
                 this@pyAwait,
-                asyncioCallback(continuation)
+                asyncioCallback(continuation),
             )
         }
     }
@@ -145,8 +148,8 @@ class Interpreter(
                 continuation.resumeWithException(
                     PythonException(
                         exception.className(),
-                        formatException.call(exception).toString()
-                    )
+                        formatException.call(exception).toString(),
+                    ),
                 )
             } else {
                 continuation.resume(result)
@@ -169,12 +172,13 @@ class Interpreter(
                 }
             }
         }.invokeOnCompletion {
-            if (it is CancellationException)
+            if (it is CancellationException) {
                 runBlocking(context) {
                     loop.call_soon_threadsafe {
                         future.cancel(it)
                     }
                 }
+            }
         }
 
         return future

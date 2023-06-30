@@ -9,6 +9,5 @@ sealed interface Media {
 
 inline fun File.asVideo() = Media.Video(this)
 
-
 const val KiB = 1024
 const val MiB = 1024 * KiB

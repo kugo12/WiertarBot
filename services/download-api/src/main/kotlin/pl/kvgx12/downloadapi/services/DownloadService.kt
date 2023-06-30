@@ -23,18 +23,20 @@ class DownloadService(
         val objectName = "${platform.name}/${metadata.filename}"
 
         downloadMutex.withLock(objectName) {
-            if (!s3.exists(objectName)) withResourceAllocator {
-                log.info("Downloading $url to $objectName")
+            if (!s3.exists(objectName)) {
+                withResourceAllocator {
+                    log.info("Downloading $url to $objectName")
 
-                s3.upload(
-                    objectName,
-                    download(platform, url, metadata)
-                        .videoFile
-                )
+                    s3.upload(
+                        objectName,
+                        download(platform, url, metadata)
+                            .videoFile,
+                    )
+                }
             } else s3.bumpModificationTime(
                 objectName,
                 // TODO: remove hardcoded 7 days
-                Clock.System.now() - 7.days + signatureService.expires
+                Clock.System.now() - 7.days + signatureService.expires,
             )
         }
 
@@ -44,7 +46,7 @@ class DownloadService(
     private suspend fun ResourceAllocator.download(
         platform: Platform,
         url: Url,
-        metadata: UrlMetadata
+        metadata: UrlMetadata,
     ): Media.Video =
         when (val media = platform.download(this, url, metadata)) {
             is Media.Video -> media
@@ -57,10 +59,10 @@ class DownloadService(
         }
     }
 
-
     private suspend fun Media.VideoAndAudio.mux(allocator: ResourceAllocator): Media.Video {
         val output = allocator.allocateTempFile(
-            videoFile.nameWithoutExtension + audioFile.nameWithoutExtension, ".mp4"
+            videoFile.nameWithoutExtension + audioFile.nameWithoutExtension,
+            ".mp4",
         )
 
         log.info("Muxing $audioFile + $videoFile -> $output")

@@ -17,18 +17,18 @@ class TwitterApi {
     data class TweetResult(
         val parent: TwitterApi = TwitterApi(),
         val id: String,
-        val lang: String = "en"
+        val lang: String = "en",
     ) {
         @Serializable
         data class Response(
             val video: Video? = null,
             @SerialName("media_details")
-            val mediaDetails: List<MediaDetail> = emptyList()
+            val mediaDetails: List<MediaDetail> = emptyList(),
         )
 
         @Serializable
         data class Video(
-            val variants: List<VideoVariant>
+            val variants: List<VideoVariant>,
         )
 
         @Serializable
@@ -46,7 +46,7 @@ class TwitterApi {
 
         @Serializable
         data class VideoInfo(
-            val variants: List<VideoInfoVariant> = emptyList()
+            val variants: List<VideoInfoVariant> = emptyList(),
         )
 
         @Serializable
@@ -61,7 +61,7 @@ class TwitterApi {
             suspend fun get(client: HttpClient, id: String) = client.get(
                 Url(baseUrl) {
                     client.href(TweetResult(id = id), this)
-                }
+                },
             ).body<Response>()
         }
     }

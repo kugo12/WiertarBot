@@ -9,7 +9,7 @@ import pl.kvgx12.fbchat.utils.surrogateDeserializer
 @Serializable
 private data class ParticipantsAddedToGroupThread(
     val messageMetadata: NewMessageDelta.MessageMetadata,
-    val addedParticipants: List<Participant>
+    val addedParticipants: List<Participant>,
 ) {
     @Serializable
     data class Participant(
@@ -25,8 +25,8 @@ internal val participantsAddedToGroupThreadDeserializer = surrogateDeserializer<
             timestamp = it.messageMetadata.timestamp.toLong(),
             added = it.addedParticipants.map { participant ->
                 UserId(participant.userFbId)
-            }
-        )
+            },
+        ),
     )
 }
 
@@ -42,7 +42,7 @@ internal val participantLeftGroupThreadDeserializer = surrogateDeserializer<Part
             author = UserId(it.messageMetadata.actorFbId),
             thread = it.messageMetadata.threadKey.toThreadId(),
             timestamp = it.messageMetadata.timestamp.toLong(),
-            removed = UserId(it.leftParticipantFbId)
-        )
+            removed = UserId(it.leftParticipantFbId),
+        ),
     )
 }

@@ -31,13 +31,13 @@ val imageEditCommands = commands {
     command("2021") {
         help(
             returns = "przerobione zdjęcie z templatem 2021",
-            info = replyInfo
+            info = replyInfo,
         )
 
         immutableImageEdit {
             ImageUtils.stackVertically(
                 _2021Template,
-                it
+                it,
             )
         }
     }
@@ -46,7 +46,7 @@ val imageEditCommands = commands {
         help(
             usage = "(tekst)",
             returns = "przerobione zdjęcie z opcjonalnym własnym tekstem",
-            info = replyInfo
+            info = replyInfo,
         )
 
         immutableImageEdit {
@@ -64,13 +64,13 @@ val imageEditCommands = commands {
     command("wypierdalaj") {
         help(
             returns = "przerobione zdjęcie z WYPIERDALAJ",
-            info = replyInfo
+            info = replyInfo,
         )
 
         immutableImageEdit {
             ImageUtils.stackVertically(
                 it,
-                wypierdalajTemplate.scaleToHeight(it.height / 8)
+                wypierdalajTemplate.scaleToHeight(it.height / 8),
             )
         }
     }

@@ -11,7 +11,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 
 internal open class NestedJsonAsByteArrayDeserializer<T : Any>(
-    private val serializer: KSerializer<T>
+    private val serializer: KSerializer<T>,
 ) : KSerializer<T> {
     override val descriptor = ByteArraySerializer().descriptor
 
@@ -22,7 +22,7 @@ internal open class NestedJsonAsByteArrayDeserializer<T : Any>(
                 buildString(it.size) {
                     it.forEach { appendCodePoint(it.jsonPrimitive.int) }
                 }
-            }
+            },
         )
 
     override fun serialize(encoder: Encoder, value: T) = throw UnsupportedOperationException()
@@ -33,7 +33,7 @@ internal open class NestedJsonAsStringDeserializer<T : Any>(private val serializ
 
     override fun deserialize(decoder: Decoder) = (decoder as JsonDecoder).json.decodeFromString(
         serializer,
-        decoder.decodeString()
+        decoder.decodeString(),
     )
 
     override fun serialize(encoder: Encoder, value: T) = throw UnsupportedOperationException()

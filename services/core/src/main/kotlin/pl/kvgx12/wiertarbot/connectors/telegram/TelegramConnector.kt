@@ -60,7 +60,7 @@ class TelegramConnector(
             mentions = emptyList(),
             externalId = message.messageId.toString(),
             replyToId = (message as? PossiblyReplyMessage)?.replyTo?.messageId?.toString(),
-            attachments = getAttachments(message)
+            attachments = getAttachments(message),
         )
     }
 
@@ -78,7 +78,7 @@ class TelegramConnector(
             width = file.width,
             height = file.height,
             originalExtension = null,
-            isAnimated = false
+            isAnimated = false,
         )
 
         else -> Attachment(id = file.fileId.fileId)

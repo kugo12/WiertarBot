@@ -23,7 +23,6 @@ private const val fileName = "imageedit.jpg"
 
 typealias ImageEdit<T> = suspend ImageEditCommand.ImageEditState.(T) -> T
 
-
 abstract class ImageEditCommand(
     override val help: String,
     override val name: String,

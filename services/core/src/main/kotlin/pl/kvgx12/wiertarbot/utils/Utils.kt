@@ -13,7 +13,9 @@ import java.nio.file.Path
 
 inline fun <reified T : Any> Any?.tryCast(): T? = this as? T
 
-inline fun Jep.execute(@Language("python") code: String) = exec(code)
+inline fun Jep.execute(
+    @Language("python") code: String,
+) = exec(code)
 
 suspend fun Path.contentType() = withContext(Dispatchers.IO) { Files.probeContentType(this@contentType) }
 

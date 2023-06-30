@@ -11,7 +11,7 @@ import pl.kvgx12.fbchat.utils.tryGet
 class FileData(
     val filename: String,
     val channel: ChannelProvider,
-    val contentType: ContentType
+    val contentType: ContentType,
 ) {
     fun toFormPart(name: String) = FormPart(
         name,
@@ -22,10 +22,10 @@ class FileData(
                 HttpHeaders.ContentDisposition,
                 disposition.withParameter(
                     ContentDisposition.Parameters.FileName,
-                    filename
-                )
+                    filename,
+                ),
             )
-        }
+        },
     )
 }
 
@@ -48,7 +48,7 @@ suspend fun Session.upload(files: List<FileData>): List<Pair<String, String>> {
         mapOf("voice_clip" to isAudio.toString()),
         files.mapIndexed { index, file ->
             file.toFormPart("upload_$index")
-        }
+        },
     ).tryGet("metadata")
 
     val metadata = when (response) {

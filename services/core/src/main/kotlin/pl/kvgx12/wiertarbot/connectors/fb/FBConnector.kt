@@ -8,8 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import pl.kvgx12.wiertarbot.connector.Connector
 import pl.kvgx12.wiertarbot.events.*
-import pl.kvgx12.wiertarbot.utils.execute
 import pl.kvgx12.wiertarbot.python.*
+import pl.kvgx12.wiertarbot.utils.execute
 import pl.kvgx12.wiertarbot.utils.getLogger
 
 class FBConnector(
@@ -26,7 +26,7 @@ class FBConnector(
                     """
                 from WiertarBot.connectors.fb import FBConnector, FBEventDispatcher
                 from WiertarBot import fbchat
-                """.trimIndent()
+                    """.trimIndent(),
                 )
                 pyConnector = get<PyCallable1<PyCallable1<PyObject, Unit>, PyObject>>("FBConnector")
                     .__call__ {
@@ -47,7 +47,7 @@ class FBConnector(
                         fbEventIntoGenericEvent(contextProxy!!, it)?.let(::trySend)
                     }
                     Unit
-                }
+                },
             )
         }
 
@@ -83,7 +83,7 @@ class FBConnector(
                 mentions = message.get<List<PyObject>>("mentions").map(FBToGeneric::mention),
                 externalId = message.get("id"),
                 replyToId = message.get("reply_to_id"),
-                attachments = message.get<List<PyObject>>("attachments").map(FBToGeneric::attachment)
+                attachments = message.get<List<PyObject>>("attachments").map(FBToGeneric::attachment),
             )
         }
 
@@ -93,7 +93,7 @@ class FBConnector(
                 width = pyObject.get("width"),
                 height = pyObject.get("height"),
                 originalExtension = pyObject.get("original_extension"),
-                isAnimated = pyObject.get("is_animated")
+                isAnimated = pyObject.get("is_animated"),
             )
 
             else -> Attachment(id = pyObject.get("id"))
@@ -102,7 +102,7 @@ class FBConnector(
         fun mention(pyObject: PyObject) = Mention(
             threadId = pyObject.get("thread_id"),
             offset = pyObject.get("offset"),
-            length = pyObject.get("length")
+            length = pyObject.get("length"),
         )
     }
 

@@ -30,7 +30,7 @@ val json = Json {
 @Serializable
 private data class Generic<T : Any>(
     val kind: String,
-    val data: T
+    val data: T,
 )
 
 object RedditListingSerializer : GenericRedditSerializer<RedditListing>(RedditListing.serializer())
@@ -56,7 +56,7 @@ open class GenericRedditSerializer<T : RedditObject>(private val dataSerializer:
                         RedditThingType.LINK -> serializer<RedditLink>()
                         RedditThingType.COMMENT -> serializer<RedditComment>()
                         else -> error("$kind is not supported")
-                    }
+                    },
                 )
 
                 CompositeDecoder.DECODE_DONE -> break

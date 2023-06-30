@@ -28,7 +28,6 @@ import kotlin.io.path.div
 import kotlin.io.path.readLines
 import kotlin.random.Random
 
-
 val standardCommands = commands {
     command("wybierz") {
         help(usage = "<opcje do wyboru po przecinku>", returns = "losowo wybraną opcję")
@@ -110,21 +109,23 @@ val standardCommands = commands {
 
                     if (response.status == HttpStatusCode.NotFound) {
                         "Nie znaleziono podanego słowa"
-                    } else buildString {
-                        append(phrase)
-                        append('\n')
+                    } else {
+                        buildString {
+                            append(phrase)
+                            append('\n')
 
-                        htmlDocument(response.bodyAsText()) {
-                            findFirst("main p") {
-                                append("Definicja:\n")
-                                appendElement(this)
-                            }
-
-                            relaxed = true
-                            findAll("main blockquote").firstOrNull()?.apply {
-                                if (text.isNotEmpty()) {
-                                    append("\n\nPrzyklad/y:\n")
+                            htmlDocument(response.bodyAsText()) {
+                                findFirst("main p") {
+                                    append("Definicja:\n")
                                     appendElement(this)
+                                }
+
+                                relaxed = true
+                                findAll("main blockquote").firstOrNull()?.apply {
+                                    if (text.isNotEmpty()) {
+                                        append("\n\nPrzyklad/y:\n")
+                                        appendElement(this)
+                                    }
                                 }
                             }
                         }
@@ -145,8 +146,11 @@ val standardCommands = commands {
             buildString {
                 first?.let {
                     append(
-                        if (it == now) "Dzisiejsza niedziela jest handlowa\n\n"
-                        else "Najbliższa niedziela handlowa: $it\n\n"
+                        if (it == now) {
+                            "Dzisiejsza niedziela jest handlowa\n\n"
+                        } else {
+                            "Najbliższa niedziela handlowa: $it\n\n"
+                        },
                     )
                 }
 
@@ -161,7 +165,10 @@ val standardCommands = commands {
 
         text { event ->
             val data =
-                client.get("https://services-eu1.arcgis.com/zk7YlClTgerl62BY/arcgis/rest/services/global_corona_actual_widok3/FeatureServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=1&where=1%3D1&outFields=*")
+                client.get(
+                    @Suppress("ktlint:standard:max-line-length")
+                    "https://services-eu1.arcgis.com/zk7YlClTgerl62BY/arcgis/rest/services/global_corona_actual_widok3/FeatureServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=1&where=1%3D1&outFields=*",
+                )
                     .body<CovidResponse>()
                     .features.first().attributes
 
@@ -237,8 +244,10 @@ val standardCommands = commands {
 
                             else -> {
                                 append(
-                                    "Numer paczki: ", it,
-                                    "\nDostarczono: ", if (response.isDelivered == true) "tak" else "nie",
+                                    "Numer paczki: ",
+                                    it,
+                                    "\nDostarczono: ",
+                                    if (response.isDelivered == true) "tak" else "nie",
                                 )
                                 response.entries?.forEach {
                                     append(
@@ -247,7 +256,7 @@ val standardCommands = commands {
                                             .toLocalDateTime(plZone)
                                             .run { "$dayOfMonth/$monthNumber/$year $hour:$minute" },
                                         " - ",
-                                        it.status
+                                        it.status,
                                     )
                                 }
                             }
@@ -294,7 +303,6 @@ val standardCommands = commands {
 
                 else -> help
             }
-
 
             Response(event, text = text, files = files?.let { event.context.upload(it) })
         }
@@ -353,14 +361,15 @@ val standardCommands = commands {
                         .toInstant(plZone)
                         .minus(now)
 
-                    if (delta.isPositive())
+                    if (delta.isPositive()) {
                         append(
                             "\n", text, " ",
                             delta.inWholeDays, "d ",
                             delta.inWholeHours % 24, "h ",
                             delta.inWholeMinutes % 60, "min ",
-                            delta.inWholeSeconds % 60, "sek"
+                            delta.inWholeSeconds % 60, "sek",
                         )
+                    }
                 }
             }
         }
@@ -388,7 +397,7 @@ val standardCommands = commands {
     command("kurs") {
         help(
             usage = "<z waluty> <do waluty> (ilosc=1)",
-            returns = "Kurs aktualizowany dziennie z europejskiego banku centralnego"
+            returns = "Kurs aktualizowany dziennie z europejskiego banku centralnego",
         )
 
         text { event ->
@@ -403,7 +412,7 @@ val standardCommands = commands {
                         TheForexAPI.convert(from, to, amount)
                     }.fold(
                         onSuccess = { "$amount $from to ${String.format("%.4f", it)} $to" },
-                        onFailure = { "Nieprawidłowa waluta"; throw it }
+                        onFailure = { "Nieprawidłowa waluta"; throw it },
                     )
                 }
                 ?: help
@@ -445,7 +454,7 @@ private data class AliPaczkaResponse(
 
 @Serializable
 private data class CovidResponse(
-    val features: List<Feature>
+    val features: List<Feature>,
 ) {
     @Serializable
     data class Feature(val attributes: Attributes)
@@ -467,9 +476,11 @@ private data class CovidResponse(
 
 private val client = HttpClient(CIO) {
     install(ContentNegotiation) {
-        json(Json {
-            ignoreUnknownKeys = true
-        })
+        json(
+            Json {
+                ignoreUnknownKeys = true
+            },
+        )
     }
 }
 
@@ -483,6 +494,7 @@ val sundays = listOf(
     LocalDate(2023, 12, 24),
 )
 
+@Suppress("ktlint:standard:max-line-length")
 const val pastaXd =
     "Serio, mało rzeczy mnie triggeruje tak jak to chore \"Xd\". Kombinacji x i d można używać na wiele wspaniałych sposobów. Coś cię śmieszy? Stawiasz \"xD\". Coś się bardzo śmieszy? Śmiało: \"XD\"! Coś doprowadza Cię do płaczu ze śmiechu? \"XDDD\" i załatwione. Uśmiechniesz się pod nosem? \"xd\". Po kłopocie. A co ma do tego ten bękart klawiaturowej ewolucji, potwór i zakała ludzkiej estetyki - \"Xd\"? Co to w ogóle ma wyrażać? Martwego człowieka z wywalonym jęzorem? Powiem Ci, co to znaczy. To znaczy, że masz w telefonie włączone zaczynanie zdań dużą literą, ale szkoda Ci klikać capsa na jedno \"d\" później. Korona z głowy spadnie? Nie sondze. \"Xd\" to symptom tego, że masz mnie, jako rozmówcę, gdzieś, bo Ci się nawet kliknąć nie chce, żeby mi wysłać poprawny emotikon. Szanujesz mnie? Używaj \"xd\", \"xD\", \"XD\", do wyboru. Nie szanujesz mnie? Okaż to. Wystarczy, że wstawisz to zjebane \"Xd\" w choć jednej wiadomości. Nie pozdrawiam"
 const val barka = """Pan kiedyś stanął nad brzegiem

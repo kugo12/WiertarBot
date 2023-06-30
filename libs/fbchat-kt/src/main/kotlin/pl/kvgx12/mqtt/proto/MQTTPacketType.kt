@@ -14,7 +14,8 @@ enum class MQTTPacketType(val value: Int) {
     UNSUBACK(11),
     PINGREQ(12),
     PINGRESP(13),
-    DISCONNECT(14);
+    DISCONNECT(14),
+    ;
 
     companion object {
         private val types = values()

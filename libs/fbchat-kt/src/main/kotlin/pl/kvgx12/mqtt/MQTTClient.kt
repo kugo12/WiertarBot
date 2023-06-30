@@ -56,9 +56,7 @@ class MQTTClient(private val wsSession: WebSocketSession) {
                     MQTTQoS.FireAndForget -> {}
                 }
 
-                emit(
-                    MQTTEvent.MessageArrived(message.topic, message.payload)
-                )
+                emit(MQTTEvent.MessageArrived(message.topic, message.payload))
             }
 
             is MQTTPing -> outgoing.send(MQTTPong())

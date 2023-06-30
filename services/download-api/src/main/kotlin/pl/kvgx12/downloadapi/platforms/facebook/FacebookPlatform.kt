@@ -33,9 +33,11 @@ class FacebookPlatform : Platform {
 
     private suspend fun tryDownload(file: File, url: Url): Media? =
         if (isMCapable(url)) {
-            val body = Platform.client.get(Url(url) {
-                host = "m.facebook.com"
-            }).bodyAsText()
+            val body = Platform.client.get(
+                Url(url) {
+                    host = "m.facebook.com"
+                },
+            ).bodyAsText()
 
             val jsonData = htmlDocument(body) {
                 div {
@@ -52,7 +54,9 @@ class FacebookPlatform : Platform {
             Platform.getFile(mediaUrl, file)
 
             file.asVideo()
-        } else null
+        } else {
+            null
+        }
 
     private fun isMCapable(url: Url) = mCapablePredicate.test(url.host)
     private fun isFacebookUrl(url: Url) = hostPredicate.test(url.host)

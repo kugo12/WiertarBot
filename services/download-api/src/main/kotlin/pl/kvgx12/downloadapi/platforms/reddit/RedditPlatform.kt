@@ -48,7 +48,7 @@ class RedditPlatform(properties: RedditProperties) : pl.kvgx12.downloadapi.platf
     override suspend fun download(
         allocator: ResourceAllocator,
         url: Url,
-        metadata: UrlMetadata
+        metadata: UrlMetadata,
     ): Media = coroutineScope {
         val body = httpClient.get("$url.json").bodyAsText()
         val redditLink = json.decodeFromString(ListSerializer(RedditListingSerializer), body)
@@ -100,7 +100,7 @@ class RedditPlatform(properties: RedditProperties) : pl.kvgx12.downloadapi.platf
                                 href(ResourcesFormat(), RedditApi.AccessToken()),
                                 Parameters.build {
                                     append("grant_type", "client_credentials")
-                                }
+                                },
                             ) {
                                 basicAuth(clientId, clientSecret)
                             }

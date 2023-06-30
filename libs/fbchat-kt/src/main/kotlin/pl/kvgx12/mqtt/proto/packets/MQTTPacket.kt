@@ -19,7 +19,7 @@ sealed class MQTTPacket(
                 .or(duplicate.toInt() shl 3)
                 .or(qos.value shl 1)
                 .or(retain.toInt())
-                .toByte()
+                .toByte(),
         )
         writeVariableByteInteger(variableHeaderSize + payloadSize)
     }
@@ -43,15 +43,15 @@ sealed class MQTTPacketWithMessageId(
     override val variableHeaderSize: Int get() = if (qos == MQTTQoS.FireAndForget) 0 else 2
 
     fun BytePacketBuilder.encodeMessageId(always: Boolean = false) {
-        if (always || qos != MQTTQoS.FireAndForget)
+        if (always || qos != MQTTQoS.FireAndForget) {
             writeShort(messageId.toShort())
+        }
     }
 
     override fun BytePacketBuilder.encodeVariableHeader() {
         encodeMessageId()
     }
 }
-
 
 sealed class MQTTPacketWithRequiredMessageId(
     messageId: Int,

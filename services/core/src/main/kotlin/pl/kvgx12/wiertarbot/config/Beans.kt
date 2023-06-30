@@ -46,8 +46,9 @@ fun beans() = beans {
         } else {
             bean<FBConnector>()
             interpreterBeans()
-            if (env.getProperty("wiertarbot.sentry.python") != null)
+            if (env.getProperty("wiertarbot.sentry.python") != null) {
                 bean { binder.bind<PythonSentryProperties>() }
+            }
         }
     }
 
@@ -66,5 +67,5 @@ fun ConfigurableEnvironment.getBinder() = Binder(propertySources.mapNotNull { Co
 
 inline fun <reified T : Any> Binder.bind(): T = bindOrCreate(
     T::class.findAnnotation<ConfigProperties>()!!.value,
-    T::class.java
+    T::class.java,
 )

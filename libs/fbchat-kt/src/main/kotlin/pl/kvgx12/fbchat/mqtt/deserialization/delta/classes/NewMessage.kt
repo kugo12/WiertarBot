@@ -38,7 +38,6 @@ internal data class NewMessageDelta(
         data class Id(val id: String? = null)
     }
 
-
     @Serializable
     data class Data(
         @Serializable(ListPRNGDeserializer::class)
@@ -73,11 +72,13 @@ internal data class NewMessageDelta(
         )
 
         fun toAttachment(): Attachment? {
-            val attachment = if (mercury != null)
+            val attachment = if (mercury != null) {
                 mercury.extensibleAttachment?.toAttachment()
                     ?: mercury.blobAttachment
                     ?: mercury.stickerAttachment?.toSticker()
-            else null
+            } else {
+                null
+            }
 
             return when (attachment) {
                 is FileAttachment -> attachment.copy(size = fileSize)
@@ -89,7 +90,7 @@ internal data class NewMessageDelta(
 
     fun toMessageData(
         user: UserId = UserId(messageMetadata.actorFbId),
-        thread: ThreadId = messageMetadata.threadKey.toThreadId()
+        thread: ThreadId = messageMetadata.threadKey.toThreadId(),
     ): MessageData {
         val attachments = attachments.mapNotNull { it.toAttachment() }
 
@@ -103,7 +104,7 @@ internal data class NewMessageDelta(
                 Mention(
                     UserId(it.id),
                     offset = it.offset,
-                    length = it.length
+                    length = it.length,
                 )
             },
             repliedTo = messageReply.replyToMessageId.id?.let {
@@ -130,7 +131,7 @@ internal val newMessageDeltaDeserializer = surrogateDeserializer<NewMessageDelta
         author = user,
         thread = thread,
         timestamp = value.messageMetadata.timestamp.toLong(),
-        message = value.toMessageData(user, thread)
+        message = value.toMessageData(user, thread),
     )
 
     flowOf(event)

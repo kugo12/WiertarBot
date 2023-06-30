@@ -8,7 +8,7 @@ import org.springframework.stereotype.Repository
 import pl.kvgx12.wiertarbot.entities.FBMessage
 
 @Repository
-interface FBMessageRepository: JpaRepository<FBMessage, Int> {
+interface FBMessageRepository : JpaRepository<FBMessage, Int> {
     fun findAllByDeletedAtNullAndTimeBefore(time: Long): List<FBMessage>
     fun findAllByThreadIdAndDeletedAtNotNull(threadId: String, pageable: Pageable): List<FBMessage>
 

@@ -4,7 +4,6 @@ import io.ktor.resources.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
-
 @Resource("/api/v1")
 class RedditApi {
     @Resource("/access_token")

@@ -4,7 +4,6 @@ import io.ktor.utils.io.core.*
 import pl.kvgx12.mqtt.proto.MQTTPacketType
 import pl.kvgx12.mqtt.proto.MQTTQoS
 
-
 class MQTTSubscribe(
     messageId: Int,
     val topics: List<Pair<String, MQTTQoS>>,
@@ -39,7 +38,7 @@ class MQTTUnsubscribe(
     val topics: List<String>,
 ) : MQTTPacketWithRequiredMessageId(
     messageId,
-    qos = MQTTQoS.Acknowledged
+    qos = MQTTQoS.Acknowledged,
 ) {
     override val type: MQTTPacketType get() = MQTTPacketType.UNSUBSCRIBE
     override val payloadSize: Int get() = topics.sumOf { 2 + it.length }
@@ -52,7 +51,7 @@ class MQTTUnsubscribe(
 }
 
 class MQTTUnsubscribeAck(
-    messageId: Int
+    messageId: Int,
 ) : MQTTPacketWithRequiredMessageId(messageId) {
     override val type: MQTTPacketType get() = MQTTPacketType.UNSUBACK
 }

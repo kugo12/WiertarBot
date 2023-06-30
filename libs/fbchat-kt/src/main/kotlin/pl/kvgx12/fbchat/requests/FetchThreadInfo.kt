@@ -18,19 +18,24 @@ private data class ThreadResponse(
 )
 
 private suspend fun fetchThreadInfo(session: Session, thread: Thread): ThreadData? {
-    val response: GraphQLResponse<ThreadResponse> = session.graphqlRequest("2147762685294928", buildJsonObject {
-        put("id", thread.id)
-        put("message_limit", "0")
-        put("load_messages", false)
-        put("load_reac_receipts", false)
-        put("before", null)
-    }).let(Session.json::decodeFromString)
+    val response: GraphQLResponse<ThreadResponse> = session.graphqlRequest(
+        "2147762685294928",
+        buildJsonObject {
+            put("id", thread.id)
+            put("message_limit", "0")
+            put("load_messages", false)
+            put("load_reac_receipts", false)
+            put("before", null)
+        },
+    ).let(Session.json::decodeFromString)
 
-    val data = response.data?.thread ?: return null  // FIXME: error checking
+    val data = response.data?.thread ?: return null // FIXME: error checking
 
-    val additionalInfo = if (data.threadType == GraphQLThread.SINGLE)
+    val additionalInfo = if (data.threadType == GraphQLThread.SINGLE) {
         fetchAdditionalInfo(session, listOf(thread.id))[thread.id]
-    else null
+    } else {
+        null
+    }
 
     return data.toThread(session.userId, additionalInfo)
 }

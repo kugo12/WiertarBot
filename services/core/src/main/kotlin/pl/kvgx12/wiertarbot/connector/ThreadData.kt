@@ -4,5 +4,5 @@ data class ThreadData(
     val id: String,
     val name: String,
     val messageCount: Long?,
-    val participants: List<String>
+    val participants: List<String>,
 )

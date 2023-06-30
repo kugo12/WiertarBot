@@ -8,9 +8,10 @@ import pl.kvgx12.fbchat.utils.tryGet
 
 suspend fun Session.fetchImageUrl(imageId: String): String {
     val response = this.postBasic(
-        "/mercury/attachments/photo/", mapOf(
-            "photo_id" to imageId
-        )
+        "/mercury/attachments/photo/",
+        mapOf(
+            "photo_id" to imageId,
+        ),
     ).let(Session.json::parseToJsonElement)
 
     return response

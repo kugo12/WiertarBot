@@ -32,7 +32,7 @@ data class HelpEvaluationContext(
         inline fun from(dsl: CommandDsl) = HelpEvaluationContext(
             dsl.dsl.ref<WiertarbotProperties>().prefix,
             dsl.name!!,
-            dsl.aliases.joinToString(", ")
+            dsl.aliases.joinToString(", "),
         )
     }
 }

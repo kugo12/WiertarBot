@@ -35,10 +35,13 @@ private suspend fun Session.connectWebSocket(sessionId: Long) =
     client.webSocketSession {
         url("$wssUrl/chat?sid=$sessionId&region=odn")
 
-        header(HttpHeaders.Origin, URLBuilder(Session.baseUrl).run {
-            encodedPath = ""
-            buildString()
-        })
+        header(
+            HttpHeaders.Origin,
+            URLBuilder(Session.baseUrl).run {
+                encodedPath = ""
+                buildString()
+            },
+        )
     }
 
 private suspend fun MQTTClient.sendConnectionPacket(session: Session, sessionId: Long) {
@@ -71,7 +74,7 @@ private suspend fun MQTTClient.sendConnectionPacket(session: Session, sessionId:
             true,
             "mqttwsclient",
             username,
-        )
+        ),
     )
 }
 

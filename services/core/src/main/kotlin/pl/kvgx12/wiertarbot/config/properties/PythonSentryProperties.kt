@@ -8,5 +8,5 @@ import pl.kvgx12.wiertarbot.config.ConfigProperties
 data class PythonSentryProperties(
     val dsn: String,
     val environment: String,
-    val sampleRate: Float
+    val sampleRate: Float,
 )

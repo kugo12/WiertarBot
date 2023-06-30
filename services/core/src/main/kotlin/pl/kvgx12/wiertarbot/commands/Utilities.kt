@@ -115,7 +115,7 @@ val utilityCommands = commands {
                                 val files = when {
                                     attachments.isNotEmpty() -> event.context.upload(
                                         attachments.map { it.toString() },
-                                        voiceClip
+                                        voiceClip,
                                     )
 
                                     else -> null
@@ -126,7 +126,7 @@ val utilityCommands = commands {
                                     text = message.text,
                                     mentions = mentions,
                                     files = files,
-                                    voiceClip = voiceClip
+                                    voiceClip = voiceClip,
                                 ).send()
                             }
                         }.awaitAll()
@@ -164,7 +164,7 @@ val utilityCommands = commands {
 
                 args.size > 4 -> {
                     var tid: String? = null
-                    if (args[4].startsWith("tid="))
+                    if (args[4].startsWith("tid=")) {
                         when {
                             args[4].drop(4).toIntOrNull() != null -> {
                                 tid = args[4].drop(4)
@@ -174,6 +174,7 @@ val utilityCommands = commands {
                                 tid = event.threadId
                             }
                         }
+                    }
 
                     val isBlacklist = args[3] != "wl"
                     val isAdd = args[1] == "add"

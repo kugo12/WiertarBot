@@ -10,7 +10,7 @@ import pl.kvgx12.fbchat.utils.surrogateDeserializer
 private data class OrcaPresence(
     @SerialName("list_type")
     val listType: String,
-    val list: List<Status>
+    val list: List<Status>,
 ) {
     @Serializable
     data class Status(
@@ -29,8 +29,8 @@ internal val orcaPresenceDeserializer = surrogateDeserializer<OrcaPresence, Even
         statuses = value.list.associate {
             it.userId.toString() to ActiveStatus(
                 active = it.status == 2 || it.status == 3,
-                lastActive = it.lastActive
+                lastActive = it.lastActive,
             )
-        }
+        },
     )
 }

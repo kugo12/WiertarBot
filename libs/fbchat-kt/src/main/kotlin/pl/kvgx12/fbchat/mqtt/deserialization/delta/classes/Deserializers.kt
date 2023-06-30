@@ -22,8 +22,8 @@ internal val threadNameDeserializer = surrogateDeserializer<ThreadName, _> {
             author = UserId(it.messageMetadata.actorFbId),
             thread = it.messageMetadata.threadKey.toThreadId(),
             title = it.name?.ifEmpty { null },
-            timestamp = it.messageMetadata.timestamp.toLong()
-        )
+            timestamp = it.messageMetadata.timestamp.toLong(),
+        ),
     )
 }
 
@@ -39,8 +39,8 @@ internal val forcedFetchDeserializer = surrogateDeserializer<ForcedFetch, _> {
     flowOf(
         Event.UnfetchedThread(
             thread = thread,
-            message = it.messageId?.let { MessageId(thread, it) }
-        )
+            message = it.messageId?.let { MessageId(thread, it) },
+        ),
     )
 }
 
@@ -54,8 +54,8 @@ internal val threadFolderDeserializer = surrogateDeserializer<ThreadFolder, _> {
     flowOf(
         Event.NewThreadInFolder(
             thread = it.threadKey.toThreadId(),
-            location = ThreadLocation.valueOf(it.folder.removePrefix("FOLDER_"))
-        )
+            location = ThreadLocation.valueOf(it.folder.removePrefix("FOLDER_")),
+        ),
     )
 }
 
@@ -77,7 +77,7 @@ internal val deliveryReceiptDeserializer = surrogateDeserializer<DeliveryReceipt
             thread = thread,
             messages = it.messageIds.map { MessageId(thread, it) },
             timestamp = it.deliveredWatermarkTimestampMs.toLong(),
-        )
+        ),
     )
 }
 
@@ -91,7 +91,7 @@ internal val markFolderSeenDeserializer = surrogateDeserializer<MarkFolderSeen, 
     flowOf(
         Event.MarkFoldersSeen(
             locations = it.folders.map { ThreadLocation.valueOf(it.removePrefix("FOLDER_")) },
-            timestamp = it.timestamp.toLong()
-        )
+            timestamp = it.timestamp.toLong(),
+        ),
     )
 }

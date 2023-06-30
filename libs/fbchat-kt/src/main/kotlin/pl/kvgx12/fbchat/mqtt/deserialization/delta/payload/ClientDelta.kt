@@ -7,7 +7,6 @@ import pl.kvgx12.fbchat.data.events.ThreadEvent
 import pl.kvgx12.fbchat.mqtt.deserialization.delta.ThreadKey
 import pl.kvgx12.fbchat.mqtt.deserialization.delta.classes.NewMessageDelta
 
-
 internal object ClientDelta {
     @Serializable
     private data class MessageReaction(
@@ -26,7 +25,7 @@ internal object ClientDelta {
                 thread = thread,
                 message = MessageId(thread, it.messageId),
                 author = UserId(it.userId.toString()),
-                reaction = if (it.action == 0) it.reaction else null
+                reaction = if (it.action == 0) it.reaction else null,
             )
         }
 
@@ -46,7 +45,7 @@ internal object ClientDelta {
                 author = UserId(it.senderID),
                 thread = thread,
                 message = MessageId(thread, it.messageID),
-                timestamp = it.deletionTimestamp
+                timestamp = it.deletionTimestamp,
             )
         }
 
@@ -65,7 +64,7 @@ internal object ClientDelta {
                 author = user,
                 thread = thread,
                 message = it.message.toMessageData(user, thread),
-                repliedTo = it.repliedToMessage.toMessageData()
+                repliedTo = it.repliedToMessage.toMessageData(),
             )
         }
 

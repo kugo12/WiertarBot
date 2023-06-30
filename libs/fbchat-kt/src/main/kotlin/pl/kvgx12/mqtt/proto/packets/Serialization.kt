@@ -55,7 +55,7 @@ private fun ByteBuffer.consumeQoSList() = buildList {
 
         add(
             MQTTQoS.valueOf(value)
-                ?: error("Unexpected QoS value: $value")
+                ?: error("Unexpected QoS value: $value"),
         )
     }
 }
@@ -76,7 +76,7 @@ private fun ByteBuffer.consumePacket(
     type: MQTTPacketType,
     qos: MQTTQoS,
     duplicate: Boolean,
-    retain: Boolean
+    retain: Boolean,
 ) = when (type) {
     MQTTPacketType.CONNECT -> TODO()
     MQTTPacketType.CONNACK -> {
@@ -85,7 +85,7 @@ private fun ByteBuffer.consumePacket(
 
         MQTTConnectAck(
             MQTTConnectReturnCode.valueOf(code)
-                ?: error("Unexpected CONNACK return code: $code")
+                ?: error("Unexpected CONNACK return code: $code"),
         )
     }
 
@@ -113,7 +113,7 @@ private fun ByteBuffer.consumePacket(
     MQTTPacketType.SUBSCRIBE -> TODO()
     MQTTPacketType.SUBACK -> MQTTSubscribeAck(
         consumeMessageId(),
-        consumeQoSList()
+        consumeQoSList(),
     )
 
     MQTTPacketType.UNSUBSCRIBE -> TODO()

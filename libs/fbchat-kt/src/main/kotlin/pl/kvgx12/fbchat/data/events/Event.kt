@@ -40,13 +40,13 @@ sealed interface Event {
     @Serializable
     data class NewThreadInFolder(
         val thread: ThreadId,
-        val location: ThreadLocation
+        val location: ThreadLocation,
     ) : Event
 
     @Serializable
     data class UnfetchedThread(
         val thread: ThreadId,
-        val message: MessageId?
+        val message: MessageId?,
     ) : Event
 
     @Serializable

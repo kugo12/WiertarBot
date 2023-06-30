@@ -3,7 +3,6 @@ package pl.kvgx12.downloadapi.utils
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-
 class MutexHolder<Key> {
     private data class MutexRef(val mutex: Mutex, var count: Int)
 

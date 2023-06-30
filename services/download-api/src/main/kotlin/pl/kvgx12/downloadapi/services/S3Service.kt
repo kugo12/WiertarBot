@@ -43,7 +43,6 @@ class S3Service(private val properties: S3Properties) {
         }
     }
 
-
     private val client = S3Client {
         region = properties.region
         endpointUrl = Url.parse(properties.url)

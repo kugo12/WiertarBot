@@ -1,4 +1,5 @@
 @file:Suppress("FunctionName")
+
 package pl.kvgx12.wiertarbot.python
 
 import jep.Jep
@@ -21,4 +22,3 @@ inline fun<reified T> PyObject.proxy() = proxy(T::class.java)
 inline fun<reified T> PyObject.get(name: String): T = getAttr(name, T::class.java)
 inline fun PyObject.pyGet(name: String): PyObject = get(name)
 inline fun PyObject.className(): String = pyGet("__class__").get("__name__")
-

@@ -5,6 +5,6 @@ import org.springframework.stereotype.Repository
 import pl.kvgx12.wiertarbot.entities.MessageCountMilestone
 
 @Repository
-interface MessageCountMilestoneRepository: JpaRepository<MessageCountMilestone, Int> {
+interface MessageCountMilestoneRepository : JpaRepository<MessageCountMilestone, Int> {
     fun findFirstByThreadId(threadId: String): MessageCountMilestone?
 }

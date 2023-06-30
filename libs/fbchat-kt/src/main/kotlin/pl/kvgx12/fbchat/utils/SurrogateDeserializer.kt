@@ -5,7 +5,6 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.serializer
 
-
 internal inline fun <reified T : Any, R : Any> surrogateDeserializer(crossinline converter: (T) -> R): KSerializer<R> =
     object : KSerializer<R> {
         private val serializer = serializer<T>()

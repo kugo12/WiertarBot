@@ -20,9 +20,9 @@ val specialCommands = commands {
         val permissionService = ref<PermissionService>()
 
         SpecialCommand {
-            if ("@everyone" in it.text
-                && it.isGroup
-                && permissionService.isAuthorized("everyone", it.threadId, it.authorId)
+            if ("@everyone" in it.text &&
+                it.isGroup &&
+                permissionService.isAuthorized("everyone", it.threadId, it.authorId)
             ) {
                 val mentions = it.context.fetchThread(it.threadId).participants
                     .map { Mention(it, 0, 9) }
@@ -33,15 +33,17 @@ val specialCommands = commands {
     }
 
     specialCommand {
-        if (it.text == THINKING_EMOJI)
+        if (it.text == THINKING_EMOJI) {
             Response(it, text = THINKING_EMOJI).send()
+        }
     }
 
     specialCommand {
         when (it.text.lowercase()) {
             "grek" -> {
-                if (it.text == "Grek")
+                if (it.text == "Grek") {
                     Response(it, text = "grek*").send()
+                }
                 Response(it, text = "to pedał").send()
             }
 
@@ -63,8 +65,9 @@ val specialCommands = commands {
     }
 
     specialCommand {
-        if ("2137" in it.text)
+        if ("2137" in it.text) {
             Response(it, text = "haha toż to papieżowa liczba").send()
+        }
     }
 
     specialCommand {

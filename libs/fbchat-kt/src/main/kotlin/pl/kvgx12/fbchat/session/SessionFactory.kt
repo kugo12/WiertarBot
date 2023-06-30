@@ -18,11 +18,10 @@ import pl.kvgx12.fbchat.session.Session.Companion.baseUrl
 import pl.kvgx12.fbchat.session.Session.Companion.handleStatus
 import pl.kvgx12.fbchat.utils.*
 
-
 suspend fun Session(
     email: String,
     password: String,
-    secondFactorAuthHandler: suspend () -> Int = default2FAHandler
+    secondFactorAuthHandler: suspend () -> Int = default2FAHandler,
 ): Session {
     val (cookies, client) = createClient()
 
@@ -43,7 +42,7 @@ suspend fun Session(
         put("email", email)
         put("pass", password)
         put("login", "1")
-        put("persistent", "1")  // long cookie expiry
+        put("persistent", "1") // long cookie expiry
         remove("default_persistent")
     }
     val datr = findDatr(loginPage) ?: error("Could not find datr")
@@ -62,11 +61,13 @@ suspend fun Session(
     val url = response.locationHeader
         ?: error("Invalid credentials: ${getLoginErrorData(response.bodyAsText())}")
 
-    if ("checkpoint" in url)
+    if ("checkpoint" in url) {
         TODO("Checkpoint login redirection not implemented")
+    }
 
-    if (url != baseUrl.toString())
+    if (url != baseUrl.toString()) {
         error("Invalid login redirect: $url")
+    }
 
     return Session(client, cookies)
 }
@@ -85,7 +86,7 @@ suspend fun Session(cookies: Map<Url, List<Cookie>>): Session {
 
 private suspend fun Session(
     client: HttpClient,
-    cookieStorage: DelegatedCookieStorage
+    cookieStorage: DelegatedCookieStorage,
 ): Session {
     val userId = client.cookies(baseUrl)
         .find { it.name == "c_user" }?.value
@@ -105,7 +106,7 @@ private suspend fun Session(
         define.dtsg,
         define.revision,
         client,
-        cookieStorage
+        cookieStorage,
     )
 }
 

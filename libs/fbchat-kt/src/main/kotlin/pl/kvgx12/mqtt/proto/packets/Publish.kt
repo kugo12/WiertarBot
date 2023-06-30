@@ -15,7 +15,7 @@ class MQTTPublish(
     messageId,
     duplicate = duplicate,
     qos = qos,
-    retain = retain
+    retain = retain,
 ) {
     override val type: MQTTPacketType get() = MQTTPacketType.PUBLISH
     override val variableHeaderSize: Int
@@ -40,13 +40,13 @@ class MQTTPublishAck(
 }
 
 class MQTTPublishReceived(
-    messageId: Int
+    messageId: Int,
 ) : MQTTPacketWithRequiredMessageId(messageId) {
     override val type: MQTTPacketType get() = MQTTPacketType.PUBREC
 }
 
 class MQTTPublishRelease(
-    messageId: Int
+    messageId: Int,
 ) : MQTTPacketWithRequiredMessageId(messageId, qos = MQTTQoS.Acknowledged) {
     override val type: MQTTPacketType get() = MQTTPacketType.PUBREL
 }

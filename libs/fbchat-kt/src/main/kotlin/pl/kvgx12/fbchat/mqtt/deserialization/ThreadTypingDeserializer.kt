@@ -12,13 +12,13 @@ private data class ThreadTyping(
     @SerialName("sender_fbid")
     val senderFbId: Long,
     val thread: String,
-    val state: Int
+    val state: Int,
 )
 
 internal val threadTypingDeserializer = surrogateDeserializer<ThreadTyping, ThreadEvent.Typing> {
     ThreadEvent.Typing(
         author = UserId(it.senderFbId.toString()),
         thread = UnknownThread(it.thread),
-        status = it.state == 1
+        status = it.state == 1,
     )
 }

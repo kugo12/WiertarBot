@@ -47,7 +47,6 @@ object ImageUtils {
 
         return arrayOf(r, g, b)
     }
-
 }
 
 fun Font.getTextDimensions(text: String): Pair<Int, Int> {
@@ -86,7 +85,7 @@ fun BufferedImage.drawText(font: Font, text: String) = this.also {
 
 fun Int.contrast(factor: Double) = (factor * (this - 128) + 128).truncateUByte()
 fun Int.brightness(factor: Double) = times(factor).truncateUByte()
-fun Int.blend(other: Int, alpha: Double) = (this + (other-this)*alpha).truncateUByte()
+fun Int.blend(other: Int, alpha: Double) = (this + (other - this) * alpha).truncateUByte()
 
 inline fun color(red: Int, green: Int, blue: Int) = (red shl 16) or (green shl 8) or blue
 inline fun BufferedImageOp.filter(src: BufferedImage): BufferedImage = filter(src, null)
@@ -99,11 +98,12 @@ fun Double.truncateUByte() = when {
 
 val sharpnessOp = ConvolveOp(
     Kernel(
-        3, 3,
+        3,
+        3,
         floatArrayOf(
             0f, -1f, 0f,
             -1f, 5f, -1f,
             0f, -1f, 0f,
-        )
-    )
+        ),
+    ),
 )

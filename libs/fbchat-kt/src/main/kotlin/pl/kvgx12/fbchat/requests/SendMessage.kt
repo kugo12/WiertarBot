@@ -17,7 +17,6 @@ private fun MutableMap<String, String>.putMention(index: Int, mention: Mention) 
     put("profile_xmd[$index][type]", "p")
 }
 
-
 suspend fun Session.sendMessage(
     thread: Thread,
     text: String? = null,

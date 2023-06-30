@@ -24,7 +24,7 @@ class CommandService(
     private val aliases = commandRegistrationService.aliases
 
     private val imageEditQueue = Collections.synchronizedMap(
-        mutableMapOf<String, Pair<Long, ImageEditCommand.ImageEditState>>()
+        mutableMapOf<String, Pair<Long, ImageEditCommand.ImageEditState>>(),
     )
     private val specialCommandsContext = Dispatchers.Default + SupervisorJob()
 
@@ -32,10 +32,11 @@ class CommandService(
         if (event.authorId == event.context.getBotId() || permissionService.isAuthorized(
                 "banned",
                 event.threadId,
-                event.authorId
+                event.authorId,
             )
-        )
+        ) {
             return@coroutineScope
+        }
 
         if (event.text.isNotEmpty()) {
             if (event.text.startsWith(wiertarbotProperties.prefix)) {
@@ -48,7 +49,7 @@ class CommandService(
                 if (commandName != null && permissionService.isAuthorized(
                         commandName,
                         event.threadId,
-                        event.authorId
+                        event.authorId,
                     )
                 ) {
                     when (val command = commands[event.context.connectorType]!![commandName]) {
@@ -76,12 +77,13 @@ class CommandService(
 
             if (time + Constants.imageEditTimeout > Instant.now().epochSecond) {
                 launch {
-                    if (edit.tryEditAndSend(event))
+                    if (edit.tryEditAndSend(event)) {
                         imageEditQueue.remove(queueId)
+                    }
                 }
             } else imageEditQueue.remove(queueId)
         }
     }
 
-    private inline val MessageEvent.editQueueId get() = "${threadId}_${authorId}"
+    private inline val MessageEvent.editQueueId get() = "${threadId}_$authorId"
 }

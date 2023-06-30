@@ -5,7 +5,7 @@ import kotlinx.serialization.json.*
 
 // FIXME: ?
 class FindUrlWithKeyTraversal(
-    private val key: String
+    private val key: String,
 ) {
     fun traverse(obj: JsonElement, key: String? = null): Sequence<Url> = sequence {
         when (obj) {
@@ -19,9 +19,9 @@ class FindUrlWithKeyTraversal(
 
             is JsonPrimitive ->
                 if (
-                    obj.isString
-                    && obj.content.startsWith("https")
-                    && key == this@FindUrlWithKeyTraversal.key
+                    obj.isString &&
+                    obj.content.startsWith("https") &&
+                    key == this@FindUrlWithKeyTraversal.key
                 ) {
                     yield(Url(obj.content))
                 }

@@ -17,7 +17,6 @@ import pl.kvgx12.wiertarbot.services.PermissionService
 import pl.kvgx12.wiertarbot.services.RabbitMQService
 import pl.kvgx12.wiertarbot.utils.newSingleThreadDispatcher
 
-
 fun BeanDefinitionDsl.interpreterBeans() {
     LoggerFactory.getLogger("interpreterBeans")
         .info("JEP_LIB_PATH=$libPath")
@@ -31,7 +30,7 @@ fun BeanDefinitionDsl.interpreterBeans() {
                 "rabbitmq_service" to ref<RabbitMQService>(),
                 "fb_properties" to ref<FBProperties>(),
                 "sentry_properties" to provider<PythonSentryProperties>().firstOrNull(),
-            )
+            ),
         )
     }
 
@@ -41,9 +40,11 @@ fun BeanDefinitionDsl.interpreterBeans() {
             redirectStdErr(System.err)
             redirectStdout(System.out)
             setClassLoader(Runner::class.java.classLoader)
-            setClassEnquirer(NamingConventionClassEnquirer(true).apply {
-                addTopLevelPackageName("pl")
-            })
+            setClassEnquirer(
+                NamingConventionClassEnquirer(true).apply {
+                    addTopLevelPackageName("pl")
+                },
+            )
 
             SharedInterpreter.setConfig(this)
         }

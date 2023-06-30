@@ -26,7 +26,7 @@ data class QuickReplyLocation(
     override val payload: JsonElement?,
     override val externalPayload: JsonElement?,
     override val data: JsonElement?,
-    override val isResponse: Boolean
+    override val isResponse: Boolean,
 ) : QuickReply
 
 @Serializable
@@ -35,7 +35,7 @@ data class QuickReplyPhoneNumber(
     override val externalPayload: JsonElement?,
     override val data: JsonElement?,
     override val isResponse: Boolean,
-    val imageUrl: String?
+    val imageUrl: String?,
 ) : QuickReply
 
 @Serializable
@@ -44,5 +44,5 @@ data class QuickReplyEmail(
     override val externalPayload: JsonElement?,
     override val data: JsonElement?,
     override val isResponse: Boolean,
-    val imageUrl: String?
+    val imageUrl: String?,
 ) : QuickReply

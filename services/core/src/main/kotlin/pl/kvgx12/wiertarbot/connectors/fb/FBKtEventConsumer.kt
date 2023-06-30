@@ -4,10 +4,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.springframework.transaction.PlatformTransactionManager
-import org.springframework.transaction.TransactionManager
-import org.springframework.transaction.reactive.TransactionalOperator
-import org.springframework.transaction.reactive.executeAndAwait
 import org.springframework.transaction.support.TransactionTemplate
 import pl.kvgx12.fbchat.data.events.Event
 import pl.kvgx12.fbchat.data.events.ThreadEvent
@@ -35,21 +31,23 @@ class FBKtEventConsumer(
             is Event.Disconnected -> log.warn("Disconnected $event")
             is ThreadEvent.MessageReaction -> {
                 if (
-                    event.author.id != session.userId
-                    && permissionService.isAuthorized("doublereact", event.thread.id, event.author.id)
+                    event.author.id != session.userId &&
+                    permissionService.isAuthorized("doublereact", event.thread.id, event.author.id)
                 ) {
                     event.message.react(session, event.reaction)
                 }
             }
 
             is ThreadEvent.PeopleAdded -> {
-                if (event.added.none { session.userId == it.id })
+                if (event.added.none { session.userId == it.id }) {
                     session.sendMessage(event.thread, "poziom spat")
+                }
             }
 
             is ThreadEvent.PersonRemoved -> {
-                if (event.removed.id != session.userId)
+                if (event.removed.id != session.userId) {
                     session.sendMessage(event.thread, "poziom wzrus")
+                }
             }
 
             is ThreadEvent.UnsendMessage -> withContext(Dispatchers.IO) {
@@ -85,7 +83,7 @@ class FBKtEventConsumer(
                     authorId = event.author.id,
                     time = event.message.createdAt ?: 0,
                     message = serialized,
-                )
+                ),
             )
         }
     }
@@ -98,7 +96,7 @@ class FBKtEventConsumer(
                     put("thread_id", event.thread.id)
                     put("author_id", event.author.id)
                     put("at", event.timestamp)
-                }.toString()
+                }.toString(),
             )
         }.onFailure {
             log.error("Failed to publish message delete to RabbitMQ", it)

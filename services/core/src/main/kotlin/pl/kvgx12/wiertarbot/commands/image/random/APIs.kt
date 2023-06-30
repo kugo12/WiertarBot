@@ -38,7 +38,7 @@ val randomImageApiCommands = commands {
             Response(
                 event,
                 text = meme.name,
-                files = event.context.upload(meme.url)
+                files = event.context.upload(meme.url),
             )
         }
     }
@@ -98,9 +98,11 @@ val randomImageApiCommands = commands {
 
 private val client = HttpClient(CIO) {
     install(ContentNegotiation) {
-        json(Json {
-            ignoreUnknownKeys = true
-        })
+        json(
+            Json {
+                ignoreUnknownKeys = true
+            },
+        )
     }
 }
 
@@ -118,7 +120,7 @@ private inline fun <reified T : WithFileAndMessage> BeanDefinitionDsl.randomImag
         Response(
             event,
             text = response.message,
-            files = event.context.upload(response.file)
+            files = event.context.upload(response.file),
         )
     }
 }
@@ -131,13 +133,13 @@ private interface WithFileAndMessage {
 @Serializable
 private data class Link(
     @SerialName("link")
-    override val file: String
+    override val file: String,
 ) : WithFileAndMessage
 
 @Serializable
 private data class Message(
     @SerialName("message")
-    override val file: String
+    override val file: String,
 ) : WithFileAndMessage
 
 @Serializable
@@ -163,11 +165,11 @@ private data class UnsplashSearchResponse(
 ) {
     @Serializable
     data class Result(
-        val urls: Urls
+        val urls: Urls,
     )
 
     @Serializable
     data class Urls(
-        val regular: String
+        val regular: String,
     )
 }

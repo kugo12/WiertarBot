@@ -18,7 +18,7 @@ import kotlin.time.Duration.Companion.seconds
 val downloadCommand = command("download", "pobierz") {
     help(
         usage = "<url>",
-        returns = "Link do pobrania pliku ważny przez 8h"
+        returns = "Link do pobrania pliku ważny przez 8h",
     )
 
     val props = dsl.ref<DownloadApiProperties>()

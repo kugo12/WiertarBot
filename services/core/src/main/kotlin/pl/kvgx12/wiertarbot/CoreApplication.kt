@@ -14,7 +14,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class CoreApplication
 
 fun main(args: Array<String>) {
-	runApplication<CoreApplication>(*args) {
-		webApplicationType = WebApplicationType.NONE
-	}
+    runApplication<CoreApplication>(*args) {
+        webApplicationType = WebApplicationType.NONE
+    }
 }

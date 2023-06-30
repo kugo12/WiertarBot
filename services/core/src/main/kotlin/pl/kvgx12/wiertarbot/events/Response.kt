@@ -8,7 +8,7 @@ data class Response(
     val files: List<UploadedFile>? = null,
     val voiceClip: Boolean = false,
     val mentions: List<Mention>? = null,
-    val replyToId: String? = null
+    val replyToId: String? = null,
 ) {
     suspend fun send() = event.context.sendResponse(this)
 }

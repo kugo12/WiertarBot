@@ -12,7 +12,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
 import kotlin.time.Duration
 
-
 internal suspend inline fun <T> HttpResponse.html(noinline func: Doc.() -> T) = bodyAsText().html(func)
 
 internal inline fun <T> String.html(noinline func: Doc.() -> T) = htmlDocument(this, init = func)
@@ -28,13 +27,14 @@ internal inline fun HttpRequestBuilder.bodyMultipartForm(vararg formData: FormPa
 internal inline fun HttpRequestBuilder.bodyForm(func: ParametersBuilder.() -> Unit) =
     setBody(FormDataContent(Parameters.build(func)))
 
-
 internal inline fun stripJsonCruft(text: String): String {
     val objStart = text.indexOf('{')
 
-    return if (objStart != -1)
+    return if (objStart != -1) {
         text.substring(objStart)
-    else error("Could not find object in $text")
+    } else {
+        error("Could not find object in $text")
+    }
 }
 
 internal fun timerFlow(duration: Duration) = flow {
@@ -43,7 +43,6 @@ internal fun timerFlow(duration: Duration) = flow {
         emit(Unit)
     }
 }
-
 
 internal fun String.indexOfOrNull(str: String, startIndex: Int = 0): Int? {
     val index = indexOf(str, startIndex)

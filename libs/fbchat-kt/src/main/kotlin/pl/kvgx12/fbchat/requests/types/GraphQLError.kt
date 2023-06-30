@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 internal data class GraphQLError(
     val message: String = "",
-    val severity: String = ""
+    val severity: String = "",
 )

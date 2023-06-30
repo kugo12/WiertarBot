@@ -6,7 +6,6 @@ import io.ktor.http.*
 import it.skrape.core.htmlDocument
 import it.skrape.selects.html5.script
 import kotlinx.serialization.json.Json
-import org.slf4j.LoggerFactory
 import pl.kvgx12.downloadapi.platform.*
 import pl.kvgx12.downloadapi.platform.FileExtensions.MP4
 import pl.kvgx12.downloadapi.utils.FindUrlWithKeyTraversal
@@ -29,7 +28,7 @@ class TikTokPlatform : Platform {
     override suspend fun download(
         allocator: ResourceAllocator,
         url: Url,
-        metadata: UrlMetadata
+        metadata: UrlMetadata,
     ): Media {
         metadata as VideoIdUrlMetadata
 
@@ -57,8 +56,9 @@ class TikTokPlatform : Platform {
     private fun videoIdFrom(url: Url): String? {
         val segments = url.pathSegments
 
-        if (segments.size >= 2 && segments[segments.lastIndex - 1] == "video")
+        if (segments.size >= 2 && segments[segments.lastIndex - 1] == "video") {
             return segments.last()
+        }
 
         return null
     }

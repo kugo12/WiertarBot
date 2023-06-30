@@ -9,7 +9,6 @@ import pl.kvgx12.downloadapi.platforms.*
 import pl.kvgx12.downloadapi.utils.HostPredicate
 import pl.kvgx12.downloadapi.utils.lastPathSegment
 
-
 @ConfigurationProperties("platform.youtube")
 data class YoutubeProperties(
     val clientVersion: String,
@@ -31,14 +30,14 @@ class YoutubePlatform(private val properties: YoutubeProperties) : Platform {
     override suspend fun download(
         allocator: ResourceAllocator,
         url: Url,
-        metadata: UrlMetadata
+        metadata: UrlMetadata,
     ): Media {
         metadata as VideoIdUrlMetadata
 
         val videoUrl = YoutubeApi.Player.request(
             metadata.videoId,
             properties.clientName,
-            properties.clientVersion
+            properties.clientVersion,
         )
             .getOrThrow()
             .streamingData.formats
@@ -47,11 +46,10 @@ class YoutubePlatform(private val properties: YoutubeProperties) : Platform {
             .maxBy { it.width!! }
             .url
 
-
         val file = allocator.allocateTempFile(metadata.videoId, MP4)
         Platform.getFileParallel(
             Url("$videoUrl&range=0-100000000"),
-            file
+            file,
         )
 
         return Media.Video(file)

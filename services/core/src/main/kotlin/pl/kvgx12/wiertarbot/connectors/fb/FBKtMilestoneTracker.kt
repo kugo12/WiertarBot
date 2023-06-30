@@ -22,7 +22,7 @@ import pl.kvgx12.wiertarbot.repositories.MessageCountMilestoneRepository
 typealias MilestoneTrackerEvent = Pair<Session, ThreadEvent.WithMessage>
 
 class FBKtMilestoneTracker(
-    private val repository: MessageCountMilestoneRepository
+    private val repository: MessageCountMilestoneRepository,
 ) {
     private val counts = mutableMapOf<String, MessageCountMilestone>()
     private val channel = Channel<MilestoneTrackerEvent>(Channel.UNLIMITED)
@@ -37,7 +37,7 @@ class FBKtMilestoneTracker(
                     scope.launch {
                         session.sendMessage(
                             event.thread,
-                            "Gratulacje, osiągnięto ~$it wiadomości"
+                            "Gratulacje, osiągnięto ~$it wiadomości",
                         )
                     }
                 }
@@ -46,8 +46,9 @@ class FBKtMilestoneTracker(
     }
 
     private suspend fun update(session: Session, event: ThreadEvent.WithMessage): Int? {
-        if (event.thread.id == event.author.id)
+        if (event.thread.id == event.author.id) {
             return null
+        }
 
         val milestone = counts[event.thread.id]
 
@@ -88,8 +89,9 @@ class FBKtMilestoneTracker(
             if (previous >= current) return null
 
             val c = current / delta
-            if (previous / delta != c)
+            if (previous / delta != c) {
                 return c * delta
+            }
 
             return null
         }

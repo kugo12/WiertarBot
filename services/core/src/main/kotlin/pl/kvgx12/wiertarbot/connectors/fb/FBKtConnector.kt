@@ -43,8 +43,9 @@ class FBKtConnector(
                         }.onFailure(log::error)
                     }
 
-                    if (it is ThreadEvent.WithMessage)
+                    if (it is ThreadEvent.WithMessage) {
                         emit(it.toGeneric(context))
+                    }
                 }
         }
     }
@@ -64,7 +65,11 @@ class FBKtConnector(
 
         fun FBAttachment.toGeneric(): Attachment = when (this) {
             is FBImageAttachment -> ImageAttachment(
-                id = id, width = width, height = height, originalExtension = originalExtension, isAnimated = isAnimated
+                id = id,
+                width = width,
+                height = height,
+                originalExtension = originalExtension,
+                isAnimated = isAnimated,
             )
 
             else -> Attachment(id)

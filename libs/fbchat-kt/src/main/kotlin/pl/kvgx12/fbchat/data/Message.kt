@@ -2,7 +2,6 @@ package pl.kvgx12.fbchat.data
 
 import kotlinx.serialization.Serializable
 
-
 @Serializable
 data class Mention(
     val user: ThreadId,
@@ -19,7 +18,7 @@ sealed interface Message {
 @Serializable
 data class MessageId(
     override val thread: Thread,
-    override val id: String
+    override val id: String,
 ) : Message
 
 @Serializable

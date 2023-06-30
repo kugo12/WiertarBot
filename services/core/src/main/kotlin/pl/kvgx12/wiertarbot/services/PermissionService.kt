@@ -24,7 +24,7 @@ class PermissionService(
         uids: List<String>,
         bl: Boolean = false,
         add: Boolean = true,
-        threadId: String? = null
+        threadId: String? = null,
     ): Boolean {
         val permission = permissionRepository.findFirstByCommand(command) ?: when {
             add -> Permission(command = command, whitelist = "{}", blacklist = "{}")
@@ -38,31 +38,36 @@ class PermissionService(
         val currentlyEdited = (if (bl) blacklist else whitelist).toMutableMap()
 
         for (uid in uids) {
-            if (uid.toIntOrNull() == null && uid != "*")
+            if (uid.toIntOrNull() == null && uid != "*") {
                 continue
+            }
 
             val userId = JsonPrimitive(uid)
 
             if (add) {
                 if (threadId != null) {
                     currentlyEdited[threadId] =
-                        if (threadId in currentlyEdited)
+                        if (threadId in currentlyEdited) {
                             JsonArray(currentlyEdited[threadId]!!.jsonArray + userId)
-                        else
+                        } else {
                             JsonArray(listOf(userId))
+                        }
                 } else {
                     currentlyEdited[uid] = JsonPrimitive(0)
                 }
             } else {
                 if (threadId != null && threadId in currentlyEdited) {
                     val isEmpty: Boolean
-                    currentlyEdited[threadId] = JsonArray(currentlyEdited[threadId]!!.jsonArray.filter {
-                        it.jsonPrimitive != userId
-                    }.also {
-                        isEmpty = it.isEmpty()
-                    })
-                    if (isEmpty)
+                    currentlyEdited[threadId] = JsonArray(
+                        currentlyEdited[threadId]!!.jsonArray.filter {
+                            it.jsonPrimitive != userId
+                        }.also {
+                            isEmpty = it.isEmpty()
+                        },
+                    )
+                    if (isEmpty) {
                         currentlyEdited.remove(threadId)
+                    }
                 } else {
                     currentlyEdited.remove(uid)
                 }
@@ -77,7 +82,7 @@ class PermissionService(
         return true
     }
 
-    fun isAuthorized(command: String, threadId: String, userId: String): Boolean {  // TODO: rbac -_-
+    fun isAuthorized(command: String, threadId: String, userId: String): Boolean { // TODO: rbac -_-
         val (whitelist, blacklist) = permissionDecoderService.getListsByCommand(command) ?: return false
 
         return when {
@@ -91,8 +96,10 @@ class PermissionService(
                 }
 
                 userId in whitelist ->
-                    !(userId != threadId && threadId in blacklist &&
-                            (userId in blacklist[threadId] || "*" in blacklist[threadId]))
+                    !(
+                        userId != threadId && threadId in blacklist &&
+                            (userId in blacklist[threadId] || "*" in blacklist[threadId])
+                        )
 
                 else -> false
             }

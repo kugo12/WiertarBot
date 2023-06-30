@@ -7,7 +7,6 @@ import pl.kvgx12.wiertarbot.command.commands
 import kotlin.io.path.div
 import kotlin.io.path.listDirectoryEntries
 
-
 val localMediaCommands = commands {
     localMediaCommand("jabol", "jabola", "random/jabol")
     localMediaCommand("mikser", "miksera", "random/mikser")

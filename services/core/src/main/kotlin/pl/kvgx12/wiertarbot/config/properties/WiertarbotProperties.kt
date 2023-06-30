@@ -7,9 +7,9 @@ data class WiertarbotProperties(
     val prefix: String = "!",
     val timezone: String = "Europe/Warsaw",
     val catApi: CatApi = CatApi(),
-    val rabbitMQExchange: String = "bot.default"
+    val rabbitMQExchange: String = "bot.default",
 ) {
     data class CatApi(
-        val key: String? = null
+        val key: String? = null,
     )
 }

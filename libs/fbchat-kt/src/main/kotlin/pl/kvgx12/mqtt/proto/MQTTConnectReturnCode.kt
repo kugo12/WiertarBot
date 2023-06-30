@@ -6,7 +6,8 @@ enum class MQTTConnectReturnCode(val value: Int) {
     IdentifierRejected(2),
     ServerUnavailable(3),
     BadCredentials(4),
-    NotAuthorized(5);
+    NotAuthorized(5),
+    ;
 
     companion object {
         private val codes = values()

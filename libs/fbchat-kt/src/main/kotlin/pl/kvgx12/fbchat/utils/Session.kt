@@ -10,7 +10,7 @@ internal typealias ServerJSDefine = Map<String, JsonElement>
 internal object SessionUtils {
     data class Define(
         val dtsg: String,
-        val revision: Int
+        val revision: Int,
     )
 
     private val log = LoggerFactory.getLogger(SessionUtils::class.java)
@@ -36,7 +36,7 @@ internal object SessionUtils {
 
         return Define(
             define.getFbDtsg() ?: error("Could not find dtsg in define"),
-            define.getClientRevision()
+            define.getClientRevision(),
         )
     }
 
@@ -63,7 +63,7 @@ internal object SessionUtils {
 
             put(
                 module.jsonPrimitive.content,
-                data
+                data,
             )
         }
     }
@@ -90,7 +90,7 @@ internal object SessionUtils {
 
                     put(
                         "${module.removeVersionFromModule()}.${method.tryAsString()}",
-                        arguments.tryAsArray() ?: emptyJsonArray()
+                        arguments.tryAsArray() ?: emptyJsonArray(),
                     )
                 }
             }
@@ -127,7 +127,7 @@ internal object SessionUtils {
                 1357004 -> "Please refresh"
                 1357031, 1545010, 1545003 -> "Invalid parameters"
                 else -> "Unknown error"
-            } + ": code=$errorCode summary=$errorSummary description=$errorDescription"
+            } + ": code=$errorCode summary=$errorSummary description=$errorDescription",
         )
     }
 }

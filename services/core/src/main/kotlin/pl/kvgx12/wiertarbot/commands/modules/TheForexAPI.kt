@@ -29,7 +29,7 @@ object TheForexAPI {
             .first()
     }.fold(
         onSuccess = { it },
-        onFailure = { throw InvalidCurrencyException(it) }
+        onFailure = { throw InvalidCurrencyException(it) },
     )
 
     class InvalidCurrencyException(throwable: Throwable) : Exception("Invalid currency", throwable)

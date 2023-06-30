@@ -19,14 +19,14 @@ class CommandDsl(
     var availableIn = ConnectorType.all()
 
     inline fun imageEdit(
-        crossinline func: ImageEdit<BufferedImage>
+        crossinline func: ImageEdit<BufferedImage>,
     ) = object : ImageEditCommand(help!!, name, aliases, availableIn) {
         override suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage =
             func(state, image)
     }
 
     inline fun immutableImageEdit(
-        crossinline func: ImageEdit<ImmutableImage>
+        crossinline func: ImageEdit<ImmutableImage>,
     ) = object : ImageEditCommand(help!!, name, aliases, availableIn) {
         override suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage =
             func(state, image.toImmutableImage()).awt()
@@ -51,24 +51,23 @@ class CommandDsl(
     }
 
     inline fun text(
-        crossinline func: suspend (MessageEvent) -> String?
+        crossinline func: suspend (MessageEvent) -> String?,
     ) = generic { Response(it, text = func(it)) }
 
     inline fun files(
         voiceClip: Boolean = false,
-        crossinline func: suspend (MessageEvent) -> List<String>
+        crossinline func: suspend (MessageEvent) -> List<String>,
     ) = generic { Response(it, files = it.context.upload(func(it), voiceClip)) }
 
     inline fun rawFiles(
         voiceClip: Boolean = false,
-        crossinline func: suspend (MessageEvent) -> List<FileData>
+        crossinline func: suspend (MessageEvent) -> List<FileData>,
     ) = generic { Response(it, files = it.context.uploadRaw(func(it), voiceClip)) }
-
 
     inline fun help(eval: HelpEval) {
         help = eval(
             HelpEvaluationContext.from(this),
-            StringBuilder()
+            StringBuilder(),
         ).toString()
     }
 
@@ -88,7 +87,7 @@ inline fun commands(noinline func: BeanDefinitionDsl.() -> Unit) = func
 inline fun command(
     name: String,
     vararg aliases: String,
-    crossinline func: CommandDsl.() -> CommandData
+    crossinline func: CommandDsl.() -> CommandData,
 ): BeanDefinitionDsl.() -> Unit = {
     command(name, *aliases, func = func)
 }
@@ -96,7 +95,7 @@ inline fun command(
 inline fun BeanDefinitionDsl.command(
     name: String,
     vararg aliases: String,
-    crossinline func: CommandDsl.() -> CommandData
+    crossinline func: CommandDsl.() -> CommandData,
 ) =
     bean(name) {
         CommandDsl(this, name = name, aliases = aliases.toList())
