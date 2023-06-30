@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.kotlin.allopen)
     alias(libs.plugins.kotlinx.benchmark)
+    alias(libs.plugins.kotlinter)
 }
 
 allOpen {
@@ -56,6 +57,8 @@ dependencies {
     testImplementation(libs.spring.starter.test)
     testImplementation(libs.spring.rabbitmq.test)
     testImplementation(libs.kotlinx.benchmark.runtime)
+    testImplementation(libs.bundles.kotest.spring)
+    testImplementation(libs.mockk)
 }
 
 tasks.bootJar {

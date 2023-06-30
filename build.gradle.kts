@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlinter)
 }
 
 allprojects {
@@ -21,8 +22,9 @@ allprojects {
     tasks {
         // disable generating *-plain.jar
         withType<Jar> {
-            if (name == "jar" && findByName("bootJar") != null)
+            if (name == "jar" && findByName("bootJar") != null) {
                 enabled = false
+            }
         }
 
         withType<KotlinCompile> {
