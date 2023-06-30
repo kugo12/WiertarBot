@@ -8,6 +8,7 @@ import org.springframework.web.reactive.function.server.coRouter
 import pl.kvgx12.downloadapi.platforms.facebook.FacebookPlatform
 import pl.kvgx12.downloadapi.platforms.instagram.InstagramPlatform
 import pl.kvgx12.downloadapi.platforms.reddit.RedditPlatform
+import pl.kvgx12.downloadapi.platforms.streamable.StreamablePlatform
 import pl.kvgx12.downloadapi.platforms.tiktok.TikTokPlatform
 import pl.kvgx12.downloadapi.platforms.twitter.TwitterPlatform
 import pl.kvgx12.downloadapi.platforms.youtube.YoutubePlatform
@@ -15,7 +16,6 @@ import pl.kvgx12.downloadapi.services.DownloadService
 import pl.kvgx12.downloadapi.services.S3Service
 import pl.kvgx12.downloadapi.services.SignatureService
 import pl.kvgx12.downloadapi.utils.isUrl
-
 
 val beans
     get() = beans {
@@ -25,6 +25,7 @@ val beans
         bean<TwitterPlatform>()
         bean<InstagramPlatform>()
         bean<FacebookPlatform>()
+        bean<StreamablePlatform>()
 
         bean<SignatureService>()
         bean<S3Service>()
@@ -34,7 +35,7 @@ val beans
     }
 
 fun router(
-    downloadService: DownloadService
+    downloadService: DownloadService,
 ) = coRouter {
     val urlParam = queryParam("url", String::isUrl)
 
