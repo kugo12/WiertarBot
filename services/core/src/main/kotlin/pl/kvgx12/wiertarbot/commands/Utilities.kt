@@ -27,18 +27,30 @@ val utilityCommands = commands {
         )
 
         val prefix = dsl.ref<WiertarbotProperties>().prefix
-        val registrationService = dsl.provider<CommandRegistrationService>()
+        val registrationService by lazy {
+            dsl.ref<CommandRegistrationService>()
+        }
+
+        val lowercasedCommands by lazy {
+            registrationService
+                .commandsByConnector
+                .mapValues { (_, value) ->
+                    value.mapKeys {
+                        it.key.lowercase()
+                    }
+                }
+        }
 
         text { event ->
-            val commands = registrationService.`object`
-                .commandsByConnector[event.context.connectorType]!!
             val args = event.text.split(' ', limit = 2)
 
             if (args.size == 2) {
-                commands[args.last().lowercase()]
+                lowercasedCommands[event.context.connectorType]!![args.last().lowercase()]
                     ?.help
                     ?: "Nie znaleziono podanej komendy"
             } else {
+                val commands = registrationService.commandsByConnector[event.context.connectorType]!!
+
                 "Prefix: $prefix\nKomendy: ${commands.keys.joinToString(", ")}"
             }
         }
