@@ -1,4 +1,7 @@
+import io.gitlab.arturbosch.detekt.Detekt
+import io.gitlab.arturbosch.detekt.DetektPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jmailen.gradle.kotlinter.KotlinterPlugin
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
@@ -7,6 +10,9 @@ plugins {
 }
 
 allprojects {
+    apply<DetektPlugin>()
+    apply<KotlinterPlugin>()
+
     group = "pl.kvgx12"
     version = ""
 
@@ -38,6 +44,14 @@ allprojects {
         withType<Test> {
             useJUnitPlatform()
         }
+
+        withType<Detekt> {
+            reports.sarif.required.set(true)
+        }
+    }
+
+    kotlinter {
+        reporters = arrayOf("sarif")
     }
 
     repositories {

@@ -4,8 +4,6 @@ plugins {
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.kotlinter)
-    alias(libs.plugins.detekt)
 }
 
 dependencies {
