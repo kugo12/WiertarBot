@@ -88,7 +88,7 @@ class FBKtEventConsumer(
         }
     }
 
-    private suspend fun unsendMessage(event: ThreadEvent.UnsendMessage) {
+    private fun unsendMessage(event: ThreadEvent.UnsendMessage) {
         runCatching {
             rabbitMQService.publishMessageDelete(
                 buildJsonObject {

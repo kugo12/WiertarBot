@@ -93,8 +93,10 @@ internal data class GraphQLThread(
     @Serializable
     data class CustomizationInfo(
         val emoji: String? = null,
-        @SerialName("participant_customizations") val participantCustomizations: List<ParticipantCustomization> = emptyList(),
-        @SerialName("outgoing_bubble_color") val color: String = DEFAULT_COLOR,
+        @SerialName("participant_customizations")
+        val participantCustomizations: List<ParticipantCustomization> = emptyList(),
+        @SerialName("outgoing_bubble_color")
+        val color: String = DEFAULT_COLOR,
     )
 
     @Serializable
@@ -108,6 +110,7 @@ internal data class GraphQLThread(
         const val GROUP = "GROUP"
     }
 
+    @Suppress("LongMethod")
     fun toThread(sessionUserId: String, profile: AdditionalInfoResponse.Profile?): ThreadData {
         val participantNicknames = customization.participantCustomizations.associate { it.participantId to it.nickname }
         val id = threadKey.id!!
@@ -118,7 +121,7 @@ internal data class GraphQLThread(
                 GroupData(
                     id = id,
                     photo = image,
-                    name = name ?: "",
+                    name = name.orEmpty(),
                     lastActive = lastActivity,
                     messageCount = messagesCount,
                     participants = participants.nodes,
@@ -153,7 +156,7 @@ internal data class GraphQLThread(
             }
 
             threadType == SINGLE -> {
-                require(profile != null) {
+                requireNotNull(profile) {
                     "Page profile data is missing"
                 }
 

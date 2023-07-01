@@ -7,31 +7,31 @@ data class HelpEvaluationContext(
     val name: String,
     val aliases: String,
 ) {
-    inline fun StringBuilder.usage(string: String = "") =
+    fun StringBuilder.usage(string: String = ""): StringBuilder =
         section("Użycie")
             .append(prefix).append(name).append(' ').append(string).append('\n')
 
-    inline fun StringBuilder.additionalUsage(string: String) =
+    fun StringBuilder.additionalUsage(string: String): StringBuilder =
         append("    ").append(prefix).append(name).append(' ').append(string).append('\n')
 
-    inline fun StringBuilder.returns(string: String) =
+    fun StringBuilder.returns(string: String): StringBuilder =
         section("Zwraca", string)
 
-    inline fun StringBuilder.info(string: String) =
+    fun StringBuilder.info(string: String): StringBuilder =
         section("Informacja", string)
 
-    inline fun StringBuilder.section(name: String) =
+    fun StringBuilder.section(name: String): StringBuilder =
         append(name).append(":\n    ")
 
-    inline fun StringBuilder.section(name: String, value: String) =
+    fun StringBuilder.section(name: String, value: String): StringBuilder =
         section(name)
             .append(value)
             .append('\n')
 
     companion object {
-        inline fun from(dsl: CommandDsl) = HelpEvaluationContext(
+        fun from(dsl: CommandDsl) = HelpEvaluationContext(
             dsl.dsl.ref<WiertarbotProperties>().prefix,
-            dsl.name!!,
+            dsl.name,
             dsl.aliases.joinToString(", "),
         )
     }

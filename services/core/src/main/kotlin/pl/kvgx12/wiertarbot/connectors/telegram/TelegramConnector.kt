@@ -53,7 +53,7 @@ class TelegramConnector(
     fun convert(message: Message): MessageEvent? {
         return MessageEvent(
             context = TelegramContext(this, message),
-            text = message.text ?: "",
+            text = message.text.orEmpty(),
             authorId = (message as? FromUser ?: return null).user.id.chatId.toString(),
             threadId = message.chat.id.chatId.toString(),
             at = message.date.unixMillisLong / 1000,

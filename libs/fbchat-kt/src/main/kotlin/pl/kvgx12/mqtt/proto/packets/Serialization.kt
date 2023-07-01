@@ -68,10 +68,12 @@ private fun ByteBuffer.consumeMqttString(): String =
 private infix fun Int.bit(n: Int): Boolean =
     ushr(n).and(1) == 1
 
+@Suppress("NOTHING_TO_INLINE")
 private inline fun ByteBuffer.discardByte() {
     get()
 }
 
+@Suppress("CyclomaticComplexMethod")
 private fun ByteBuffer.consumePacket(
     type: MQTTPacketType,
     qos: MQTTQoS,

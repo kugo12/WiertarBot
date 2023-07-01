@@ -40,7 +40,7 @@ class FBKtContext(
     }
 
     override suspend fun uploadRaw(files: List<FileData>, voiceClip: Boolean): List<UploadedFile> {
-        val files = session.upload(
+        val fileData = session.upload(
             files.map {
                 FBFileData(
                     filename = it.uri,
@@ -50,18 +50,18 @@ class FBKtContext(
             },
         )
 
-        return files.map { UploadedFile(id = it.first, mimeType = it.second) }
+        return fileData.map { UploadedFile(id = it.first, mimeType = it.second) }
     }
 
     override suspend fun fetchThread(threadId: String): ThreadData {
         val thread = session.fetch(UnknownThread(threadId))
 
-        check(thread != null) // TODO
+        checkNotNull(thread) // TODO
 
         return when (thread) {
             is GroupData -> ThreadData(
                 id = thread.id,
-                name = thread.name ?: "",
+                name = thread.name.orEmpty(),
                 messageCount = thread.messageCount?.toLong(),
                 participants = thread.participants.map { it.id },
             )
@@ -108,7 +108,7 @@ class FBKtContext(
 
         return MessageEvent(
             this,
-            text = message.text ?: "",
+            text = message.text.orEmpty(),
             authorId = message.author.id,
             threadId = message.thread.id,
             at = message.createdAt!!,
@@ -134,7 +134,7 @@ class FBKtContext(
             return withContext(Dispatchers.IO) {
                 val path = Path(urlString)
                 val content = path.readBytes()
-                val contentType = path.contentType()
+                val contentType = path.contentType()!!
 
                 FileData(urlString, content, contentType)
             }
@@ -143,7 +143,7 @@ class FBKtContext(
         val response = session.get(url)
         val contentType = response.contentType()
             ?.let { "${it.contentType}/${it.contentSubtype}" }
-            ?: Path(urlString).contentType()
+            ?: Path(urlString).contentType()!!
 
         val content = response.body<ByteArray>()
 

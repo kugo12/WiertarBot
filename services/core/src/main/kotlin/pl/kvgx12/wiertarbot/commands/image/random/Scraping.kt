@@ -13,7 +13,7 @@ val randomImageScrapingCommands = commands {
     command("suchar") {
         help(returns = "zdjęcie z sucharem")
 
-        files { event ->
+        files {
             val response = client.get("https://www.suchary.com/random.html").bodyAsText()
 
             val url = htmlDocument(response) {

@@ -31,6 +31,7 @@ private data class MarkRead(
 )
 
 internal val markReadDeserializer = surrogateDeserializer<MarkRead, _> {
+    @Suppress("UNREACHABLE_CODE")
     flowOf(
         Event.ThreadsRead(
             author = TODO(),

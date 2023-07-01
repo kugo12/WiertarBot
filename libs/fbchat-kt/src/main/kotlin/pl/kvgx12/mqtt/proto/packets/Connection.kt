@@ -5,7 +5,7 @@ import pl.kvgx12.mqtt.proto.MQTTConnectReturnCode
 import pl.kvgx12.mqtt.proto.MQTTPacketType
 import pl.kvgx12.mqtt.proto.MQTTProtocol
 
-class MQTTConnect(
+data class MQTTConnect(
     val keepAlive: Int,
     val isCleanSession: Boolean,
     val clientId: String,
@@ -45,7 +45,7 @@ class MQTTConnect(
     }
 }
 
-class MQTTConnectAck(
+data class MQTTConnectAck(
     val returnCode: MQTTConnectReturnCode,
 ) : MQTTPacket() {
     override val type: MQTTPacketType get() = MQTTPacketType.CONNACK

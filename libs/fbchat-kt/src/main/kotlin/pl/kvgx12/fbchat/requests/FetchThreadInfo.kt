@@ -1,3 +1,5 @@
+@file:Suppress("OPT_IN_USAGE")
+
 package pl.kvgx12.fbchat.requests
 
 import kotlinx.serialization.SerialName

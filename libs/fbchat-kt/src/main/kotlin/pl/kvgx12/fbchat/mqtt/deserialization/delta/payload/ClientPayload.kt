@@ -60,6 +60,7 @@ internal object ClientDeltaDeserializer : JsonContentPolymorphicSerializer<Event
         return deserializers[element.keys.first()] ?: unknownEventDeserializer
     }
 
+    @Suppress("NOTHING_TO_INLINE")
     inline operator fun JsonObject.contains(element: KeyTransformation<*>) = element.key in this
     inline operator fun <reified T, R : Event> invoke(key: String, crossinline converter: (T) -> R) =
         KeyTransformation(surrogateDeserializer(converter), key)

@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.serialization.json.Json
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import pl.kvgx12.downloadapi.utils.io
 import pl.kvgx12.downloadapi.utils.isUrl
@@ -60,7 +61,7 @@ interface Platform {
             }
         }
 
-        val log = LoggerFactory.getLogger(Platform::class.java)
+        val log: Logger = LoggerFactory.getLogger(Platform::class.java)
 
         suspend fun followRedirects(url: Url): Url {
             val response = client.get(url)
@@ -103,26 +104,25 @@ interface Platform {
 
         private fun partsFactory(length: Long) = length.div(256 * KiB).coerceAtMost(50)
 
-        suspend fun getFile(url: Url, file: File, builder: HttpRequestBuilder.() -> Unit = {}): ContentType {
+        suspend fun getFile(url: Url, file: File, builder: HttpRequestBuilder.() -> Unit = {}): ContentType? {
             val response = client.get(url) {
                 timeout { requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS }
                 builder()
             }
-            log.info("${response.contentLength()!!}")
+            log.info("${response.contentLength()}")
             response.bodyAsChannel().copyAndClose(file.writeChannel())
 
-            return response.contentType()!!
+            return response.contentType()
         }
 
         suspend fun getFileParallel(
             url: Url,
             file: File,
             parts: (Long) -> Long = Companion::partsFactory,
-        ): ContentType {
+        ): ContentType? {
             val head = client.head(url)
-            val length = head.contentLength()!!
-
-            log.info("$length")
+            val length = head.contentLength()
+            checkNotNull(length)
 
             val scope = CoroutineScope(Dispatchers.IO)
             val fileChannel = io {
@@ -154,14 +154,14 @@ interface Platform {
                                 }
                             } while (!body.isClosedForRead)
 
-                            it.contentType()!!
+                            it.contentType()
                         }
                     }
                 }.awaitAll()
 
             io { fileChannel.close() }
 
-            return head.contentType()!!
+            return head.contentType()
         }
     }
 }

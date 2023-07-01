@@ -21,6 +21,7 @@ class FBConnectorContext(
     }
 
     override suspend fun uploadRaw(files: List<FileData>, voiceClip: Boolean) = interpreter {
+        @Suppress("UNCHECKED_CAST")
         pyContext.upload_raw(files, voiceClip).pyAwait() as List<UploadedFile>
     }
 
@@ -49,6 +50,7 @@ class FBConnectorContext(
     }
 
     override suspend fun upload(files: List<String>, voiceClip: Boolean) = interpreter {
+        @Suppress("UNCHECKED_CAST")
         pyContext.upload(files, voiceClip).pyAwait() as? List<UploadedFile>
     }
 

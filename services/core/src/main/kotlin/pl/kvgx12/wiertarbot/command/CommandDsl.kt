@@ -16,7 +16,7 @@ class CommandDsl(
     val aliases: List<String> = emptyList(),
 ) {
     var help: String? = null
-    var availableIn = ConnectorType.all()
+    var availableIn: EnumSet<ConnectorType> = ConnectorType.all()
 
     inline fun imageEdit(
         crossinline func: ImageEdit<BufferedImage>,
@@ -71,7 +71,7 @@ class CommandDsl(
         ).toString()
     }
 
-    inline fun help(usage: String = "", returns: String? = null, info: String? = null) {
+    fun help(usage: String = "", returns: String? = null, info: String? = null) {
         help { builder ->
             builder.apply {
                 usage(usage)
@@ -82,6 +82,7 @@ class CommandDsl(
     }
 }
 
+@Suppress("NOTHING_TO_INLINE")
 inline fun commands(noinline func: BeanDefinitionDsl.() -> Unit) = func
 
 inline fun command(
@@ -102,8 +103,11 @@ inline fun BeanDefinitionDsl.command(
             .let(func)
     }
 
-inline fun BeanDefinitionDsl.specialCommandWithContext(crossinline func: BeanDefinitionDsl.BeanSupplierContext.() -> SpecialCommand) =
+inline fun BeanDefinitionDsl.specialCommandWithContext(
+    crossinline func: BeanDefinitionDsl.BeanSupplierContext.() -> SpecialCommand,
+) =
     bean { func() }
 
+@Suppress("NOTHING_TO_INLINE")
 inline fun BeanDefinitionDsl.specialCommand(func: SpecialCommand) =
     bean { func }

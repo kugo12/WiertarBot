@@ -1,4 +1,5 @@
 @file:OptIn(RiskFeature::class)
+@file:Suppress("LongMethod", "CyclomaticComplexMethod", "LongParameterList")
 
 package pl.kvgx12.wiertarbot.utils
 
@@ -27,6 +28,10 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+private val log: Logger = LoggerFactory.getLogger(TelegramBot::class.java)
 
 /**
  * Will convert incoming list of updates to list with [MediaGroupUpdate]s
@@ -47,6 +52,7 @@ private fun List<Update>.convertWithMediaGroupUpdates(): List<Update> {
     for (update in this) {
         val message = (update.data as? PossiblySentViaBotCommonMessage<*>)?.let {
             if (it.content is MediaGroupPartContent) {
+                @Suppress("UNCHECKED_CAST")
                 it as PossiblySentViaBotCommonMessage<MediaGroupPartContent>
             } else {
                 null
@@ -211,7 +217,7 @@ fun TelegramBot.longPollingFlow(
                         delay(1000L)
                     }
                     if (e is GetUpdatesConflict && (exceptionsHandler == null || exceptionsHandler == defaultSafelyExceptionHandler)) {
-                        println("Warning!!! Other bot with the same bot token requests updates with getUpdate in parallel")
+                        log.warn("Warning!!! Other bot with the same bot token requests updates with getUpdate in parallel")
                     }
                 },
             ) {

@@ -142,6 +142,7 @@ class Interpreter(
         }
     }
 
+    @Suppress("NOTHING_TO_INLINE")
     inline fun asyncioCallback(continuation: Continuation<Any?>) =
         PyCallable2<Any?, PyObject?, Unit> { result, exception ->
             if (exception != null) {
@@ -184,7 +185,7 @@ class Interpreter(
         return future
     }
 
-    inline fun <reified T> get(name: String) = getValue(name, T::class.java)
+    inline fun <reified T> get(name: String): T = getValue(name, T::class.java)
 
     class SharedAsyncInterpreter {
         val context = newSingleThreadDispatcher("asyncio-loop")

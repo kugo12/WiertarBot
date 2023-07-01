@@ -53,7 +53,7 @@ class FBKtConnector(
     companion object {
         fun ThreadEvent.WithMessage.toGeneric(context: FBKtContext): MessageEvent = MessageEvent(
             context,
-            text = message.text ?: "",
+            text = message.text.orEmpty(),
             authorId = message.author.id,
             threadId = message.thread.id,
             at = message.createdAt ?: 0,

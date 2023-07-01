@@ -138,7 +138,7 @@ val standardCommands = commands {
     command("niedziela", "niedziele") {
         help(returns = "najbliższe niedziele handlowe")
 
-        text { event ->
+        text { _ ->
             val now = Clock.System.now().toLocalDateTime(plZone).date
             val dates = sundays.filter { it >= now }
             val first = dates.firstOrNull()
@@ -163,10 +163,10 @@ val standardCommands = commands {
     command("covid") {
         help(returns = "aktualne informacje o covid w Polsce")
 
-        text { event ->
+        text {
             val data =
                 client.get(
-                    @Suppress("ktlint:standard:max-line-length")
+                    @Suppress("ktlint:standard:max-line-length", "MaxLineLength")
                     "https://services-eu1.arcgis.com/zk7YlClTgerl62BY/arcgis/rest/services/global_corona_actual_widok3/FeatureServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=1&where=1%3D1&outFields=*",
                 )
                     .body<CovidResponse>()
@@ -350,7 +350,7 @@ val standardCommands = commands {
     command("czas") {
         help(returns = "aktualny czas oraz odliczenia")
 
-        text { event ->
+        text {
             val now = Clock.System.now()
 
             buildString {
@@ -403,16 +403,16 @@ val standardCommands = commands {
         text { event ->
             event.text.split(' ', limit = 4)
                 .let { if (it.size > 2) it else null }
-                ?.let {
-                    val from = it[1].uppercase()
-                    val to = it[2].uppercase()
-                    val amount = it.getOrNull(3)?.toDoubleOrNull() ?: 1.0
+                ?.let { args ->
+                    val from = args[1].uppercase()
+                    val to = args[2].uppercase()
+                    val amount = args.getOrNull(3)?.toDoubleOrNull() ?: 1.0
 
                     runCatching {
                         TheForexAPI.convert(from, to, amount)
                     }.fold(
-                        onSuccess = { "$amount $from to ${String.format("%.4f", it)} $to" },
-                        onFailure = { "Nieprawidłowa waluta"; throw it },
+                        onSuccess = { "$amount $from to ${String.format(Locale.getDefault(), "%.4f", it)} $to" },
+                        onFailure = { "Nieprawidłowa waluta" },
                     )
                 }
                 ?: help
@@ -494,38 +494,53 @@ val sundays = listOf(
     LocalDate(2023, 12, 24),
 )
 
-@Suppress("ktlint:standard:max-line-length")
-const val pastaXd =
-    "Serio, mało rzeczy mnie triggeruje tak jak to chore \"Xd\". Kombinacji x i d można używać na wiele wspaniałych sposobów. Coś cię śmieszy? Stawiasz \"xD\". Coś się bardzo śmieszy? Śmiało: \"XD\"! Coś doprowadza Cię do płaczu ze śmiechu? \"XDDD\" i załatwione. Uśmiechniesz się pod nosem? \"xd\". Po kłopocie. A co ma do tego ten bękart klawiaturowej ewolucji, potwór i zakała ludzkiej estetyki - \"Xd\"? Co to w ogóle ma wyrażać? Martwego człowieka z wywalonym jęzorem? Powiem Ci, co to znaczy. To znaczy, że masz w telefonie włączone zaczynanie zdań dużą literą, ale szkoda Ci klikać capsa na jedno \"d\" później. Korona z głowy spadnie? Nie sondze. \"Xd\" to symptom tego, że masz mnie, jako rozmówcę, gdzieś, bo Ci się nawet kliknąć nie chce, żeby mi wysłać poprawny emotikon. Szanujesz mnie? Używaj \"xd\", \"xD\", \"XD\", do wyboru. Nie szanujesz mnie? Okaż to. Wystarczy, że wstawisz to zjebane \"Xd\" w choć jednej wiadomości. Nie pozdrawiam"
-const val barka = """Pan kiedyś stanął nad brzegiem
-Szukał ludzi gotowych pójść za Nim
-By łowić serca
-Słów Bożych prawdą.
+val pastaXd = """
+    Serio, mało rzeczy mnie triggeruje tak jak to chore "Xd".
+    Kombinacji x i d można używać na wiele wspaniałych sposobów.
+    Coś cię śmieszy? Stawiasz "xD". Coś się bardzo śmieszy?
+    Śmiało: "XD"! Coś doprowadza Cię do płaczu ze śmiechu? "XDDD" i załatwione.
+    Uśmiechniesz się pod nosem? "xd". Po kłopocie.
+    A co ma do tego ten bękart klawiaturowej ewolucji, potwór i zakała ludzkiej estetyki - "Xd"?
+    Co to w ogóle ma wyrażać? Martwego człowieka z wywalonym jęzorem? Powiem Ci, co to znaczy.
+    To znaczy, że masz w telefonie włączone zaczynanie zdań dużą literą, ale szkoda Ci klikać capsa na jedno "d" później.
+    Korona z głowy spadnie? Nie sondze.
+    "Xd" to symptom tego, że masz mnie, jako rozmówcę, gdzieś, bo Ci się nawet kliknąć nie chce, żeby mi wysłać poprawny emotikon.
+    Szanujesz mnie? Używaj "xd", "xD", "XD", do wyboru. Nie szanujesz mnie? Okaż to.
+    Wystarczy, że wstawisz to zjebane "Xd" w choć jednej wiadomości.
+    Nie pozdrawiam
+""".trimIndent().replace("\n", " ")
 
-Ref.:
-O Panie, to Ty na mnie spojrzałeś,
-Twoje usta dziś wyrzekły me imię.
-Swoją barkę pozostawiam na brzegu,
-Razem z Tobą nowy zacznę dziś łów.
-
-2.
-Jestem ubogim człowiekiem,
-Moim skarbem są ręce gotowe
-Do pracy z Tobą
-I czyste serce.
-
-3.
-Ty, potrzebujesz mych dłoni,
-Mego serca młodego zapałem
-Mych kropli potu
-I samotności.
-
-4.
-Dziś wypłyniemy już razem
-Łowić serca na morzach dusz ludzkich
-Twej prawdy siecią
-I słowem życia.
-
-
-By Papież - https://www.youtube.com/watch?v=fimrULqiExA
-Z tekstem - https://www.youtube.com/watch?v=_o9mZ_DVTKA"""
+val barka = """
+    Pan kiedyś stanął nad brzegiem
+    Szukał ludzi gotowych pójść za Nim
+    By łowić serca
+    Słów Bożych prawdą.
+    
+    Ref.:
+    O Panie, to Ty na mnie spojrzałeś,
+    Twoje usta dziś wyrzekły me imię.
+    Swoją barkę pozostawiam na brzegu,
+    Razem z Tobą nowy zacznę dziś łów.
+    
+    2.
+    Jestem ubogim człowiekiem,
+    Moim skarbem są ręce gotowe
+    Do pracy z Tobą
+    I czyste serce.
+    
+    3.
+    Ty, potrzebujesz mych dłoni,
+    Mego serca młodego zapałem
+    Mych kropli potu
+    I samotności.
+    
+    4.
+    Dziś wypłyniemy już razem
+    Łowić serca na morzach dusz ludzkich
+    Twej prawdy siecią
+    I słowem życia.
+    
+    
+    By Papież - https://www.youtube.com/watch?v=fimrULqiExA
+    Z tekstem - https://www.youtube.com/watch?v=_o9mZ_DVTKA
+""".trimIndent()

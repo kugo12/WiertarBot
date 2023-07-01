@@ -39,7 +39,7 @@ internal val forcedFetchDeserializer = surrogateDeserializer<ForcedFetch, _> {
     flowOf(
         Event.UnfetchedThread(
             thread = thread,
-            message = it.messageId?.let { MessageId(thread, it) },
+            message = it.messageId?.let { id -> MessageId(thread, id) },
         ),
     )
 }
@@ -75,7 +75,7 @@ internal val deliveryReceiptDeserializer = surrogateDeserializer<DeliveryReceipt
         ThreadEvent.MessagesDelivered(
             author = author,
             thread = thread,
-            messages = it.messageIds.map { MessageId(thread, it) },
+            messages = it.messageIds.map { id -> MessageId(thread, id) },
             timestamp = it.deliveredWatermarkTimestampMs.toLong(),
         ),
     )
@@ -90,7 +90,9 @@ private data class MarkFolderSeen(
 internal val markFolderSeenDeserializer = surrogateDeserializer<MarkFolderSeen, _> {
     flowOf(
         Event.MarkFoldersSeen(
-            locations = it.folders.map { ThreadLocation.valueOf(it.removePrefix("FOLDER_")) },
+            locations = it.folders.map { folder ->
+                ThreadLocation.valueOf(folder.removePrefix("FOLDER_"))
+            },
             timestamp = it.timestamp.toLong(),
         ),
     )

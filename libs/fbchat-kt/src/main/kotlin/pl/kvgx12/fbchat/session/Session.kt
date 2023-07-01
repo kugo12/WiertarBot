@@ -103,19 +103,19 @@ class Session internal constructor(
         (response["jsmods"] as? JsonArray)?.let {
             SessionUtils.getJsModsDefine(it)
                 .getFbDtsg()
-                ?.let { fbDtsg = it }
+                ?.let { dtsg -> fbDtsg = dtsg }
         }
 
         return response["payload"] ?: error("Missing payload $response")
     }
 
     internal suspend fun doSendRequest(
-        data: Map<String, String>,
+        input: Map<String, String>,
     ): Pair<String, String?> {
         val now = System.currentTimeMillis()
         val offlineThreadingId = SessionUtils.generateOfflineThreadingId()
 
-        val data = data + mapOf(
+        val data = input + mapOf(
             "client" to "mercury",
             "author" to "fbid:$userId",
             "timestamp" to now.toString(),

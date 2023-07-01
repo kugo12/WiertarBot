@@ -19,15 +19,15 @@ val specialCommands = commands {
     specialCommandWithContext {
         val permissionService = ref<PermissionService>()
 
-        SpecialCommand {
-            if ("@everyone" in it.text &&
-                it.isGroup &&
-                permissionService.isAuthorized("everyone", it.threadId, it.authorId)
+        SpecialCommand { event ->
+            if ("@everyone" in event.text &&
+                event.isGroup &&
+                permissionService.isAuthorized("everyone", event.threadId, event.authorId)
             ) {
-                val mentions = it.context.fetchThread(it.threadId).participants
+                val mentions = event.context.fetchThread(event.threadId).participants
                     .map { Mention(it, 0, 9) }
 
-                Response(it, text = "@everyone", mentions = mentions).send()
+                Response(event, text = "@everyone", mentions = mentions).send()
             }
         }
     }

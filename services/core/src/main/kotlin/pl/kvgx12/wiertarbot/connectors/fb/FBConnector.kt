@@ -10,14 +10,12 @@ import pl.kvgx12.wiertarbot.connector.Connector
 import pl.kvgx12.wiertarbot.events.*
 import pl.kvgx12.wiertarbot.python.*
 import pl.kvgx12.wiertarbot.utils.execute
-import pl.kvgx12.wiertarbot.utils.getLogger
 
 class FBConnector(
     private val interpreter: Interpreter,
 ) : Connector {
     private lateinit var pyConnector: PyConnector
     private var contextProxy: FBConnectorContext? = null
-    private val log = getLogger()
 
     init {
         runBlocking {
@@ -76,7 +74,7 @@ class FBConnector(
 
             return MessageEvent(
                 context = context,
-                text = message.get("text") ?: "",
+                text = message.get<String?>("text").orEmpty(),
                 authorId = pyObject.pyGet("author").get("id"),
                 threadId = pyObject.pyGet("thread").get("id"),
                 at = message.pyGet("created_at").get<PyCallable>("timestamp").call().let { (it as Double).toLong() },
@@ -106,6 +104,7 @@ class FBConnector(
         )
     }
 
+    @Suppress("FunctionName")
     interface PyConnector {
         fun run(callback: PyCallable1<PyObject, Unit>): PyObject
         fun login(): PyObject

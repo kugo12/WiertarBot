@@ -16,8 +16,6 @@ import pl.kvgx12.wiertarbot.connectors.telegram.TelegramConnector
 import pl.kvgx12.wiertarbot.services.*
 import kotlin.reflect.full.findAnnotation
 
-annotation class ConfigProperties(val value: String)
-
 fun beans() = beans {
     val binder = env.getBinder()
 
@@ -60,7 +58,7 @@ fun beans() = beans {
     if (!env.activeProfiles.contains("test")) bean<Runner>()
 }
 
-inline fun <reified T : Any> ConfigurableEnvironment.get(key: String, default: T) =
+inline fun <reified T : Any> ConfigurableEnvironment.get(key: String, default: T): T =
     getProperty(key, T::class.java, default)
 
 fun ConfigurableEnvironment.getBinder() = Binder(propertySources.mapNotNull { ConfigurationPropertySource.from(it) })
@@ -69,3 +67,5 @@ inline fun <reified T : Any> Binder.bind(): T = bindOrCreate(
     T::class.findAnnotation<ConfigProperties>()!!.value,
     T::class.java,
 )
+
+annotation class ConfigProperties(val value: String)

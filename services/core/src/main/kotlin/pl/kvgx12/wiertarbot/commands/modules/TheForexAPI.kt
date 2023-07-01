@@ -12,7 +12,6 @@ object TheForexAPI {
     private const val latestUrl = "https://theforexapi.com/api/latest"
 
     private val client = HttpClient(CIO)
-    private val json = Json { ignoreUnknownKeys = true }
 
     suspend fun convert(fromCurrency: String, toCurrency: String, value: Double): Double {
         return value * getRate(fromCurrency, toCurrency)

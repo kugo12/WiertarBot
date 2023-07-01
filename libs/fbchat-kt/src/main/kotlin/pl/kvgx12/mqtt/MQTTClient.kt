@@ -41,13 +41,16 @@ class MQTTClient(private val wsSession: WebSocketSession) {
         when (val message = MQTTPacket(frame.buffer)) {
             is MQTTConnectAck -> emit(MQTTEvent.ConnectionAck(message.returnCode))
 
-            is MQTTSubscribeAck -> {}
-            is MQTTPublishAck -> {}
-            is MQTTUnsubscribeAck -> {}
+            is MQTTSubscribeAck,
+            is MQTTPublishAck,
+            is MQTTUnsubscribeAck,
+            is MQTTPublishComplete,
+            is MQTTPong,
+            -> {
+            }
 
             is MQTTPublishReceived -> outgoing.send(MQTTPublishRelease(message.messageId))
             is MQTTPublishRelease -> outgoing.send(MQTTPublishComplete(message.messageId))
-            is MQTTPublishComplete -> {}
 
             is MQTTPublish -> {
                 when (message.qos) {
@@ -60,7 +63,6 @@ class MQTTClient(private val wsSession: WebSocketSession) {
             }
 
             is MQTTPing -> outgoing.send(MQTTPong())
-            is MQTTPong -> {}
             is MQTTDisconnect, is MQTTSubscribe, is MQTTConnect, is MQTTUnsubscribe ->
                 error("Unexpected mqtt packet sent from server $message ${message.type}")
         }
@@ -79,6 +81,7 @@ class MQTTClient(private val wsSession: WebSocketSession) {
         wsSession.flush()
     }
 
-    suspend fun disconnect() {
-    }
+// TODO:
+//    suspend fun disconnect() {
+//    }
 }

@@ -2,7 +2,6 @@ package pl.kvgx12.fbchat.utils
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
-import org.slf4j.LoggerFactory
 import kotlin.random.Random
 
 internal typealias ServerJSDefine = Map<String, JsonElement>
@@ -13,7 +12,20 @@ internal object SessionUtils {
         val revision: Int,
     )
 
-    private val log = LoggerFactory.getLogger(SessionUtils::class.java)
+    private data class Definition(
+        val module: String,
+        val method: JsonElement,
+        val data: JsonElement,
+        val arguments: JsonElement,
+    ) {
+        constructor(array: JsonArray) : this(
+            module = array[0].tryAsString()
+                ?: error("Module is not string ($array)"),
+            method = array[1],
+            data = array[2],
+            arguments = array[3],
+        )
+    }
 
     @OptIn(ExperimentalSerializationApi::class)
     fun parseServerJsDefine(body: String): Define {
@@ -22,16 +34,13 @@ internal object SessionUtils {
             .drop(1)
             .ifEmpty { error("Could not find server js define") }
             .flatMap {
-                it.byteInputStream().use {
-                    Json.decodeToSequence<JsonArray>(it, DecodeSequenceMode.WHITESPACE_SEPARATED).first()
+                it.byteInputStream().use { stream ->
+                    Json.decodeToSequence<JsonArray>(stream, DecodeSequenceMode.WHITESPACE_SEPARATED).first()
                 }
             }.associate { // TODO: filter?
-                val (module, _, data, _) = it.tryAsArray()
-                    ?: error("$it is not an array")
+                val definition = Definition(it.jsonArray)
 
-                val key = module.tryAsString() ?: error("$module is not a string ($it)")
-
-                key to data
+                definition.module to definition.data
             }
 
         return Define(
@@ -59,12 +68,9 @@ internal object SessionUtils {
 
     fun getJsModsDefine(array: JsonArray): ServerJSDefine = buildMap {
         array.forEach {
-            val (module, _, data, _) = it.jsonArray
+            val definition = Definition(it.jsonArray)
 
-            put(
-                module.jsonPrimitive.content,
-                data,
-            )
+            put(definition.module, definition.data)
         }
     }
 
@@ -84,24 +90,24 @@ internal object SessionUtils {
         this@getJsmodsRequire.forEach { element ->
             element.tryAsArray()?.let {
                 if (it.size == 1) {
-                    put(it.first().removeVersionFromModule(), emptyJsonArray())
+                    put(
+                        it.first().tryAsString()?.removeVersionFromModule().orEmpty(),
+                        emptyJsonArray(),
+                    )
                 } else {
-                    val (module, method, _, arguments) = it
+                    val definition = Definition(it)
 
                     put(
-                        "${module.removeVersionFromModule()}.${method.tryAsString()}",
-                        arguments.tryAsArray() ?: emptyJsonArray(),
+                        "${definition.module.removeVersionFromModule()}.${definition.method.tryAsString()}",
+                        definition.arguments.tryAsArray() ?: emptyJsonArray(),
                     )
                 }
             }
         }
     }
 
-    private fun JsonElement.removeVersionFromModule(): String =
-        tryAsString()
-            ?.split('@', limit = 2)
-            ?.first()
-            ?: ""
+    private fun String.removeVersionFromModule(): String =
+        split('@', limit = 2).first()
 
     fun JsonObject.handlePayloadError(ignoreJsmodRedirect: Boolean = false): JsonObject {
         if (!ignoreJsmodRedirect) {

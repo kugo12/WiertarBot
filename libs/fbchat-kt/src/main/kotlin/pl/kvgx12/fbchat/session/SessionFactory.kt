@@ -21,6 +21,7 @@ import pl.kvgx12.fbchat.utils.*
 suspend fun Session(
     email: String,
     password: String,
+    @Suppress("UNUSED_PARAMETER")
     secondFactorAuthHandler: suspend () -> Int = default2FAHandler,
 ): Session {
     val (cookies, client) = createClient()
@@ -145,6 +146,7 @@ internal fun createClient(): Pair<DelegatedCookieStorage, HttpClient> {
     }
 }
 
+@Suppress("ReturnCount")
 private fun findDatr(body: String): String? {
     val definitionIndex = body.indexOfOrNull(DATR_KEY)
         ?: return null
@@ -167,7 +169,7 @@ private fun getLoginErrorData(body: String) = body.html {
         withId = "login_form"
 
         findFirst {
-            children.getOrNull(2)?.text ?: ""
+            children.getOrNull(2)?.text.orEmpty()
         }
     }
 }

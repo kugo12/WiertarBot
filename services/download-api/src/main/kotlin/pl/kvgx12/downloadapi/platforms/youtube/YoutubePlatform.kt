@@ -43,7 +43,7 @@ class YoutubePlatform(private val properties: YoutubeProperties) : Platform {
             .streamingData.formats
             .asSequence()
             .filter { it.audioSampleRate != null && it.width != null }
-            .maxBy { it.width!! }
+            .maxBy { it.width ?: 0 }
             .url
 
         val file = allocator.allocateTempFile(metadata.videoId, MP4)

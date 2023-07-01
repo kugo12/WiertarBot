@@ -33,10 +33,10 @@ private data class Generic<T : Any>(
     val data: T,
 )
 
-object RedditListingSerializer : GenericRedditSerializer<RedditListing>(RedditListing.serializer())
-object IsRedditThingSerializer : GenericRedditSerializer<IsRedditThing>(serializer())
+object RedditListingSerializer : GenericRedditSerializer<RedditListing>()
+object IsRedditThingSerializer : GenericRedditSerializer<IsRedditThing>()
 
-open class GenericRedditSerializer<T : RedditObject>(private val dataSerializer: KSerializer<T>) : KSerializer<T> {
+open class GenericRedditSerializer<T : RedditObject> : KSerializer<T> {
     override val descriptor: SerialDescriptor
         get() = serialDescriptor<Generic<RedditObject>>()
 
@@ -64,6 +64,7 @@ open class GenericRedditSerializer<T : RedditObject>(private val dataSerializer:
             }
         }
 
+        @Suppress("UNCHECKED_CAST")
         data as? T ?: error("Unexpected type $kind")
     }
 

@@ -9,7 +9,7 @@ class MediaEmbed
 class SecureMediaEmbed
 
 @Serializable
-class SecureMedia(
+data class SecureMedia(
     val isGif: Boolean = false,
     val hlsUrl: String,
     val dashUrl: String,

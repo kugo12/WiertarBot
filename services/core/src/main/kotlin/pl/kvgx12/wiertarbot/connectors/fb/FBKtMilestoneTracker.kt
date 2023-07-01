@@ -50,9 +50,9 @@ class FBKtMilestoneTracker(
             return null
         }
 
-        val milestone = counts[event.thread.id]
+        val cachedMilestone = counts[event.thread.id]
 
-        return if (milestone == null) {
+        return if (cachedMilestone == null) {
             val thread = session.fetch(event.thread)
 
             val count = when (thread) {
@@ -72,7 +72,7 @@ class FBKtMilestoneTracker(
                     repository.save(milestone)
                 }
             }
-        } else milestone.run {
+        } else cachedMilestone.run {
             checkThreshold(count, count + 1).also {
                 count += 1
                 withContext(Dispatchers.IO) {

@@ -18,8 +18,8 @@ import java.io.ByteArrayOutputStream
 import java.util.*
 import javax.imageio.ImageIO
 
-private const val mime = "image/jpeg"
-private const val fileName = "imageedit.jpg"
+private const val MIME = "image/jpeg"
+private const val FILENAME = "imageedit.jpg"
 
 typealias ImageEdit<T> = suspend ImageEditCommand.ImageEditState.(T) -> T
 
@@ -58,9 +58,9 @@ abstract class ImageEditCommand(
 
     private suspend fun editAndSend(state: ImageEditState, event: MessageEvent, file: ByteArray) {
         val f = edit(state, file)
-        val file = event.context.uploadRaw(listOf(FileData(fileName, f, mime)), false)
+        val uploadedFiles = event.context.uploadRaw(listOf(FileData(FILENAME, f, MIME)), false)
 
-        Response(event, files = file).send()
+        Response(event, files = uploadedFiles).send()
     }
 
     private suspend fun getImageFromAttachments(event: MessageEvent): ByteArray? {

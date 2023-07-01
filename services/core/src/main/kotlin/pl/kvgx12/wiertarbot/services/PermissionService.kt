@@ -137,6 +137,6 @@ class PermissionService(
         }
     }
 
-    private inline operator fun JsonElement?.contains(key: String) =
+    private operator fun JsonElement?.contains(key: String) =
         (this as? JsonArray)?.contains(JsonPrimitive(key)) == true
 }

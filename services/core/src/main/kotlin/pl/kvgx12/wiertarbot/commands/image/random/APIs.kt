@@ -62,7 +62,7 @@ val randomImageApiCommands = commands {
             command("catto", "cat", "kot") {
                 help(returns = "zdjęcie z kotem")
 
-                files { event ->
+                files {
                     val response = client.get("https://api.thecatapi.com/v1/images/search") {
                         header("x-api-key", key)
                     }.body<List<CatApiResponse>>()
@@ -79,7 +79,7 @@ val randomImageApiCommands = commands {
 
         var pages = 1000
 
-        rawFiles { event ->
+        rawFiles {
             val response = client.get("https://unsplash.com/napi/search/photos") {
                 parameter("per_page", "1")
                 parameter("query", "turtle")

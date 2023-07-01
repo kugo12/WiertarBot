@@ -25,7 +25,7 @@ object ImageUtils {
         }
     }
 
-    fun immutableImageText(font: Font, text: String, width: Int, height: Int) =
+    fun immutableImageText(font: Font, text: String, width: Int, height: Int): ImmutableImage =
         BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
             .drawText(font, text)
             .toImmutableImage()
@@ -62,7 +62,7 @@ fun Font.getTextDimensions(text: String): Pair<Int, Int> {
     return width to height
 }
 
-inline fun BufferedImage.toImmutableImage() = ImmutableImage.fromAwt(this)
+inline fun BufferedImage.toImmutableImage(): ImmutableImage = ImmutableImage.fromAwt(this)
 
 fun BufferedImage.drawText(font: Font, text: String) = this.also {
     createGraphics().apply {

@@ -17,10 +17,10 @@ inline fun Jep.execute(
     @Language("python") code: String,
 ) = exec(code)
 
-suspend fun Path.contentType() = withContext(Dispatchers.IO) { Files.probeContentType(this@contentType) }
+suspend fun Path.contentType(): String? = withContext(Dispatchers.IO) { Files.probeContentType(this@contentType) }
 
 fun HttpResponse.contentTypeOrNull() = try {
     contentType()
-} catch (e: BadContentTypeFormatException) {
+} catch (_: BadContentTypeFormatException) {
     null
 }

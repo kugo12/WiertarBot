@@ -23,8 +23,13 @@ fun Url.getSegmentAfter(string: String): String? {
 
 suspend inline fun <T> io(noinline func: suspend CoroutineScope.() -> T) = withContext(Dispatchers.IO, func)
 
+@Suppress("FunctionNaming")
 inline fun Url(url: String, func: URLBuilder.() -> Unit) = URLBuilder(url).apply(func).build()
+
+@Suppress("FunctionNaming")
 inline fun Url(url: Url, func: URLBuilder.() -> Unit) = URLBuilder(url).apply(func).build()
+
+@Suppress("FunctionNaming")
 inline fun Url(func: URLBuilder.() -> Unit) = URLBuilder().apply(func).build()
 
 class HostPredicate(

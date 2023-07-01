@@ -1,3 +1,5 @@
+@file:Suppress("OPT_IN_USAGE")
+
 package pl.kvgx12.fbchat.mqtt
 
 import io.ktor.client.plugins.*
@@ -14,8 +16,8 @@ import pl.kvgx12.mqtt.proto.packets.MQTTConnect
 import kotlin.random.Random
 
 internal val defaultQoS = MQTTQoS.Acknowledged
-internal val wssDomain = "edge-chat.messenger.com"
-internal val wssUrl = "wss://$wssDomain"
+internal const val WSS_DOMAIN = "edge-chat.messenger.com"
+internal const val WSS_URL = "wss://$WSS_DOMAIN"
 internal val topics = arrayOf(
     // Things that happen in chats (e.g.messages)
     "/t_ms",
@@ -33,7 +35,7 @@ private fun generateSessionId() = Random.nextLong(0, Long.MAX_VALUE)
 
 private suspend fun Session.connectWebSocket(sessionId: Long) =
     client.webSocketSession {
-        url("$wssUrl/chat?sid=$sessionId&region=odn")
+        url("$WSS_URL/chat?sid=$sessionId&region=odn")
 
         header(
             HttpHeaders.Origin,
