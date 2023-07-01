@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.kotlinx.benchmark)
     alias(libs.plugins.kotlin.allopen)
     alias(libs.plugins.kotlinter)
+    alias(libs.plugins.detekt)
 }
 
 allOpen {
