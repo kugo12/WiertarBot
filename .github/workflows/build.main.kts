@@ -49,7 +49,7 @@ val services = listOf(
 workflow(
     name = "Build",
     on = listOf(
-        Push(listOf(DEFAULT_BRANCH, "dev")),
+        Push(listOf(DEFAULT_BRANCH)),
         PullRequest(branches = listOf(DEFAULT_BRANCH)),
         WorkflowDispatch(),
     ),
@@ -57,10 +57,10 @@ workflow(
     concurrency = Concurrency(
         group = expr { github.ref },
         cancelInProgress = true,
-    )
+    ),
 ) {
     val gradleBuild = job(
-        id = "gradle-build", runsOn = UbuntuLatest
+        id = "gradle-build", runsOn = UbuntuLatest,
     ) {
         checkout()
         setupJava()
@@ -69,8 +69,8 @@ workflow(
             name = "Upload build artifacts",
             action = UploadArtifactV3(
                 name = "jars",
-                path = listOf("**/build/libs")
-            )
+                path = listOf("**/build/libs"),
+            ),
         )
     }
 
@@ -88,7 +88,7 @@ workflow(
                         "POSTGRES_DB" to "wiertarbot_test",
                     ),
                     "ports" to listOf("5432:5432"),
-                    "options" to dockerHealthOpts("pg_isready")
+                    "options" to dockerHealthOpts("pg_isready"),
                 ),
                 "rabbitmq" to mapOf(
                     "image" to "rabbitmq:3.12-alpine",
@@ -97,10 +97,10 @@ workflow(
                         "RABBITMQ_DEFAULT_USER" to "guest",
                         "RABBITMQ_DEFAULT_PASS" to "guest",
                     ),
-                    "options" to dockerHealthOpts("rabbitmq-diagnostics -q ping")
-                )
-            )
-        )
+                    "options" to dockerHealthOpts("rabbitmq-diagnostics -q ping"),
+                ),
+            ),
+        ),
     ) {
         checkout()
         setupJava()
@@ -113,8 +113,8 @@ workflow(
                 path = listOf(
                     "**/build/test-results",
                     "**/build/reports",
-                )
-            )
+                ),
+            ),
         )
     }
 
@@ -132,7 +132,7 @@ workflow(
 
             if (platforms != amd64) uses(
                 name = "Setup QEMU",
-                action = CustomAction("docker", "setup-qemu-action", "v2")
+                action = CustomAction("docker", "setup-qemu-action", "v2"),
             )
 
             uses(name = "Setup docker buildx", action = SetupBuildxActionV2())
@@ -142,11 +142,11 @@ workflow(
                 action = LoginActionV2(
                     username = expr(DOCKER_USERNAME),
                     password = expr(DOCKER_PASSWORD),
-                )
+                ),
             )
             uses(
                 name = "Download build artifacts",
-                action = DownloadArtifactV3(name = "jars")
+                action = DownloadArtifactV3(name = "jars"),
             )
             uses(
                 name = "Build docker image",
@@ -158,8 +158,8 @@ workflow(
                         "${expr(DOCKERHUB_USER)}/${image}:latest",
                         "${expr(DOCKERHUB_USER)}/${image}:ci-${expr { github.run_id }}",
                     ),
-                    _customInputs = mapOf("push" to isMainAndPush)
-                )
+                    _customInputs = mapOf("push" to isMainAndPush),
+                ),
             )
         }
     }
@@ -179,7 +179,7 @@ workflow(
                     -F ref=main \
                     -F "variables[CI_SOURCE]=WiertarBot" \
                     "${expr(GITLAB_WB_D_URL)}" > /dev/null
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 }.writeToFile()
@@ -190,14 +190,14 @@ typealias JB = JobBuilder<*>
 fun JB.gradle(name: String, tasks: String) = uses(
     name = name,
     action = GradleBuildActionV2(
-        arguments = tasks
-    )
+        arguments = tasks,
+    ),
 )
 
 
 fun JB.checkout() = uses(
     name = "Check out",
-    action = CheckoutV3()
+    action = CheckoutV3(),
 )
 
 fun JB.setupJava() = uses(
@@ -205,7 +205,7 @@ fun JB.setupJava() = uses(
     action = SetupJavaV3(
         javaVersion = "17",
         distribution = SetupJavaV3.Distribution.Temurin,
-    )
+    ),
 )
 
 fun dockerHealthOpts(cmd: String) = """
