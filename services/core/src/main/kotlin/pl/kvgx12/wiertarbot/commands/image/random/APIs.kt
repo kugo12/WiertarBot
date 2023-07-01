@@ -22,7 +22,7 @@ val randomImageApiCommands = commands {
     randomImageCommand<Link>("hug", "z tuleniem", "https://some-random-api.com/animu/hug")
     randomImageCommand<Link>("wink", "z mrugnięciem", "https://some-random-api.com/animu/wink")
     randomImageCommand<Link>("pandka", "z pandką", "https://some-random-api.com/img/red_panda", "panda")
-    randomImageCommand<Link>("birb", "z ptaszkiem", "https://some-random-api.com/img/birb")
+    randomImageCommand<Link>("birb", "z ptaszkiem", "https://some-random-api.com/img/bird")
 
     randomImageCommand<Message>("doggo", "z pieskiem", "https://dog.ceo/api/breeds/image/random", "dog", "pies")
     randomImageCommand<Message>("beagle", "z pieskiem rasy beagle", "https://dog.ceo/api/breed/beagle/images/random")
