@@ -41,6 +41,14 @@ val randomImageScrapingCommands = commands {
             listOf(GeneratorFun.fetchRandomImage("hedgehog"))
         }
     }
+
+    command("cat", "catto", "kot") {
+        help(returns = "zdjęcie z kotem")
+
+        files {
+            listOf(GeneratorFun.fetchRandomImage("cat"))
+        }
+    }
 }
 
 private val client = HttpClient(CIO)

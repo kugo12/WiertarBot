@@ -13,7 +13,6 @@ import kotlinx.serialization.json.Json
 import org.springframework.context.support.BeanDefinitionDsl
 import pl.kvgx12.wiertarbot.command.command
 import pl.kvgx12.wiertarbot.command.commands
-import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.connector.FileData
 import pl.kvgx12.wiertarbot.events.Response
 import kotlin.random.Random
@@ -55,23 +54,6 @@ val randomImageApiCommands = commands {
             client.get("https://shibe.online/api/shibes?count=$count&urls=true&httpsUrls=true")
                 .body<List<String>>()
         }
-    }
-
-    bean {
-        ref<WiertarbotProperties>().catApi.key?.let { key ->
-            command("catto", "cat", "kot") {
-                help(returns = "zdjęcie z kotem")
-
-                files {
-                    val response = client.get("https://api.thecatapi.com/v1/images/search") {
-                        header("x-api-key", key)
-                    }.body<List<CatApiResponse>>()
-
-                    listOf(response.first().url)
-                }
-            }
-        }
-        Unit
     }
 
     command("zolw", "żółw") {
