@@ -84,9 +84,10 @@ interface Platform {
                             withAttribute = "http-equiv" to "refresh"
 
                             findFirst {
-                                val content = attributes["content"]?.let {
-                                    it.split("url=", ignoreCase = true, limit = 1).last()
-                                } ?: ""
+                                val content = attributes["content"]
+                                    ?.split("url=", ignoreCase = true, limit = 2)
+                                    ?.last()
+                                    .orEmpty()
 
                                 if (content.isUrl) Url(content) else null
                             }
