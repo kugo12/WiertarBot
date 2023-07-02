@@ -21,7 +21,7 @@ val flare1Template by lazyLoad("${Constants.commandMediaPath}/templates/flara.pn
 val flare2Template by lazyLoad("${Constants.commandMediaPath}/templates/flara2.png")
 
 val font: Font by lazy {
-    Font.createFont(Font.TRUETYPE_FONT, File("${Constants.commandMediaPath}/arial.ttf"))
+    Font.createFont(Font.TRUETYPE_FONT, File("${Constants.commandMediaPath}/fonts/roboto/Roboto-Regular.ttf"))
         .deriveFont(44f)
 }
 
