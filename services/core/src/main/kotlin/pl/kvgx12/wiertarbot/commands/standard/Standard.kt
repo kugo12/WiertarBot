@@ -37,6 +37,7 @@ val standardCommands = commands {
                 .getOrNull(1)
                 ?.split(',')
                 ?.random()
+                ?.trim()
                 ?: "Brak opcji do wyboru"
         }
     }
@@ -411,7 +412,7 @@ val standardCommands = commands {
                     runCatching {
                         TheForexAPI.convert(from, to, amount)
                     }.fold(
-                        onSuccess = { "$amount $from to ${String.format(Locale.getDefault(), "%.4f", it)} $to" },
+                        onSuccess = { "$amount $from to ${String.format(Locale.ENGLISH, "%.4f", it)} $to" },
                         onFailure = { "Nieprawidłowa waluta" },
                     )
                 }

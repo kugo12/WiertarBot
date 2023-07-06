@@ -5,13 +5,15 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
 object TheForexAPI {
     private const val latestUrl = "https://theforexapi.com/api/latest"
 
     private val client = HttpClient(CIO)
+    private val json = Json {
+        ignoreUnknownKeys = true
+    }
 
     suspend fun convert(fromCurrency: String, toCurrency: String, value: Double): Double {
         return value * getRate(fromCurrency, toCurrency)
@@ -22,16 +24,17 @@ object TheForexAPI {
             parameter("base", fromCurrency)
             parameter("symbols", toCurrency)
         }.bodyAsText()
-            .let { Json.decodeFromString<Response>(it) }
+            .let { json.decodeFromString<Response>(it) }
             .rates
-            .values
-            .first()
+            .let {
+                if (fromCurrency == toCurrency) 1.0 else it.getValue(toCurrency)
+            }
     }.fold(
         onSuccess = { it },
         onFailure = { throw InvalidCurrencyException(it) },
     )
 
-    class InvalidCurrencyException(throwable: Throwable) : Exception("Invalid currency", throwable)
+    class InvalidCurrencyException(throwable: Throwable? = null) : Exception("Invalid currency", throwable)
 
     @Serializable
     data class Response(
