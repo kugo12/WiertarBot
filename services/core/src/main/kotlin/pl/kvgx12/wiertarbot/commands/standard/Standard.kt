@@ -237,20 +237,22 @@ val standardCommands = commands {
                     val response = client.post("https://api.alipaczka.pl/track/$it/") {
                         contentType(ContentType.Application.Json)
                         setBody(AliPaczkaRequest())
-                    }.body<AliPaczkaResponse>()
+                    }
 
                     buildString {
-                        when {
-                            response.error != null -> append(response.error)
+                        when (response.status) {
+                            HttpStatusCode.NotFound -> append("Nie znaleziono paczki")
 
-                            else -> {
+                            HttpStatusCode.OK -> {
+                                val tracking = response.body<AliPaczkaResponse>()
+
                                 append(
                                     "Numer paczki: ",
                                     it,
                                     "\nDostarczono: ",
-                                    if (response.isDelivered == true) "tak" else "nie",
+                                    if (tracking.isDelivered == true) "tak" else "nie",
                                 )
-                                response.entries?.forEach {
+                                tracking.entries.forEach {
                                     append(
                                         "\n",
                                         Instant.fromEpochSeconds(it.time.toLong())
@@ -315,6 +317,8 @@ val standardCommands = commands {
         val lines by lazy {
             (Constants.commandMediaPath / "random/szkaluj.txt")
                 .readLines()
+                .map { it.replace("%n%", "\n").trim() }
+                .filter { it.isNotBlank() }
         }
 
         generic { event ->
@@ -335,7 +339,6 @@ val standardCommands = commands {
             val text: String
             val mentions = buildList {
                 text = lines.random()
-                    .replace("%n%", "\n")
                     .split("%on%")
                     .fold("") { acc, next ->
                         add(Mention(uid, acc.length, name.length))
@@ -442,9 +445,8 @@ private data class AliPaczkaRequest(
 @Serializable
 private data class AliPaczkaResponse(
     @SerialName("DataEntry")
-    val entries: List<Entry>? = null,
-    val isDelivered: Boolean? = null,
-    val error: String? = null,
+    val entries: List<Entry>,
+    val isDelivered: Boolean,
 ) {
     @Serializable
     data class Entry(
