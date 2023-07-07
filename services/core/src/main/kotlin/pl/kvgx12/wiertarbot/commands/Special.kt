@@ -16,7 +16,7 @@ private const val THINKING_EMOJI = "\uD83E\uDD14"
 private const val ANGRY_EMOJI = "\uD83D\uDE20"
 
 val specialCommands = commands {
-    specialCommandWithContext {
+    specialCommandWithContext("everyone") {
         val permissionService = ref<PermissionService>()
 
         SpecialCommand { event ->
@@ -32,13 +32,13 @@ val specialCommands = commands {
         }
     }
 
-    specialCommand {
+    specialCommand("thinking") {
         if (it.text == THINKING_EMOJI) {
             Response(it, text = THINKING_EMOJI).send()
         }
     }
 
-    specialCommand {
+    specialCommand("grek") {
         when (it.text.lowercase()) {
             "grek" -> {
                 if (it.text == "Grek") {
@@ -52,7 +52,7 @@ val specialCommands = commands {
         }
     }
 
-    specialCommandWithContext {
+    specialCommandWithContext("1337") {
         val permissionService = ref<PermissionService>()
 
         SpecialCommand {
@@ -64,19 +64,19 @@ val specialCommands = commands {
         }
     }
 
-    specialCommand {
+    specialCommand("2137") {
         if ("2137" in it.text) {
             Response(it, text = "haha toż to papieżowa liczba").send()
         }
     }
 
-    specialCommand {
+    specialCommand("Xd") {
         if ("Xd" in it.text) it.react(ANGRY_EMOJI)
     }
 
-    specialCommand { sam(it, "spierdalaj") }
+    specialCommand("samWypierdalaj") { sam(it, "spierdalaj") }
 
-    specialCommand { sam(it, "wypierdalaj") }
+    specialCommand("samSpierdalaj") { sam(it, "wypierdalaj") }
 }
 
 private suspend fun sam(event: MessageEvent, word: String) = coroutineScope {

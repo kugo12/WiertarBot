@@ -104,10 +104,13 @@ inline fun BeanDefinitionDsl.command(
     }
 
 inline fun BeanDefinitionDsl.specialCommandWithContext(
+    name: String,
     crossinline func: BeanDefinitionDsl.BeanSupplierContext.() -> SpecialCommand,
 ) =
-    bean { func() }
+    bean(specialCommandName(name)) { func() }
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun BeanDefinitionDsl.specialCommand(func: SpecialCommand) =
-    bean { func }
+inline fun BeanDefinitionDsl.specialCommand(name: String, func: SpecialCommand) =
+    bean(specialCommandName(name)) { func }
+
+fun specialCommandName(name: String) = "special-$name"
