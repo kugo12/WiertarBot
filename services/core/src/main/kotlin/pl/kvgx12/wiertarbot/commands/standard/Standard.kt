@@ -14,6 +14,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import pl.kvgx12.wiertarbot.Constants
+import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.command.command
 import pl.kvgx12.wiertarbot.command.commands
 import pl.kvgx12.wiertarbot.commands.modules.Fantano
@@ -420,6 +421,23 @@ val standardCommands = commands {
                     )
                 }
                 ?: help
+        }
+    }
+
+    command("suchar") {
+        help(returns = "losowy suchar")
+
+        text {
+            val response = ImageEditCommand.client.get("https://codziennyhumor.pl/?filter-by=random").bodyAsText()
+
+            buildString {
+                htmlDocument(response) {
+                    ".entry-body" {
+                        appendLine(findFirst(".entry-header").text)
+                        appendElement(findFirst(".entry-content p"))
+                    }
+                }
+            }
         }
     }
 }

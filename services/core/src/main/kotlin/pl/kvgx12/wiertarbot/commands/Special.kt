@@ -1,8 +1,7 @@
 package pl.kvgx12.wiertarbot.commands
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.command.commands
 import pl.kvgx12.wiertarbot.command.specialCommand
@@ -12,8 +11,8 @@ import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.services.PermissionService
 
-private const val THINKING_EMOJI = "\uD83E\uDD14"
-private const val ANGRY_EMOJI = "\uD83D\uDE20"
+const val THINKING_EMOJI = "\uD83E\uDD14"
+const val ANGRY_EMOJI = "\uD83D\uDE20"
 
 val specialCommands = commands {
     specialCommandWithContext("everyone") {
@@ -74,9 +73,9 @@ val specialCommands = commands {
         if ("Xd" in it.text) it.react(ANGRY_EMOJI)
     }
 
-    specialCommand("samWypierdalaj") { sam(it, "spierdalaj") }
+    specialCommand("spierdalaj") { sam(it, "spierdalaj") }
 
-    specialCommand("samSpierdalaj") { sam(it, "wypierdalaj") }
+    specialCommand("wypierdalaj") { sam(it, "wypierdalaj") }
 }
 
 private suspend fun sam(event: MessageEvent, word: String) = coroutineScope {
@@ -96,8 +95,6 @@ private suspend fun sam(event: MessageEvent, word: String) = coroutineScope {
         }
     }
 
-    val response = async { Response(event, text = msg + word).send() }
-    val react = async { event.react(ANGRY_EMOJI) }
-
-    awaitAll(response, react)
+    launch { Response(event, text = msg + word).send() }
+    launch { event.react(ANGRY_EMOJI) }
 }
