@@ -1,12 +1,8 @@
 package pl.kvgx12.wiertarbot.entities
 
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.GeneratedValue
-import jakarta.persistence.GenerationType
-import jakarta.persistence.Id
+import jakarta.persistence.*
 
-@Entity(name="messagecountmilestone")
+@Entity(name = "messagecountmilestone")
 class MessageCountMilestone(
     @Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
     val id: Int? = null,

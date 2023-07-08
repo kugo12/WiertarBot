@@ -1,6 +1,7 @@
 package pl.kvgx12.wiertarbot.commands.image.edit
 
-import pl.kvgx12.wiertarbot.command.command
+import pl.kvgx12.wiertarbot.command.dsl.command
+import pl.kvgx12.wiertarbot.command.dsl.imageEdit
 import pl.kvgx12.wiertarbot.utils.*
 import java.awt.Color
 import java.awt.image.BufferedImage
@@ -9,7 +10,7 @@ val deepfryCommand = command("deepfry") {
     help {
         it.usage()
             .returns("usmażone zdjęcie")
-            .info(replyInfo)
+            .info(REPLY_INFO)
     }
 
     imageEdit { image ->
@@ -55,8 +56,9 @@ val deepfryCommand = command("deepfry") {
             val b = reduced.blue().blend(deepFryLut[2][lutIndex], 0.6)
 
             img.raster.setDataElements(
-                x, y,
-                intArrayOf(color(r, g, b))
+                x,
+                y,
+                intArrayOf(color(r, g, b)),
             )
         }
 
@@ -66,14 +68,14 @@ val deepfryCommand = command("deepfry") {
 
 val deepFryLut = ImageUtils.colorizeLut(Color(254, 0, 2), Color(255, 255, 15))
 
-private inline fun Int.red() = shr(16) and 0xFF
-private inline fun Int.green() = shr(8) and 0xFF
-private inline fun Int.blue() = and(0xFF)
+private fun Int.red() = shr(16) and 0xFF
+private fun Int.green() = shr(8) and 0xFF
+private fun Int.blue() = and(0xFF)
 
-//inline fun forRange(start: Int, stop: Int, step: Int = 1, func: (Int) -> Unit) {
+// inline fun forRange(start: Int, stop: Int, step: Int = 1, func: (Int) -> Unit) {
 //    var it = start
 //    while (it < stop) {
 //        func(it)
 //        it += step
 //    }
-//}
+// }

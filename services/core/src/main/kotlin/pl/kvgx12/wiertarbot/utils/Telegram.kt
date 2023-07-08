@@ -1,4 +1,5 @@
 @file:OptIn(RiskFeature::class)
+@file:Suppress("LongMethod", "CyclomaticComplexMethod", "LongParameterList")
 
 package pl.kvgx12.wiertarbot.utils
 
@@ -27,6 +28,10 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+
+private val log: Logger = LoggerFactory.getLogger(TelegramBot::class.java)
 
 /**
  * Will convert incoming list of updates to list with [MediaGroupUpdate]s
@@ -34,11 +39,20 @@ import kotlinx.coroutines.flow.channelFlow
 private fun List<Update>.convertWithMediaGroupUpdates(): List<Update> {
     val resultUpdates = mutableListOf<Update>()
     val mediaGroups =
-        mutableMapOf<MediaGroupIdentifier, MutableList<Pair<BaseSentMessageUpdate, PossiblySentViaBotCommonMessage<MediaGroupPartContent>>>>()
+        mutableMapOf<
+            MediaGroupIdentifier,
+            MutableList<
+                Pair<
+                    BaseSentMessageUpdate,
+                    PossiblySentViaBotCommonMessage<MediaGroupPartContent>,
+                    >,
+                >,
+            >()
 
     for (update in this) {
         val message = (update.data as? PossiblySentViaBotCommonMessage<*>)?.let {
             if (it.content is MediaGroupPartContent) {
+                @Suppress("UNCHECKED_CAST")
                 it as PossiblySentViaBotCommonMessage<MediaGroupPartContent>
             } else {
                 null
@@ -63,7 +77,7 @@ private fun List<Update>.convertWithMediaGroupUpdates(): List<Update> {
     mediaGroups.map { (_, updatesWithMessages) ->
         val update = updatesWithMessages.maxBy { it.first.updateId }.first
         resultUpdates.add(
-            update.copy(updatesWithMessages.map { it.second }.asMediaGroupMessage())
+            update.copy(updatesWithMessages.map { it.second }.asMediaGroupMessage()),
         )
     }
 
@@ -73,13 +87,13 @@ private fun List<Update>.convertWithMediaGroupUpdates(): List<Update> {
 
 private fun CoroutineScope.updateHandlerWithMediaGroupsAdaptation(
     output: UpdateReceiver<Update>,
-    mediaGroupsDebounceMillis: Long = 1000L
+    mediaGroupsDebounceMillis: Long = 1000L,
 ): UpdateReceiver<Update> {
     val updatesChannel = Channel<Update>(Channel.UNLIMITED)
     val mediaGroupChannel = Channel<Pair<String, BaseMessageUpdate>>(Channel.UNLIMITED)
     val mediaGroupAccumulatedChannel = mediaGroupChannel.accumulateByKey(
         mediaGroupsDebounceMillis,
-        scope = this
+        scope = this,
     )
 
     launch {
@@ -144,7 +158,7 @@ fun TelegramBot.longPollingFlow(
                     send(it)
                 }
             },
-            mediaGroupsDebounceTimeMillis
+            mediaGroupsDebounceTimeMillis,
         );
         { originalUpdates: List<Update> ->
             originalUpdates.forEach {
@@ -169,8 +183,8 @@ fun TelegramBot.longPollingFlow(
              * and it will guarantee that it is full
              */
             val updates = if (
-                originalUpdates.size == dev.inmo.tgbotapi.types.getUpdatesLimit.last
-                && ((converted.last() as? BaseSentMessageUpdate)?.data as? CommonMessage<*>)?.content is MediaGroupContent<*>
+                originalUpdates.size == dev.inmo.tgbotapi.types.getUpdatesLimit.last &&
+                ((converted.last() as? BaseSentMessageUpdate)?.data as? CommonMessage<*>)?.content is MediaGroupContent<*>
             ) {
                 converted - converted.last()
             } else {
@@ -203,16 +217,16 @@ fun TelegramBot.longPollingFlow(
                         delay(1000L)
                     }
                     if (e is GetUpdatesConflict && (exceptionsHandler == null || exceptionsHandler == defaultSafelyExceptionHandler)) {
-                        println("Warning!!! Other bot with the same bot token requests updates with getUpdate in parallel")
+                        log.warn("Warning!!! Other bot with the same bot token requests updates with getUpdate in parallel")
                     }
-                }
+                },
             ) {
                 execute(
                     GetUpdates(
                         offset = lastUpdateIdentifier?.plus(1),
                         timeout = timeoutSeconds,
-                        allowed_updates = allowedUpdates
-                    )
+                        allowed_updates = allowedUpdates,
+                    ),
                 ).let { originalUpdates ->
                     updatesHandler(originalUpdates)
                 }
@@ -220,7 +234,6 @@ fun TelegramBot.longPollingFlow(
         }
     }
 }
-
 
 /**
  * Will enable [longPolling] by creating [FlowsUpdatesFilter] with [flowsUpdatesFilterUpdatesKeeperCount] as an argument
@@ -239,7 +252,7 @@ fun TelegramBot.longPolling(
     autoDisableWebhooks: Boolean = true,
     autoSkipTimeoutExceptions: Boolean = true,
     mediaGroupsDebounceTimeMillis: Long? = 1000L,
-    flowUpdatesPreset: FlowsUpdatesFilter.() -> Unit
+    flowUpdatesPreset: FlowsUpdatesFilter.() -> Unit,
 ): Job = FlowsUpdatesFilter(flowsUpdatesFilterUpdatesKeeperCount).run {
     flowUpdatesPreset()
 
@@ -249,11 +262,11 @@ fun TelegramBot.longPolling(
         allowedUpdates = allowedUpdates,
         autoDisableWebhooks = autoDisableWebhooks,
         autoSkipTimeoutExceptions = autoSkipTimeoutExceptions,
-        mediaGroupsDebounceTimeMillis = mediaGroupsDebounceTimeMillis
+        mediaGroupsDebounceTimeMillis = mediaGroupsDebounceTimeMillis,
     ).subscribeSafely(
         scope = scope,
         onException = exceptionsHandler ?: defaultSafelyExceptionHandler,
-        block = asUpdateReceiver
+        block = asUpdateReceiver,
     )
 }
 

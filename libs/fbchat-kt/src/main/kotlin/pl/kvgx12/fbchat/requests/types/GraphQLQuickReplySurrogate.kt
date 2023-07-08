@@ -44,7 +44,7 @@ internal val graphQLQuickReplyDeserializer = surrogateDeserializer<GraphQLQuickR
             externalPayload = null,
             data = it.data,
             isResponse = false,
-            imageUrl = it.imageUrl
+            imageUrl = it.imageUrl,
         )
 
         "user_email" -> QuickReplyEmail(
@@ -52,7 +52,7 @@ internal val graphQLQuickReplyDeserializer = surrogateDeserializer<GraphQLQuickR
             externalPayload = null,
             data = it.data,
             isResponse = false,
-            imageUrl = it.imageUrl
+            imageUrl = it.imageUrl,
         )
 
         else -> throw SerializationException("Unknown type ${it.type} $it")

@@ -76,7 +76,7 @@ sealed interface Page : Thread
 
 @Serializable
 data class UnknownThread(
-    override val id: String
+    override val id: String,
 ) : ThreadId
 
 @Serializable
@@ -102,7 +102,7 @@ data class GroupData(
     val admins: List<String>,
     val approvalMode: Boolean?,
     val approvalRequests: List<String>,
-    val joinLink: String?
+    val joinLink: String?,
 ) : Group, ThreadData
 
 @Serializable
@@ -121,9 +121,8 @@ data class UserData(
     val nickname: String?,
     val ownNickname: String?,
     val color: String?,
-    val emoji: String?
+    val emoji: String?,
 ) : User, ThreadData
-
 
 @Serializable
 data class PageData(

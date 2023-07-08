@@ -9,7 +9,7 @@ internal typealias AdditionalInfoProfiles = Map<String, AdditionalInfoResponse.P
 
 @Serializable
 internal data class AdditionalInfoResponse(
-    val profiles: AdditionalInfoProfiles
+    val profiles: AdditionalInfoProfiles,
 ) {
     @Serializable
     data class Profile(
@@ -31,7 +31,7 @@ internal suspend fun fetchAdditionalInfo(session: Session, ids: List<String>): A
             ids.forEachIndexed { index, s ->
                 put("ids[$index]", s)
             }
-        }
+        },
     )
 
     return Session.json.decodeFromJsonElement<AdditionalInfoResponse>(response)

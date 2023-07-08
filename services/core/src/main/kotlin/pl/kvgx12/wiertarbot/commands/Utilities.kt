@@ -4,8 +4,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import pl.kvgx12.wiertarbot.Constants
-import pl.kvgx12.wiertarbot.command.command
-import pl.kvgx12.wiertarbot.command.commands
+import pl.kvgx12.wiertarbot.command.dsl.command
+import pl.kvgx12.wiertarbot.command.dsl.commands
+import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.connector.ConnectorType
 import pl.kvgx12.wiertarbot.connectors.fb.FBMessageService
@@ -27,18 +28,30 @@ val utilityCommands = commands {
         )
 
         val prefix = dsl.ref<WiertarbotProperties>().prefix
-        val registrationService = dsl.provider<CommandRegistrationService>()
+        val registrationService by lazy {
+            dsl.ref<CommandRegistrationService>()
+        }
+
+        val lowercasedCommands by lazy {
+            registrationService
+                .commandsByConnector
+                .mapValues { (_, value) ->
+                    value.mapKeys {
+                        it.key.lowercase()
+                    }
+                }
+        }
 
         text { event ->
-            val commands = registrationService.`object`
-                .commandsByConnector[event.context.connectorType]!!
             val args = event.text.split(' ', limit = 2)
 
             if (args.size == 2) {
-                commands[args.last().lowercase()]
+                lowercasedCommands[event.context.connectorType]!![args.last().lowercase()]
                     ?.help
                     ?: "Nie znaleziono podanej komendy"
             } else {
+                val commands = registrationService.commandsByConnector[event.context.connectorType]!!
+
                 "Prefix: $prefix\nKomendy: ${commands.keys.joinToString(", ")}"
             }
         }
@@ -115,7 +128,7 @@ val utilityCommands = commands {
                                 val files = when {
                                     attachments.isNotEmpty() -> event.context.upload(
                                         attachments.map { it.toString() },
-                                        voiceClip
+                                        voiceClip,
                                     )
 
                                     else -> null
@@ -126,7 +139,7 @@ val utilityCommands = commands {
                                     text = message.text,
                                     mentions = mentions,
                                     files = files,
-                                    voiceClip = voiceClip
+                                    voiceClip = voiceClip,
                                 ).send()
                             }
                         }.awaitAll()
@@ -164,7 +177,7 @@ val utilityCommands = commands {
 
                 args.size > 4 -> {
                     var tid: String? = null
-                    if (args[4].startsWith("tid="))
+                    if (args[4].startsWith("tid=")) {
                         when {
                             args[4].drop(4).toIntOrNull() != null -> {
                                 tid = args[4].drop(4)
@@ -174,6 +187,7 @@ val utilityCommands = commands {
                                 tid = event.threadId
                             }
                         }
+                    }
 
                     val isBlacklist = args[3] != "wl"
                     val isAdd = args[1] == "add"

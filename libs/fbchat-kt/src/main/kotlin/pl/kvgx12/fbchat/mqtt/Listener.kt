@@ -1,6 +1,9 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package pl.kvgx12.fbchat.mqtt
 
 import kotlinx.coroutines.flow.*
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.slf4j.LoggerFactory
@@ -23,8 +26,9 @@ class Listener(
     suspend fun listen(): Flow<Event> {
         val mqtt = session.connectMQTT()
 
-        if (session.sequenceId == null)
+        if (session.sequenceId == null) {
             session.fetchSequenceId()
+        }
 
         mqtt.publishSync()
 
@@ -62,7 +66,9 @@ class Listener(
         when (event) {
             is MQTTEvent.ConnectionAck -> if (event.code == MQTTConnectReturnCode.Accepted) {
                 emit(Event.Connected)
-            } else error("Could not connect ${event.code}")
+            } else {
+                error("Could not connect ${event.code}")
+            }
 
             is MQTTEvent.MessageArrived -> runCatching {
                 consume(event.topic, event.payload.decodeToString())
@@ -77,26 +83,30 @@ class Listener(
             "/t_ms" -> {
                 val event = Session.json.decodeFromString<TMSEvent>(payload)
 
-                if (shouldHandleMs(event))
+                if (shouldHandleMs(event)) {
                     event.deltas.forEach { emitAll(it) }
+                }
             }
 
             "/orca_presence" -> emit(
                 Session.json.decodeFromString(
-                    orcaPresenceDeserializer, payload
-                )
+                    orcaPresenceDeserializer,
+                    payload,
+                ),
             )
 
             "/thread_typing" -> emit(
                 Session.json.decodeFromString(
-                    threadTypingDeserializer, payload
-                )
+                    threadTypingDeserializer,
+                    payload,
+                ),
             )
 
             "/orca_typing_notifications" -> emit(
                 Session.json.decodeFromString(
-                    orcaTypingDeserializer, payload
-                )
+                    orcaTypingDeserializer,
+                    payload,
+                ),
             )
 
             else -> emit(Event.Unknown(topic, Session.json.parseToJsonElement(payload)))

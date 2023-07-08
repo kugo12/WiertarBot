@@ -12,7 +12,7 @@ import kotlin.io.path.deleteIfExists
 import kotlin.io.path.div
 
 class FBMessageService(
-    private val fbMessageRepository: FBMessageRepository
+    private val fbMessageRepository: FBMessageRepository,
 ) {
     suspend fun getDeletedMessages(threadId: String, count: Int): List<FBMessageSerialization.FBMessage> =
         withContext(Dispatchers.IO) {
@@ -21,8 +21,8 @@ class FBMessageService(
                 PageRequest.of(
                     0,
                     count,
-                    Sort.by(Sort.Direction.DESC, "deletedAt")
-                )
+                    Sort.by(Sort.Direction.DESC, "deletedAt"),
+                ),
             ).map { FBMessageSerialization.deserializeMessageEvent(it.message) }
         }
 
@@ -35,8 +35,9 @@ class FBMessageService(
 
         for (attachment in attachments) {
             val path = Constants.attachmentSavePath / when {
-                attachment.type == "ImageAttachment"
-                        && attachment.id != null && attachment.originalExtension != null ->
+                attachment.type == "ImageAttachment" &&
+                    attachment.id != null &&
+                    attachment.originalExtension != null ->
                     "${attachment.id}.${attachment.originalExtension}"
 
                 attachment.type == "AudioAttachment" && attachment.filename != null ->
@@ -53,6 +54,4 @@ class FBMessageService(
 
         fbMessageRepository.deleteByDeletedAtNullAndTimeBefore(time)
     }
-
-
 }

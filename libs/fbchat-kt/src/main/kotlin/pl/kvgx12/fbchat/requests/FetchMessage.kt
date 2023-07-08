@@ -16,12 +16,15 @@ import pl.kvgx12.fbchat.session.graphqlBatchRequest
 private data class MessageResponse(val message: GraphQLMessage?)
 
 private suspend fun fetchMessage(message: Message, session: Session): MessageData {
-    val response: GraphQLResponse<MessageResponse> = session.graphqlBatchRequest("1768656253222505", buildJsonObject {
-        putJsonObject("thread_and_message_id") {
-            put("thread_id", message.thread.id)
-            put("message_id", message.id)
-        }
-    }).let(Session.json::decodeFromJsonElement)
+    val response: GraphQLResponse<MessageResponse> = session.graphqlBatchRequest(
+        "1768656253222505",
+        buildJsonObject {
+            putJsonObject("thread_and_message_id") {
+                put("thread_id", message.thread.id)
+                put("message_id", message.id)
+            }
+        },
+    ).let(Session.json::decodeFromJsonElement)
 
     return response.data!!.message!!.toMessageData(message.thread)
 }

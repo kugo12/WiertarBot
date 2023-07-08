@@ -26,7 +26,7 @@ internal object ImageSurrogateDeserializer : KSerializer<Image> {
         return Image(
             url = surrogate.uri,
             width = surrogate.width,
-            height = surrogate.height
+            height = surrogate.height,
         )
     }
 
@@ -34,4 +34,6 @@ internal object ImageSurrogateDeserializer : KSerializer<Image> {
         throw UnsupportedOperationException("Serialization is not supported")
 }
 
-typealias GraphQLImage = @Serializable(ImageSurrogateDeserializer::class) Image
+typealias GraphQLImage =
+    @Serializable(ImageSurrogateDeserializer::class)
+    Image

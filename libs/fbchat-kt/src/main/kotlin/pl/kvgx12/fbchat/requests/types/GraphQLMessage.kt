@@ -32,7 +32,7 @@ internal data class GraphQLMessage(
 
     @SerialName("platform_xmd_encoded")
     @Serializable(PlatformEncodedDeserializer::class)
-    val platformEncoded: PlatformEncoded = PlatformEncoded()
+    val platformEncoded: PlatformEncoded = PlatformEncoded(),
 ) {
     object PlatformEncodedDeserializer : NestedJsonAsStringDeserializer<PlatformEncoded>(PlatformEncoded.serializer())
 
@@ -40,10 +40,10 @@ internal data class GraphQLMessage(
     data class PlatformEncoded(
         @SerialName("quick_replies")
         @Serializable(QuickRepliesTransformer::class)
-        val quickReplies: List<QuickReply> = emptyList()
+        val quickReplies: List<QuickReply> = emptyList(),
     ) {
         object QuickRepliesTransformer : JsonTransformingSerializer<List<QuickReply>>(
-            ListSerializer(graphQLQuickReplyDeserializer)
+            ListSerializer(graphQLQuickReplyDeserializer),
         ) {
             override fun transformDeserialize(element: JsonElement) = when (element) {
                 is JsonArray -> element
@@ -108,7 +108,7 @@ internal data class GraphQLMessage(
             unsent = attachments.any { it is UnsentMessage },
             attachments = blobAttachments + attachments.filter { it !is UnsentMessage },
             quickReplies = platformEncoded.quickReplies,
-            readBy = emptyList()
+            readBy = emptyList(),
         )
     }
 }

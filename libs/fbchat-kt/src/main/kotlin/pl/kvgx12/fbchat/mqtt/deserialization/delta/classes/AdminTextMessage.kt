@@ -11,7 +11,7 @@ import pl.kvgx12.fbchat.utils.surrogateDeserializer
 @Serializable
 private data class AdminMessage<T>(
     val messageMetadata: NewMessageDelta.MessageMetadata,
-    val untypedData: T
+    val untypedData: T,
 ) {
     inline val author get() = UserId(messageMetadata.actorFbId)
     inline val thread get() = messageMetadata.threadKey.toThreadId()
@@ -21,7 +21,7 @@ private data class AdminMessage<T>(
 @Serializable
 private data class ChangeThreadTheme(
     @SerialName("theme_color")
-    val themeColor: String
+    val themeColor: String,
 )
 
 internal val changeThreadThemeDeserializer = surrogateDeserializer<AdminMessage<ChangeThreadTheme>, _> {
@@ -30,15 +30,15 @@ internal val changeThreadThemeDeserializer = surrogateDeserializer<AdminMessage<
             author = it.author,
             thread = it.thread,
             timestamp = it.timestamp,
-            color = it.untypedData.themeColor
-        )
+            color = it.untypedData.themeColor,
+        ),
     )
 }
 
 @Serializable
 private data class ChangeThreadIcon(
     @SerialName("thread_icon")
-    val threadIcon: String
+    val threadIcon: String,
 )
 
 internal val changeThreadIconDeserializer = surrogateDeserializer<AdminMessage<ChangeThreadIcon>, _> {
@@ -47,8 +47,8 @@ internal val changeThreadIconDeserializer = surrogateDeserializer<AdminMessage<C
             thread = it.thread,
             author = it.author,
             emoji = it.untypedData.threadIcon,
-            timestamp = it.timestamp
-        )
+            timestamp = it.timestamp,
+        ),
     )
 }
 
@@ -66,8 +66,8 @@ internal val changeThreadNicknameDeserializer = surrogateDeserializer<AdminMessa
             author = it.author,
             subject = UserId(it.untypedData.participantId),
             nickname = it.untypedData.nickname?.ifEmpty { null },
-            timestamp = it.timestamp
-        )
+            timestamp = it.timestamp,
+        ),
     )
 }
 
@@ -85,14 +85,14 @@ internal val changeThreadAdminsDeserializer = surrogateDeserializer<AdminMessage
             author = it.author,
             thread = it.thread,
             timestamp = it.timestamp,
-            added = listOf(UserId(it.untypedData.targetId))
+            added = listOf(UserId(it.untypedData.targetId)),
         )
 
         "remove_admin" -> ThreadEvent.AdminsRemoved(
             author = it.author,
             thread = it.thread,
             timestamp = it.timestamp,
-            removed = listOf(UserId(it.untypedData.targetId))
+            removed = listOf(UserId(it.untypedData.targetId)),
         )
 
         else -> throw SerializationException("Invalid adminEvent: ${it.untypedData.adminEvent}")
@@ -104,7 +104,7 @@ internal val changeThreadAdminsDeserializer = surrogateDeserializer<AdminMessage
 @Serializable
 private data class ChangeThreadApprovalMode(
     @SerialName("APPROVAL_MODE")
-    val approvalMode: String
+    val approvalMode: String,
 )
 
 internal val changeThreadApprovalModeDeserializer = surrogateDeserializer<AdminMessage<ChangeThreadApprovalMode>, _> {
@@ -113,8 +113,8 @@ internal val changeThreadApprovalModeDeserializer = surrogateDeserializer<AdminM
             author = it.author,
             thread = it.thread,
             timestamp = it.timestamp,
-            requireAdminApproval = it.untypedData.approvalMode == "1"
-        )
+            requireAdminApproval = it.untypedData.approvalMode == "1",
+        ),
     )
 }
 
@@ -130,14 +130,14 @@ internal val callLogDeserializer = surrogateDeserializer<AdminMessage<CallLog>, 
         "group_call_started" -> ThreadEvent.CallStarted(
             author = it.author,
             thread = it.thread,
-            timestamp = it.timestamp
+            timestamp = it.timestamp,
         )
 
         "group_call_ended", "one_on_one_call_ended" -> ThreadEvent.CallFinished(
             author = it.author,
             thread = it.thread,
             timestamp = it.timestamp,
-            duration = it.untypedData.callDuration!!.toLong()
+            duration = it.untypedData.callDuration!!.toLong(),
         )
 
         else -> throw SerializationException("Unknown call event type: ${it.untypedData.event}")
@@ -151,15 +151,15 @@ internal val participantJoinedGroupCallDeserializer = surrogateDeserializer<Admi
         ThreadEvent.CallJoined(
             thread = it.thread,
             timestamp = it.timestamp,
-            author = it.author
-        )
+            author = it.author,
+        ),
     )
 }
 
 @Serializable
 private data class ChangeThreadQuickReaction(
     @SerialName("thread_quick_reaction_emoji")
-    val themeEmoji: String
+    val themeEmoji: String,
 )
 
 internal val changeThreadQuickReactionDeserializer = surrogateDeserializer<AdminMessage<ChangeThreadQuickReaction>, _> {
@@ -168,7 +168,7 @@ internal val changeThreadQuickReactionDeserializer = surrogateDeserializer<Admin
             thread = it.thread,
             author = it.author,
             emoji = it.untypedData.themeEmoji,
-            timestamp = it.timestamp
-        )
+            timestamp = it.timestamp,
+        ),
     )
 }

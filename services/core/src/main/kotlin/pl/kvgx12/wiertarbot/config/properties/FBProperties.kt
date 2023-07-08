@@ -7,5 +7,5 @@ import pl.kvgx12.wiertarbot.config.ConfigProperties
 @Serializable
 data class FBProperties(
     val password: String,
-    val email: String
+    val email: String,
 )

@@ -8,7 +8,6 @@ import pl.kvgx12.wiertarbot.utils.AllOpen
 import kotlin.collections.component1
 import kotlin.collections.component2
 
-
 @AllOpen
 class CommandRegistrationService(
     val permissionService: PermissionService,
@@ -33,7 +32,6 @@ class CommandRegistrationService(
     fun postConstruct() {
         initCommandPermissions()
     }
-
 
     @Async
     fun initCommandPermissions() {

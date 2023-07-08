@@ -10,4 +10,4 @@ class ImageAttachment(
     val height: Int?,
     val originalExtension: String?,
     val isAnimated: Boolean?,
-): Attachment(id)
+) : Attachment(id)

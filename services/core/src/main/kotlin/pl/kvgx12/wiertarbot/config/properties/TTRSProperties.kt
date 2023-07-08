@@ -4,7 +4,7 @@ import pl.kvgx12.wiertarbot.config.ConfigProperties
 
 @ConfigProperties("wiertarbot.ttrs")
 data class TTRSProperties(
-    val url: String
+    val url: String,
 ) {
     val ttsUrl = "$url/api/tts"
     val ttsLangUrl = "$url/api/tts/lang"

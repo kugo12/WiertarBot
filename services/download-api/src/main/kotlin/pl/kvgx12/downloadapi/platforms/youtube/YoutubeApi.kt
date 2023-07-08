@@ -20,9 +20,11 @@ class YoutubeApi {
         const val baseUrl = "https://www.youtube-nocookie.com"
         val client = HttpClient(CIO) {
             install(ContentNegotiation) {
-                json(Json {
-                    ignoreUnknownKeys = true
-                })
+                json(
+                    Json {
+                        ignoreUnknownKeys = true
+                    },
+                )
             }
             install(Resources)
 
@@ -51,7 +53,7 @@ class YoutubeApi {
             @Serializable
             data class StreamingData(
                 val formats: List<Format>,
-                val adaptiveFormats: List<Format>
+                val adaptiveFormats: List<Format>,
             )
 
             @Serializable
@@ -61,7 +63,7 @@ class YoutubeApi {
                 val url: String,
                 val fps: Int? = null,
                 val qualityLabel: String? = null,
-                val audioSampleRate: String? = null
+                val audioSampleRate: String? = null,
             )
         }
 
@@ -70,7 +72,7 @@ class YoutubeApi {
                 videoId: String,
                 clientName: String,
                 clientVersion: String,
-                client: HttpClient = YoutubeApi.client
+                client: HttpClient = YoutubeApi.client,
             ) = runCatching {
                 client.post(Player()) {
                     setBody(Request(videoId, Request.Context(Request.Client(clientName, clientVersion))))

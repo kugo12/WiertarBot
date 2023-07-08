@@ -35,10 +35,12 @@ class InstagramPlatform : Platform {
             put("has_threaded_comments", false)
         }.toString()
 
-        val response = Platform.client.get(Url("https://www.instagram.com/graphql/query/") {
-            parameters.append("query_hash", "b3055c01b4b222b8a47dc12b090e4e64")
-            parameters.append("variables", requestVariables)
-        }).body<JsonElement>()
+        val response = Platform.client.get(
+            Url("https://www.instagram.com/graphql/query/") {
+                parameters.append("query_hash", "b3055c01b4b222b8a47dc12b090e4e64")
+                parameters.append("variables", requestVariables)
+            },
+        ).body<JsonElement>()
 
         val mediaUrl = traversal.traverse(response).first()
 

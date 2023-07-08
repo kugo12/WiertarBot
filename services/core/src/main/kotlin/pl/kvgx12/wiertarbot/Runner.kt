@@ -13,7 +13,6 @@ import pl.kvgx12.wiertarbot.services.CommandService
 import pl.kvgx12.wiertarbot.utils.getLogger
 import kotlin.system.exitProcess
 
-
 class Runner(
     private val commandService: CommandService,
     private val connectors: List<Connector>,

@@ -22,7 +22,7 @@ import pl.kvgx12.wiertarbot.repositories.MessageCountMilestoneRepository
 typealias MilestoneTrackerEvent = Pair<Session, ThreadEvent.WithMessage>
 
 class FBKtMilestoneTracker(
-    private val repository: MessageCountMilestoneRepository
+    private val repository: MessageCountMilestoneRepository,
 ) {
     private val counts = mutableMapOf<String, MessageCountMilestone>()
     private val channel = Channel<MilestoneTrackerEvent>(Channel.UNLIMITED)
@@ -37,7 +37,7 @@ class FBKtMilestoneTracker(
                     scope.launch {
                         session.sendMessage(
                             event.thread,
-                            "Gratulacje, osiągnięto ~$it wiadomości"
+                            "Gratulacje, osiągnięto ~$it wiadomości",
                         )
                     }
                 }
@@ -46,12 +46,13 @@ class FBKtMilestoneTracker(
     }
 
     private suspend fun update(session: Session, event: ThreadEvent.WithMessage): Int? {
-        if (event.thread.id == event.author.id)
+        if (event.thread.id == event.author.id) {
             return null
+        }
 
-        val milestone = counts[event.thread.id]
+        val cachedMilestone = counts[event.thread.id]
 
-        return if (milestone == null) {
+        return if (cachedMilestone == null) {
             val thread = session.fetch(event.thread)
 
             val count = when (thread) {
@@ -71,7 +72,7 @@ class FBKtMilestoneTracker(
                     repository.save(milestone)
                 }
             }
-        } else milestone.run {
+        } else cachedMilestone.run {
             checkThreshold(count, count + 1).also {
                 count += 1
                 withContext(Dispatchers.IO) {
@@ -88,8 +89,9 @@ class FBKtMilestoneTracker(
             if (previous >= current) return null
 
             val c = current / delta
-            if (previous / delta != c)
+            if (previous / delta != c) {
                 return c * delta
+            }
 
             return null
         }

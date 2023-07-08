@@ -61,8 +61,9 @@ class TelegramContext(
                     mention.offset + mention.length
                 }
 
-            if (processed < text.length)
+            if (processed < text.length) {
                 add(regular(text.substring(processed, text.length)))
+            }
         } ?: add(regular(text))
     }
 
@@ -77,26 +78,26 @@ class TelegramContext(
             val file = uploadedFile.asMultipartFile()
             val entities = response.buildEntities()
 
-            val request = when {  // TODO: mimetype as enum?
+            val request = when { // TODO: mimetype as enum?
                 mimeType.startsWith("image") -> SendPhoto(
                     chatId,
                     file,
                     replyToMessageId = replyToId,
-                    entities = entities
+                    entities = entities,
                 )
 
                 mimeType.startsWith("video") -> SendVideo(
                     chatId,
                     file,
                     replyToMessageId = replyToId,
-                    entities = entities
+                    entities = entities,
                 )
 
                 mimeType.startsWith("audio") -> SendAudio(
                     chatId,
                     file,
                     replyToMessageId = replyToId,
-                    entities = entities
+                    entities = entities,
                 )
 
                 else -> SendDocument(chatId, file, replyToMessageId = replyToId, entities = entities)
@@ -105,12 +106,13 @@ class TelegramContext(
             execute(request)
             return@coroutineScope true
         } else if (files.size >= 2) {
+            @Suppress("UNCHECKED_CAST")
             execute(
                 SendMediaGroup<MediaGroupPartContent>(
                     chatId,
                     files.map(::fileToTelegramContent) as List<MediaGroupMemberTelegramMedia>,
-                    replyToMessageId = replyToId
-                )
+                    replyToMessageId = replyToId,
+                ),
             )
         }
 
@@ -121,29 +123,30 @@ class TelegramContext(
 
     private fun fileToTelegramContent(file: UploadedFile): TelegramMedia {
         val mimeType = file.mimeType
-        val file = file.asMultipartFile()
+        val multipartFile = file.asMultipartFile()
 
-        return when {  // TODO: mimetype as enum?
-            mimeType.startsWith("audio") -> TelegramMediaAudio(file)
-            mimeType.startsWith("video") -> TelegramMediaVideo(file)
-            mimeType.startsWith("image") -> TelegramMediaPhoto(file)
-            else -> TelegramMediaDocument(file)
+        return when { // TODO: mimetype as enum?
+            mimeType.startsWith("audio") -> TelegramMediaAudio(multipartFile)
+            mimeType.startsWith("video") -> TelegramMediaVideo(multipartFile)
+            mimeType.startsWith("image") -> TelegramMediaPhoto(multipartFile)
+            else -> TelegramMediaDocument(multipartFile)
         }
     }
 
     override suspend fun getBotId(): String = connector.me.id.chatId.toString()
 
     override suspend fun sendResponse(response: Response) {
-        if (!response.files.isNullOrEmpty() && sendFiles(response, response.files))
+        if (!response.files.isNullOrEmpty() && sendFiles(response, response.files)) {
             return
+        }
 
         if (!response.text.isNullOrEmpty()) {
             execute(
                 SendTextMessage(
                     message.chat.id,
                     replyToMessageId = response.replyToId?.toLongOrNull(),
-                    entities = response.buildEntities()
-                )
+                    entities = response.buildEntities(),
+                ),
             )
         }
     }
@@ -158,14 +161,14 @@ class TelegramContext(
             id = threadId,
             name = when (chat) {
                 is PublicChat -> chat.title
-                is UsernameChat -> chat.username?.usernameWithoutAt ?: ""
+                is UsernameChat -> chat.username?.usernameWithoutAt.orEmpty()
                 else -> ""
             },
             messageCount = null,
             participants = when (chat) {
                 is ExtendedChatWithUsername -> chat.activeUsernames.mapNotNull { it.threadId?.toString() }
                 else -> emptyList()
-            }
+            },
         )
     }
 
@@ -198,7 +201,7 @@ class TelegramContext(
                 return withContext(Dispatchers.IO) {
                     val path = Path(urlString)
                     val content = path.readBytes()
-                    val contentType = path.contentType()
+                    val contentType = path.contentType()!!
 
                     UploadedFile(urlString, contentType, content)
                 }
@@ -207,7 +210,7 @@ class TelegramContext(
             val response = client.get(url)
             val contentType = response.contentTypeOrNull()
                 ?.let { "${it.contentType}/${it.contentSubtype}" }
-                ?: Path(urlString).contentType()
+                ?: Path(urlString).contentType()!!
 
             require(response.status.value in 200..299) {
                 "GET $url status ${response.status}"

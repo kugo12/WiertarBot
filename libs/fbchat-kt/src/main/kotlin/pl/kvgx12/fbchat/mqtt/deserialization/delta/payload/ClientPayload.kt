@@ -16,11 +16,14 @@ import pl.kvgx12.fbchat.utils.surrogateDeserializer
 
 @Serializable
 private data class ClientPayload(
-    @Serializable(PayloadDeserializer::class) val payload: Payload
+    @Serializable(PayloadDeserializer::class) val payload: Payload,
 ) {
     @Serializable
     data class Payload(
-        val deltas: List<@Serializable(ClientDeltaDeserializer::class) Event>
+        val deltas: List<
+            @Serializable(ClientDeltaDeserializer::class)
+            Event,
+            >,
     )
 
     object PayloadDeserializer : NestedJsonAsByteArrayDeserializer<Payload>(Payload.serializer())
@@ -42,7 +45,7 @@ internal object ClientDeltaDeserializer : JsonContentPolymorphicSerializer<Event
         ClientDelta.messageReplyDeserializer,
         ClientDelta.updateThreadTheme,
         ClientDelta.updateThreadEmoji,
-        KeyTransformation(noOpDeserializer, "liveLocationData"),  // not needed
+        KeyTransformation(noOpDeserializer, "liveLocationData"), // not needed
         // fields: threadKey // ??
         KeyTransformation(noOpDeserializer, "deltaUpdateThreadAvatarStickerInstructionKey"),
         // fields: threadKey canViewerReply reason actorFbId // user blocked
@@ -57,6 +60,7 @@ internal object ClientDeltaDeserializer : JsonContentPolymorphicSerializer<Event
         return deserializers[element.keys.first()] ?: unknownEventDeserializer
     }
 
+    @Suppress("NOTHING_TO_INLINE")
     inline operator fun JsonObject.contains(element: KeyTransformation<*>) = element.key in this
     inline operator fun <reified T, R : Event> invoke(key: String, crossinline converter: (T) -> R) =
         KeyTransformation(surrogateDeserializer(converter), key)

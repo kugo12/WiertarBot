@@ -11,23 +11,29 @@ val String.isUrl get() = runCatching { Url(this) }.isSuccess
 
 inline val Url.lastPathSegment get() = pathSegments.last { it.isNotEmpty() }
 
-
 fun Url.getSegmentAfter(string: String): String? {
     val index = pathSegments.indexOf(string)
 
     return if (index != -1) {
         pathSegments.getOrNull(index + 1)
-    } else null
+    } else {
+        null
+    }
 }
 
 suspend inline fun <T> io(noinline func: suspend CoroutineScope.() -> T) = withContext(Dispatchers.IO, func)
 
+@Suppress("FunctionNaming")
 inline fun Url(url: String, func: URLBuilder.() -> Unit) = URLBuilder(url).apply(func).build()
+
+@Suppress("FunctionNaming")
 inline fun Url(url: Url, func: URLBuilder.() -> Unit) = URLBuilder(url).apply(func).build()
+
+@Suppress("FunctionNaming")
 inline fun Url(func: URLBuilder.() -> Unit) = URLBuilder().apply(func).build()
 
 class HostPredicate(
-    private val hosts: List<Host>
+    private val hosts: List<Host>,
 ) : Predicate<String> {
     constructor(vararg hosts: String) : this(hosts.map { Host(it.split('.')) })
 

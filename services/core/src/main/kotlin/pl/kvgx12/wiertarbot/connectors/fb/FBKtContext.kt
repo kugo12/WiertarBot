@@ -35,47 +35,49 @@ class FBKtContext(
             replyTo = response.replyToId?.let { MessageId(thread, it) },
             mentions = response.mentions.orEmpty().map {
                 Mention(UserId(it.threadId), offset = it.offset, length = it.length)
-            }
+            },
         )
     }
 
     override suspend fun uploadRaw(files: List<FileData>, voiceClip: Boolean): List<UploadedFile> {
-        val files = session.upload(files.map {
-            FBFileData(
-                filename = it.uri,
-                channel = ChannelProvider(it.content.size.toLong()) { ByteReadChannel(it.content) },
-                contentType = ContentType.parse(it.mediaType)
-            )
-        })
+        val fileData = session.upload(
+            files.map {
+                FBFileData(
+                    filename = it.uri,
+                    channel = ChannelProvider(it.content.size.toLong()) { ByteReadChannel(it.content) },
+                    contentType = ContentType.parse(it.mediaType),
+                )
+            },
+        )
 
-        return files.map { UploadedFile(id = it.first, mimeType = it.second) }
+        return fileData.map { UploadedFile(id = it.first, mimeType = it.second) }
     }
 
     override suspend fun fetchThread(threadId: String): ThreadData {
         val thread = session.fetch(UnknownThread(threadId))
 
-        check(thread != null)  // TODO
+        checkNotNull(thread) // TODO
 
         return when (thread) {
             is GroupData -> ThreadData(
                 id = thread.id,
-                name = thread.name ?: "",
+                name = thread.name.orEmpty(),
                 messageCount = thread.messageCount?.toLong(),
-                participants = thread.participants.map { it.id }
+                participants = thread.participants.map { it.id },
             )
 
             is PageData -> ThreadData(
                 id = thread.id,
                 name = thread.name,
                 messageCount = thread.messageCount?.toLong(),
-                participants = listOf(thread.id, session.userId)
+                participants = listOf(thread.id, session.userId),
             )
 
             is UserData -> ThreadData(
                 id = thread.id,
                 name = thread.name,
                 messageCount = thread.messageCount?.toLong(),
-                participants = listOf(thread.id, session.userId)
+                participants = listOf(thread.id, session.userId),
             )
         }
     }
@@ -85,7 +87,8 @@ class FBKtContext(
 
     override suspend fun sendText(event: MessageEvent, text: String) {
         session.sendMessage(
-            thread = event.thread, text = text
+            thread = event.thread,
+            text = text,
         )
     }
 
@@ -95,16 +98,17 @@ class FBKtContext(
     }
 
     override suspend fun fetchRepliedTo(event: MessageEvent): MessageEvent? {
-        if (event.replyToId.isNullOrEmpty())
+        if (event.replyToId.isNullOrEmpty()) {
             return null
+        }
 
         val message = session.fetch(
-            MessageId(event.thread, event.replyToId)
+            MessageId(event.thread, event.replyToId),
         )
 
         return MessageEvent(
             this,
-            text = message.text ?: "",
+            text = message.text.orEmpty(),
             authorId = message.author.id,
             threadId = message.thread.id,
             at = message.createdAt!!,
@@ -130,7 +134,7 @@ class FBKtContext(
             return withContext(Dispatchers.IO) {
                 val path = Path(urlString)
                 val content = path.readBytes()
-                val contentType = path.contentType()
+                val contentType = path.contentType()!!
 
                 FileData(urlString, content, contentType)
             }
@@ -139,7 +143,7 @@ class FBKtContext(
         val response = session.get(url)
         val contentType = response.contentType()
             ?.let { "${it.contentType}/${it.contentSubtype}" }
-            ?: Path(urlString).contentType()
+            ?: Path(urlString).contentType()!!
 
         val content = response.body<ByteArray>()
 

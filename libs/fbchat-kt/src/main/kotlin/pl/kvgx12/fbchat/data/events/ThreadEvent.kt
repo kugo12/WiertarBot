@@ -85,7 +85,7 @@ sealed interface ThreadEvent : Event {
         override val author: UserId,
         override val thread: ThreadId,
         val messages: List<MessageId>,
-        val timestamp: Long
+        val timestamp: Long,
     ) : ThreadEvent
 
     @Serializable
@@ -93,7 +93,7 @@ sealed interface ThreadEvent : Event {
         override val author: UserId?,
         override val thread: ThreadId,
         val color: String,
-        val timestamp: Long
+        val timestamp: Long,
     ) : ThreadEvent
 
     @Serializable
@@ -164,6 +164,6 @@ sealed interface ThreadEvent : Event {
         override val author: UserId,
         override val thread: ThreadId,
         val canReply: Boolean,
-        val reason: Int,  // TODO
+        val reason: Int, // TODO
     ) : ThreadEvent
 }

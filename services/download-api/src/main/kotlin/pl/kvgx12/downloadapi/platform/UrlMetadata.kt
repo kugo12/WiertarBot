@@ -12,7 +12,7 @@ sealed interface UrlMetadata {
 
 data class EmptyMetadata(
     override val url: Url,
-    override val extension: String = FileExtensions.MP4
+    override val extension: String = FileExtensions.MP4,
 ) : UrlMetadata
 
 data class VideoIdUrlMetadata(
@@ -22,7 +22,6 @@ data class VideoIdUrlMetadata(
     override val extension: String get() = FileExtensions.MP4
     override val filename: String get() = "$videoId$extension"
 }
-
 
 object FileExtensions {
     const val MP4 = ".mp4"

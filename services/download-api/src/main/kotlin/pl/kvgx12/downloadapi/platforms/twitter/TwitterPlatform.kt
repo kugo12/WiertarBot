@@ -10,8 +10,9 @@ class TwitterPlatform : Platform {
     override val name: String get() = "twitter"
 
     override suspend fun tryParsing(url: Url): UrlMetadata? {
-        if (!isTwitterHost(url))
+        if (!isTwitterHost(url)) {
             return null
+        }
 
         return getTweetId(url)?.let {
             VideoIdUrlMetadata(url, it)

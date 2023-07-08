@@ -5,7 +5,7 @@ import pl.kvgx12.mqtt.proto.MQTTConnectReturnCode
 import pl.kvgx12.mqtt.proto.MQTTPacketType
 import pl.kvgx12.mqtt.proto.MQTTProtocol
 
-class MQTTConnect(
+data class MQTTConnect(
     val keepAlive: Int,
     val isCleanSession: Boolean,
     val clientId: String,
@@ -34,19 +34,19 @@ class MQTTConnect(
     override fun BytePacketBuilder.encodeVariableHeader() {
         writeMqttString(version.identifier)
         writeByte(version.version.toByte())
-        writeByte(  // TODO: will
+        writeByte(
+            // TODO: will
             (username != null).toInt().shl(7)
                 .or((password != null).toInt().shl(6))
                 .or(isCleanSession.toInt().shl(1))
-                .toByte()
+                .toByte(),
         )
         writeShort(keepAlive.toShort())
     }
 }
 
-
-class MQTTConnectAck(
-    val returnCode: MQTTConnectReturnCode
+data class MQTTConnectAck(
+    val returnCode: MQTTConnectReturnCode,
 ) : MQTTPacket() {
     override val type: MQTTPacketType get() = MQTTPacketType.CONNACK
     override val variableHeaderSize: Int get() = 2

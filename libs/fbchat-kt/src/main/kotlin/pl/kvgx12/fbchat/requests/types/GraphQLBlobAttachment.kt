@@ -12,13 +12,15 @@ import pl.kvgx12.fbchat.utils.tryAsString
 import kotlin.io.path.Path
 import kotlin.io.path.extension
 
-internal typealias GraphQLBlobAttachment = @Serializable(GraphQLBlobAttachmentDeserializer::class) Attachment
+internal typealias GraphQLBlobAttachment =
+    @Serializable(GraphQLBlobAttachmentDeserializer::class)
+    Attachment
 
 internal object GraphQLBlobAttachmentDeserializer : JsonContentPolymorphicSerializer<Attachment>(Attachment::class) {
     @Serializable
     private data class LegacyAttachmentId(
         @SerialName("legacy_attachment_id")
-        val id: String? = null
+        val id: String? = null,
     )
 
     private val unknownDeserializer = surrogateDeserializer<LegacyAttachmentId, _> {
@@ -54,7 +56,7 @@ internal object GraphQLBlobAttachmentDeserializer : JsonContentPolymorphicSerial
             url = it.url,
             size = it.size,
             isMalicious = it.isMalicious,
-            name = it.filename
+            name = it.filename,
         )
     }
 
@@ -71,11 +73,11 @@ internal object GraphQLBlobAttachmentDeserializer : JsonContentPolymorphicSerial
 
     private val audioDeserializer = surrogateDeserializer<Audio, _> {
         AudioAttachment(
-            id = null,  // TODO
+            id = null, // TODO
             name = it.filename,
             duration = it.duration,
             audioType = it.type,
-            url = it.url
+            url = it.url,
         )
     }
 
@@ -110,12 +112,12 @@ internal object GraphQLBlobAttachmentDeserializer : JsonContentPolymorphicSerial
             width = it.dimensions.width,
             height = it.dimensions.height,
             duration = it.duration,
-            size = null,  // TODO
+            size = null, // TODO
             previews = listOfNotNull(
                 it.chatImage,
                 it.inboxImage,
-                it.largeImage
-            )
+                it.largeImage,
+            ),
         )
     }
 
@@ -154,7 +156,7 @@ internal object GraphQLBlobAttachmentDeserializer : JsonContentPolymorphicSerial
                 it.animatedImage,
             ),
             originalExtension = it.extension ?: it.filename?.let(::Path)?.extension,
-            name = it.filename
+            name = it.filename,
         )
     }
 }

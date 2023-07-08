@@ -103,14 +103,14 @@ object FBMessageSerialization {
         val mentions: List<Mention> = emptyList(),
         val attachments: List<Attachment> = emptyList(),
         @SerialName("sticker_id")
-        val stickerId: String? = null
+        val stickerId: String? = null,
     ) {
         @Serializable
         data class Mention(
             @SerialName("thread_id")
             val threadId: String,
             val offset: Int,
-            val length: Int
+            val length: Int,
         )
 
         @Serializable
@@ -118,7 +118,7 @@ object FBMessageSerialization {
             val id: String?,
             val type: String,
             val url: String? = null,
-            val name: String? = null,  // -_-
+            val name: String? = null, // -_-
             val filename: String? = null,
             @SerialName("is_malicious")
             val isMalicious: Boolean? = null,
@@ -127,8 +127,7 @@ object FBMessageSerialization {
             @SerialName("original_extension")
             val originalExtension: String? = null,
             @SerialName("preview_url")
-            val previewUrl: String? = null
+            val previewUrl: String? = null,
         )
     }
-
 }

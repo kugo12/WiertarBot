@@ -7,7 +7,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 internal class DelegatedCookieStorage(
-    private val delegate: CookiesStorage = AcceptAllCookiesStorage()
+    private val delegate: CookiesStorage = AcceptAllCookiesStorage(),
 ) : CookiesStorage {
     private val mutex = Mutex()
     private val urls = mutableSetOf<Url>()

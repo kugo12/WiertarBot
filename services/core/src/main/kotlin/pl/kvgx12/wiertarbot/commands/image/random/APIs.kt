@@ -11,9 +11,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.springframework.context.support.BeanDefinitionDsl
-import pl.kvgx12.wiertarbot.command.command
-import pl.kvgx12.wiertarbot.command.commands
-import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
+import pl.kvgx12.wiertarbot.command.dsl.*
 import pl.kvgx12.wiertarbot.connector.FileData
 import pl.kvgx12.wiertarbot.events.Response
 import kotlin.random.Random
@@ -22,7 +20,7 @@ val randomImageApiCommands = commands {
     randomImageCommand<Link>("hug", "z tuleniem", "https://some-random-api.com/animu/hug")
     randomImageCommand<Link>("wink", "z mrugnięciem", "https://some-random-api.com/animu/wink")
     randomImageCommand<Link>("pandka", "z pandką", "https://some-random-api.com/img/red_panda", "panda")
-    randomImageCommand<Link>("birb", "z ptaszkiem", "https://some-random-api.com/img/birb")
+    randomImageCommand<Link>("birb", "z ptaszkiem", "https://some-random-api.com/img/bird")
 
     randomImageCommand<Message>("doggo", "z pieskiem", "https://dog.ceo/api/breeds/image/random", "dog", "pies")
     randomImageCommand<Message>("beagle", "z pieskiem rasy beagle", "https://dog.ceo/api/breed/beagle/images/random")
@@ -38,7 +36,7 @@ val randomImageApiCommands = commands {
             Response(
                 event,
                 text = meme.name,
-                files = event.context.upload(meme.url)
+                files = event.context.upload(meme.url),
             )
         }
     }
@@ -57,29 +55,12 @@ val randomImageApiCommands = commands {
         }
     }
 
-    bean {
-        ref<WiertarbotProperties>().catApi.key?.let { key ->
-            command("catto", "cat", "kot") {
-                help(returns = "zdjęcie z kotem")
-
-                files { event ->
-                    val response = client.get("https://api.thecatapi.com/v1/images/search") {
-                        header("x-api-key", key)
-                    }.body<List<CatApiResponse>>()
-
-                    listOf(response.first().url)
-                }
-            }
-        }
-        Unit
-    }
-
     command("zolw", "żółw") {
         help(returns = "zdjęcie z żółwikiem")
 
         var pages = 1000
 
-        rawFiles { event ->
+        rawFile {
             val response = client.get("https://unsplash.com/napi/search/photos") {
                 parameter("per_page", "1")
                 parameter("query", "turtle")
@@ -91,16 +72,18 @@ val randomImageApiCommands = commands {
             val url = response.results.first().urls.regular
             val imageResponse = client.get(url)
 
-            listOf(FileData(url, imageResponse.body(), imageResponse.contentType().toString()))
+            FileData(url, imageResponse.body(), imageResponse.contentType().toString())
         }
     }
 }
 
 private val client = HttpClient(CIO) {
     install(ContentNegotiation) {
-        json(Json {
-            ignoreUnknownKeys = true
-        })
+        json(
+            Json {
+                ignoreUnknownKeys = true
+            },
+        )
     }
 }
 
@@ -118,7 +101,7 @@ private inline fun <reified T : WithFileAndMessage> BeanDefinitionDsl.randomImag
         Response(
             event,
             text = response.message,
-            files = event.context.upload(response.file)
+            files = event.context.upload(response.file),
         )
     }
 }
@@ -131,13 +114,13 @@ private interface WithFileAndMessage {
 @Serializable
 private data class Link(
     @SerialName("link")
-    override val file: String
+    override val file: String,
 ) : WithFileAndMessage
 
 @Serializable
 private data class Message(
     @SerialName("message")
-    override val file: String
+    override val file: String,
 ) : WithFileAndMessage
 
 @Serializable
@@ -163,11 +146,11 @@ private data class UnsplashSearchResponse(
 ) {
     @Serializable
     data class Result(
-        val urls: Urls
+        val urls: Urls,
     )
 
     @Serializable
     data class Urls(
-        val regular: String
+        val regular: String,
     )
 }

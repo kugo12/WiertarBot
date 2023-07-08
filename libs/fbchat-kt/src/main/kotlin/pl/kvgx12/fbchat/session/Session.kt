@@ -13,7 +13,6 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import org.slf4j.LoggerFactory
-import pl.kvgx12.fbchat.utils.DelegatedCookieStorage
 import pl.kvgx12.fbchat.utils.*
 import pl.kvgx12.fbchat.utils.SessionUtils.getFbDtsg
 import pl.kvgx12.fbchat.utils.SessionUtils.handlePayloadError
@@ -54,7 +53,7 @@ class Session internal constructor(
 
         return when (response.locationHeader) {
             client.href(Messenger()),
-            client.href(Messenger.Checkpoint.Block())
+            client.href(Messenger.Checkpoint.Block()),
             -> true
 
             else -> false
@@ -104,19 +103,19 @@ class Session internal constructor(
         (response["jsmods"] as? JsonArray)?.let {
             SessionUtils.getJsModsDefine(it)
                 .getFbDtsg()
-                ?.let { fbDtsg = it }
+                ?.let { dtsg -> fbDtsg = dtsg }
         }
 
         return response["payload"] ?: error("Missing payload $response")
     }
 
     internal suspend fun doSendRequest(
-        data: Map<String, String>
+        input: Map<String, String>,
     ): Pair<String, String?> {
         val now = System.currentTimeMillis()
         val offlineThreadingId = SessionUtils.generateOfflineThreadingId()
 
-        val data = data + mapOf(
+        val data = input + mapOf(
             "client" to "mercury",
             "author" to "fbid:$userId",
             "timestamp" to now.toString(),
@@ -141,8 +140,9 @@ class Session internal constructor(
                     .ifEmpty { null }
             } ?: error("No message ids found in $response")
 
-        if (ids.size != 1)
+        if (ids.size != 1) {
             log.warn("Got multiple message ids back: $ids")
+        }
 
         return ids.first()
     }
@@ -155,7 +155,6 @@ class Session internal constructor(
         "server_timestamps" to "true",
         "fb_api_friendly_name" to "RelayModern",
     )
-
 
     override fun toString(): String = "Session(user_id=$userId)"
 
@@ -170,8 +169,9 @@ class Session internal constructor(
         }
 
         internal fun HttpResponse.handleStatus(): HttpResponse {
-            if (status.value in 200 until 400)
+            if (status.value in 200 until 400) {
                 return this
+            }
             TODO()
         }
     }

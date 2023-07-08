@@ -42,7 +42,6 @@ dependencies {
     implementation(libs.bundles.ktor.client)
 
     implementation(libs.caffeine)
-    implementation(libs.jep)
     implementation(libs.inmo.telegram)
     implementation(libs.scrimage.core)
     implementation(libs.bundles.imageio)
@@ -56,6 +55,8 @@ dependencies {
     testImplementation(libs.spring.starter.test)
     testImplementation(libs.spring.rabbitmq.test)
     testImplementation(libs.kotlinx.benchmark.runtime)
+    testImplementation(libs.bundles.kotest.spring)
+    testImplementation(libs.mockk)
 }
 
 tasks.bootJar {

@@ -4,7 +4,6 @@ import it.skrape.selects.DocElement
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.TextNode
 
-
 fun StringBuilder.appendElement(element: DocElement) = apply {
     element.element.childNodes().forEach {
         when {

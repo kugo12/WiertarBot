@@ -1,6 +1,6 @@
 #!/usr/bin/env kotlin
 
-@file:DependsOn("io.github.typesafegithub:github-workflows-kt:0.45.0")
+@file:DependsOn("io.github.typesafegithub:github-workflows-kt:0.47.0")
 
 import Build_main.JB
 import io.github.typesafegithub.workflows.actions.actions.CheckoutV3
@@ -12,6 +12,7 @@ import io.github.typesafegithub.workflows.actions.docker.LoginActionV2
 import io.github.typesafegithub.workflows.actions.docker.SetupBuildxActionV2
 import io.github.typesafegithub.workflows.actions.gradle.GradleBuildActionV2
 import io.github.typesafegithub.workflows.domain.Concurrency
+import io.github.typesafegithub.workflows.domain.Container
 import io.github.typesafegithub.workflows.domain.RunnerType.UbuntuLatest
 import io.github.typesafegithub.workflows.domain.actions.CustomAction
 import io.github.typesafegithub.workflows.domain.triggers.PullRequest
@@ -20,6 +21,7 @@ import io.github.typesafegithub.workflows.domain.triggers.WorkflowDispatch
 import io.github.typesafegithub.workflows.dsl.JobBuilder
 import io.github.typesafegithub.workflows.dsl.expressions.Contexts
 import io.github.typesafegithub.workflows.dsl.expressions.expr
+import io.github.typesafegithub.workflows.dsl.port
 import io.github.typesafegithub.workflows.dsl.workflow
 import io.github.typesafegithub.workflows.yaml.writeToFile
 
@@ -32,7 +34,7 @@ val GITLAB_WB_D_TOKEN by Contexts.secrets
 val GITLAB_WB_D_URL by Contexts.secrets
 
 val isMainAndPush = expr {
-    "${github.ref_name} == '${DEFAULT_BRANCH}' && ${github.event_name} == 'push'"
+    "${github.ref_name} == '$DEFAULT_BRANCH' && ${github.event_name} == 'push'"
 }
 
 val amd64 = setOf("linux/amd64")
@@ -49,7 +51,7 @@ val services = listOf(
 workflow(
     name = "Build",
     on = listOf(
-        Push(listOf(DEFAULT_BRANCH, "dev")),
+        Push(listOf(DEFAULT_BRANCH)),
         PullRequest(branches = listOf(DEFAULT_BRANCH)),
         WorkflowDispatch(),
     ),
@@ -57,10 +59,11 @@ workflow(
     concurrency = Concurrency(
         group = expr { github.ref },
         cancelInProgress = true,
-    )
+    ),
 ) {
     val gradleBuild = job(
-        id = "gradle-build", runsOn = UbuntuLatest
+        id = "gradle-build",
+        runsOn = UbuntuLatest,
     ) {
         checkout()
         setupJava()
@@ -69,8 +72,8 @@ workflow(
             name = "Upload build artifacts",
             action = UploadArtifactV3(
                 name = "jars",
-                path = listOf("**/build/libs")
-            )
+                path = listOf("**/build/libs"),
+            ),
         )
     }
 
@@ -78,33 +81,31 @@ workflow(
         id = "gradle-test",
         runsOn = UbuntuLatest,
         needs = listOf(gradleBuild),
-        _customArguments = mapOf(
-            "services" to mapOf(
-                "postgres" to mapOf(
-                    "image" to "postgres:14-alpine",
-                    "env" to mapOf(
-                        "POSTGRES_USER" to "postgres",
-                        "POSTGRES_PASSWORD" to "postgres",
-                        "POSTGRES_DB" to "wiertarbot_test",
-                    ),
-                    "ports" to listOf("5432:5432"),
-                    "options" to dockerHealthOpts("pg_isready")
+        services = mapOf(
+            "postgres" to Container(
+                image = "postgres:14-alpine",
+                env = linkedMapOf(
+                    "POSTGRES_USER" to "postgres",
+                    "POSTGRES_PASSWORD" to "postgres",
+                    "POSTGRES_DB" to "wiertarbot_test",
                 ),
-                "rabbitmq" to mapOf(
-                    "image" to "rabbitmq:3.12-alpine",
-                    "ports" to listOf("5672:5672"),
-                    "env" to mapOf(
-                        "RABBITMQ_DEFAULT_USER" to "guest",
-                        "RABBITMQ_DEFAULT_PASS" to "guest",
-                    ),
-                    "options" to dockerHealthOpts("rabbitmq-diagnostics -q ping")
-                )
-            )
-        )
+                ports = listOf(port(5432 to 5432)),
+                options = Container.healthCheck("pg_isready"),
+            ),
+            "rabbitmq" to Container(
+                image = "rabbitmq:3.12-alpine",
+                env = linkedMapOf(
+                    "RABBITMQ_DEFAULT_USER" to "guest",
+                    "RABBITMQ_DEFAULT_PASS" to "guest",
+                ),
+                ports = listOf(port(5672 to 5672)),
+                options = Container.healthCheck("rabbitmq-diagnostics -q ping"),
+            ),
+        ),
     ) {
         checkout()
         setupJava()
-        gradle("Gradle test", "test")
+        gradle("Gradle test", "test --continue")
         uses(
             name = "Upload test artifacts",
             condition = expr { always() },
@@ -113,8 +114,8 @@ workflow(
                 path = listOf(
                     "**/build/test-results",
                     "**/build/reports",
-                )
-            )
+                ),
+            ),
         )
     }
 
@@ -132,7 +133,7 @@ workflow(
 
             if (platforms != amd64) uses(
                 name = "Setup QEMU",
-                action = CustomAction("docker", "setup-qemu-action", "v2")
+                action = CustomAction("docker", "setup-qemu-action", "v2"),
             )
 
             uses(name = "Setup docker buildx", action = SetupBuildxActionV2())
@@ -142,11 +143,11 @@ workflow(
                 action = LoginActionV2(
                     username = expr(DOCKER_USERNAME),
                     password = expr(DOCKER_PASSWORD),
-                )
+                ),
             )
             uses(
                 name = "Download build artifacts",
-                action = DownloadArtifactV3(name = "jars")
+                action = DownloadArtifactV3(name = "jars"),
             )
             uses(
                 name = "Build docker image",
@@ -155,11 +156,11 @@ workflow(
                     file = "services/$service/Dockerfile",
                     platforms = platforms.toList(),
                     tags = listOf(
-                        "${expr(DOCKERHUB_USER)}/${image}:latest",
-                        "${expr(DOCKERHUB_USER)}/${image}:ci-${expr { github.run_id }}",
+                        "${expr(DOCKERHUB_USER)}/$image:latest",
+                        "${expr(DOCKERHUB_USER)}/$image:ci-${expr { github.run_id }}",
                     ),
-                    _customInputs = mapOf("push" to isMainAndPush)
-                )
+                    _customInputs = mapOf("push" to isMainAndPush),
+                ),
             )
         }
     }
@@ -179,25 +180,23 @@ workflow(
                     -F ref=main \
                     -F "variables[CI_SOURCE]=WiertarBot" \
                     "${expr(GITLAB_WB_D_URL)}" > /dev/null
-            """.trimIndent()
+            """.trimIndent(),
         )
     }
 }.writeToFile()
-
 
 typealias JB = JobBuilder<*>
 
 fun JB.gradle(name: String, tasks: String) = uses(
     name = name,
     action = GradleBuildActionV2(
-        arguments = tasks
-    )
+        arguments = tasks,
+    ),
 )
-
 
 fun JB.checkout() = uses(
     name = "Check out",
-    action = CheckoutV3()
+    action = CheckoutV3(),
 )
 
 fun JB.setupJava() = uses(
@@ -205,12 +204,5 @@ fun JB.setupJava() = uses(
     action = SetupJavaV3(
         javaVersion = "17",
         distribution = SetupJavaV3.Distribution.Temurin,
-    )
+    ),
 )
-
-fun dockerHealthOpts(cmd: String) = """
-    --health-cmd "$cmd"
-    --health-interval "2s"
-    --health-timeout "2s"
-    --health-retries "30"
-""".trimIndent().replace('\n', ' ')

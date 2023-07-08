@@ -8,15 +8,15 @@ import org.springframework.core.env.ConfigurableEnvironment
 import pl.kvgx12.wiertarbot.Runner
 import pl.kvgx12.wiertarbot.commands.commandBeans
 import pl.kvgx12.wiertarbot.config.properties.FBProperties
-import pl.kvgx12.wiertarbot.config.properties.PythonSentryProperties
 import pl.kvgx12.wiertarbot.config.properties.TelegramProperties
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.connectors.fb.*
+import pl.kvgx12.wiertarbot.connectors.fb.FBKtConnector
+import pl.kvgx12.wiertarbot.connectors.fb.FBKtEventConsumer
+import pl.kvgx12.wiertarbot.connectors.fb.FBKtMilestoneTracker
+import pl.kvgx12.wiertarbot.connectors.fb.FBMessageService
 import pl.kvgx12.wiertarbot.connectors.telegram.TelegramConnector
 import pl.kvgx12.wiertarbot.services.*
 import kotlin.reflect.full.findAnnotation
-
-annotation class ConfigProperties(val value: String)
 
 fun beans() = beans {
     val binder = env.getBinder()
@@ -39,16 +39,9 @@ fun beans() = beans {
         bean { binder.bind<FBProperties>() }
         bean<FBMessageService>()
 
-        if (env.get("wiertarbot.fb.new-connector", false)) {
-            bean<FBKtEventConsumer>()
-            bean<FBKtConnector>()
-            bean<FBKtMilestoneTracker>()
-        } else {
-            bean<FBConnector>()
-            interpreterBeans()
-            if (env.getProperty("wiertarbot.sentry.python") != null)
-                bean { binder.bind<PythonSentryProperties>() }
-        }
+        bean<FBKtEventConsumer>()
+        bean<FBKtConnector>()
+        bean<FBKtMilestoneTracker>()
     }
 
     if (env.get("wiertarbot.telegram.enabled", false)) {
@@ -59,12 +52,14 @@ fun beans() = beans {
     if (!env.activeProfiles.contains("test")) bean<Runner>()
 }
 
-inline fun <reified T : Any> ConfigurableEnvironment.get(key: String, default: T) =
+inline fun <reified T : Any> ConfigurableEnvironment.get(key: String, default: T): T =
     getProperty(key, T::class.java, default)
 
 fun ConfigurableEnvironment.getBinder() = Binder(propertySources.mapNotNull { ConfigurationPropertySource.from(it) })
 
 inline fun <reified T : Any> Binder.bind(): T = bindOrCreate(
     T::class.findAnnotation<ConfigProperties>()!!.value,
-    T::class.java
+    T::class.java,
 )
+
+annotation class ConfigProperties(val value: String)

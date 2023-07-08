@@ -17,7 +17,7 @@ internal data class GraphQLExtensibleAttachment(
 ) {
     @Serializable
     data class StoryAttachment(
-        val target: Target? = null
+        val target: Target? = null,
     )
 
     @Serializable
@@ -25,7 +25,10 @@ internal data class GraphQLExtensibleAttachment(
     sealed interface Target {
         @Serializable
         @SerialName("MessageLocation")
-        data class MessageLocation(@SerialName("deduplication_key") val id: String) : Target
+        data class MessageLocation(
+            @SerialName("deduplication_key")
+            val id: String,
+        ) : Target
 
         @Serializable
         @SerialName("MessageLiveLocation")

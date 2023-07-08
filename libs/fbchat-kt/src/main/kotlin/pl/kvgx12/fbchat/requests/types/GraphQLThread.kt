@@ -13,20 +13,39 @@ import pl.kvgx12.fbchat.utils.tryGet
 
 @Serializable
 internal data class GraphQLThread(
-    @SerialName("thread_key") val threadKey: ThreadKey,
+    @SerialName("thread_key")
+    val threadKey: ThreadKey,
     val name: String? = null,
-    @SerialName("messages_count") val messagesCount: Int? = null,
-    @SerialName("thread_type") val threadType: String,
+    @SerialName("messages_count")
+    val messagesCount: Int? = null,
+    @SerialName("thread_type")
+    val threadType: String,
     val image: GraphQLImage? = null,
-    @SerialName("customization_info") val customization: CustomizationInfo = CustomizationInfo(),
-    @SerialName("last_message") val lastMessage: Nodes<LastMessage>,
+    @SerialName("customization_info")
+    val customization: CustomizationInfo = CustomizationInfo(),
+    @SerialName("last_message")
+    val lastMessage: Nodes<LastMessage>,
     val city: Name? = null,
     @SerialName("category_type") val category: String? = null,
-    @SerialName("thread_admins") val admins: List<@Serializable(AdminTransformer::class) String> = emptyList(),
-    @SerialName("approval_mode") val approvalMode: Int? = null,
-    @SerialName("joinable_link") val joinableLink: String? = null,
-    @SerialName("all_participants") val participants: Nodes<@Serializable(ParticipantTransformer::class) UserId> = Nodes(),
-    @SerialName("group_approval_queue") val approvalQueue: Nodes<@Serializable(ApprovalTransformer::class) String> = Nodes(),
+    @SerialName("thread_admins")
+    val admins: List<
+        @Serializable(AdminTransformer::class)
+        String,
+        > = emptyList(),
+    @SerialName("approval_mode")
+    val approvalMode: Int? = null,
+    @SerialName("joinable_link")
+    val joinableLink: String? = null,
+    @SerialName("all_participants")
+    val participants: Nodes<
+        @Serializable(ParticipantTransformer::class)
+        UserId,
+        > = Nodes(),
+    @SerialName("group_approval_queue")
+    val approvalQueue: Nodes<
+        @Serializable(ApprovalTransformer::class)
+        String,
+        > = Nodes(),
 ) {
     object AdminTransformer : JsonTransformingSerializer<String>(String.serializer()) {
         override fun transformDeserialize(element: JsonElement) =
@@ -63,19 +82,21 @@ internal data class GraphQLThread(
 
     @Serializable
     data class Nodes<T>(
-        val nodes: List<T> = emptyList()
+        val nodes: List<T> = emptyList(),
     )
 
     @Serializable
     data class LastMessage(
-        @SerialName("timestamp_precise") val timestamp: String
+        @SerialName("timestamp_precise") val timestamp: String,
     )
 
     @Serializable
     data class CustomizationInfo(
         val emoji: String? = null,
-        @SerialName("participant_customizations") val participantCustomizations: List<ParticipantCustomization> = emptyList(),
-        @SerialName("outgoing_bubble_color") val color: String = DEFAULT_COLOR,
+        @SerialName("participant_customizations")
+        val participantCustomizations: List<ParticipantCustomization> = emptyList(),
+        @SerialName("outgoing_bubble_color")
+        val color: String = DEFAULT_COLOR,
     )
 
     @Serializable
@@ -89,6 +110,7 @@ internal data class GraphQLThread(
         const val GROUP = "GROUP"
     }
 
+    @Suppress("LongMethod")
     fun toThread(sessionUserId: String, profile: AdditionalInfoResponse.Profile?): ThreadData {
         val participantNicknames = customization.participantCustomizations.associate { it.participantId to it.nickname }
         val id = threadKey.id!!
@@ -99,7 +121,7 @@ internal data class GraphQLThread(
                 GroupData(
                     id = id,
                     photo = image,
-                    name = name ?: "",
+                    name = name.orEmpty(),
                     lastActive = lastActivity,
                     messageCount = messagesCount,
                     participants = participants.nodes,
@@ -134,7 +156,7 @@ internal data class GraphQLThread(
             }
 
             threadType == SINGLE -> {
-                require(profile != null) {
+                requireNotNull(profile) {
                     "Page profile data is missing"
                 }
 

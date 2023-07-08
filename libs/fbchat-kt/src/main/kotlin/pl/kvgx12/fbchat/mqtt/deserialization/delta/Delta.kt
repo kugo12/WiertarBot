@@ -14,8 +14,9 @@ import pl.kvgx12.fbchat.utils.tryAsString
 import kotlin.reflect.KClass
 import pl.kvgx12.fbchat.data.events.Event as FBEvent
 
-
-internal typealias Delta = @Serializable(DeltaSerializer::class) Flow<FBEvent>
+internal typealias Delta =
+    @Serializable(DeltaSerializer::class)
+    Flow<FBEvent>
 
 @Suppress("UNCHECKED_CAST")
 internal object DeltaSerializer : JsonContentPolymorphicSerializer<Delta>(Flow::class as KClass<Flow<FBEvent>>) {
@@ -48,7 +49,7 @@ internal object DeltaSerializer : JsonContentPolymorphicSerializer<Delta>(Flow::
         "change_thread_approval_mode" to changeThreadApprovalModeDeserializer,
         "change_thread_quick_reaction" to changeThreadQuickReactionDeserializer,
         "messenger_call_log" to callLogDeserializer,
-        "participant_joined_group_call" to participantJoinedGroupCallDeserializer
+        "participant_joined_group_call" to participantJoinedGroupCallDeserializer,
     )
 
     override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Delta> {
@@ -59,7 +60,7 @@ internal object DeltaSerializer : JsonContentPolymorphicSerializer<Delta>(Flow::
         return if (klass == "AdminTextMessage") {
             adminMessageSerializers.getOrDefault(
                 element["type"].tryAsString(),
-                unknownDeltaDeserializer
+                unknownDeltaDeserializer,
             )
         } else {
             serializers.getOrDefault(klass, unknownDeltaDeserializer)

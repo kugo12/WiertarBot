@@ -53,14 +53,14 @@ class TelegramConnector(
     fun convert(message: Message): MessageEvent? {
         return MessageEvent(
             context = TelegramContext(this, message),
-            text = message.text ?: "",
+            text = message.text.orEmpty(),
             authorId = (message as? FromUser ?: return null).user.id.chatId.toString(),
             threadId = message.chat.id.chatId.toString(),
             at = message.date.unixMillisLong / 1000,
             mentions = emptyList(),
             externalId = message.messageId.toString(),
             replyToId = (message as? PossiblyReplyMessage)?.replyTo?.messageId?.toString(),
-            attachments = getAttachments(message)
+            attachments = getAttachments(message),
         )
     }
 
@@ -78,7 +78,7 @@ class TelegramConnector(
             width = file.width,
             height = file.height,
             originalExtension = null,
-            isAnimated = false
+            isAnimated = false,
         )
 
         else -> Attachment(id = file.fileId.fileId)

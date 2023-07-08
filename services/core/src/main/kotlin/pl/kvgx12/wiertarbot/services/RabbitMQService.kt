@@ -13,13 +13,13 @@ class RabbitMQService(
     private fun send(
         routingKey: String,
         message: String,
-        contentType: String = "application/json"
+        contentType: String = "application/json",
     ): Unit = template.send(
         routingKey,
         MessageBuilder.withBody(message.toByteArray(Charsets.UTF_8)).run {
             setContentEncoding(Charsets.UTF_8.name())
             setContentType(contentType)
             build()
-        }
+        },
     )
 }

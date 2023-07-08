@@ -14,8 +14,11 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import pl.kvgx12.wiertarbot.Constants
-import pl.kvgx12.wiertarbot.command.command
-import pl.kvgx12.wiertarbot.command.commands
+import pl.kvgx12.wiertarbot.command.ImageEditCommand
+import pl.kvgx12.wiertarbot.command.dsl.command
+import pl.kvgx12.wiertarbot.command.dsl.commands
+import pl.kvgx12.wiertarbot.command.dsl.generic
+import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.commands.modules.Fantano
 import pl.kvgx12.wiertarbot.commands.modules.TheForexAPI
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
@@ -28,7 +31,6 @@ import kotlin.io.path.div
 import kotlin.io.path.readLines
 import kotlin.random.Random
 
-
 val standardCommands = commands {
     command("wybierz") {
         help(usage = "<opcje do wyboru po przecinku>", returns = "losowo wybraną opcję")
@@ -38,6 +40,7 @@ val standardCommands = commands {
                 .getOrNull(1)
                 ?.split(',')
                 ?.random()
+                ?.trim()
                 ?: "Brak opcji do wyboru"
         }
     }
@@ -110,21 +113,23 @@ val standardCommands = commands {
 
                     if (response.status == HttpStatusCode.NotFound) {
                         "Nie znaleziono podanego słowa"
-                    } else buildString {
-                        append(phrase)
-                        append('\n')
+                    } else {
+                        buildString {
+                            append(phrase)
+                            append('\n')
 
-                        htmlDocument(response.bodyAsText()) {
-                            findFirst("main p") {
-                                append("Definicja:\n")
-                                appendElement(this)
-                            }
-
-                            relaxed = true
-                            findAll("main blockquote").firstOrNull()?.apply {
-                                if (text.isNotEmpty()) {
-                                    append("\n\nPrzyklad/y:\n")
+                            htmlDocument(response.bodyAsText()) {
+                                findFirst("main p") {
+                                    append("Definicja:\n")
                                     appendElement(this)
+                                }
+
+                                relaxed = true
+                                findAll("main blockquote").firstOrNull()?.apply {
+                                    if (text.isNotEmpty()) {
+                                        append("\n\nPrzyklad/y:\n")
+                                        appendElement(this)
+                                    }
                                 }
                             }
                         }
@@ -137,7 +142,7 @@ val standardCommands = commands {
     command("niedziela", "niedziele") {
         help(returns = "najbliższe niedziele handlowe")
 
-        text { event ->
+        text { _ ->
             val now = Clock.System.now().toLocalDateTime(plZone).date
             val dates = sundays.filter { it >= now }
             val first = dates.firstOrNull()
@@ -145,8 +150,11 @@ val standardCommands = commands {
             buildString {
                 first?.let {
                     append(
-                        if (it == now) "Dzisiejsza niedziela jest handlowa\n\n"
-                        else "Najbliższa niedziela handlowa: $it\n\n"
+                        if (it == now) {
+                            "Dzisiejsza niedziela jest handlowa\n\n"
+                        } else {
+                            "Najbliższa niedziela handlowa: $it\n\n"
+                        },
                     )
                 }
 
@@ -159,9 +167,12 @@ val standardCommands = commands {
     command("covid") {
         help(returns = "aktualne informacje o covid w Polsce")
 
-        text { event ->
+        text {
             val data =
-                client.get("https://services-eu1.arcgis.com/zk7YlClTgerl62BY/arcgis/rest/services/global_corona_actual_widok3/FeatureServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=1&where=1%3D1&outFields=*")
+                client.get(
+                    @Suppress("ktlint:standard:max-line-length", "MaxLineLength")
+                    "https://services-eu1.arcgis.com/zk7YlClTgerl62BY/arcgis/rest/services/global_corona_actual_widok3/FeatureServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=1&where=1%3D1&outFields=*",
+                )
                     .body<CovidResponse>()
                     .features.first().attributes
 
@@ -174,7 +185,7 @@ val standardCommands = commands {
                 ${data.dailyTests} testów
                 ${data.dailyPositive} testów pozytywnych
                 ${data.quarantine} osób na kwarantannie aktualnie
-                
+
                 Ogółem:
                 ${data.totalInfections} zakażonych
                 ${data.totalRecovered} ozdrowieńców
@@ -229,25 +240,29 @@ val standardCommands = commands {
                     val response = client.post("https://api.alipaczka.pl/track/$it/") {
                         contentType(ContentType.Application.Json)
                         setBody(AliPaczkaRequest())
-                    }.body<AliPaczkaResponse>()
+                    }
 
                     buildString {
-                        when {
-                            response.error != null -> append(response.error)
+                        when (response.status) {
+                            HttpStatusCode.NotFound -> append("Nie znaleziono paczki")
 
-                            else -> {
+                            HttpStatusCode.OK -> {
+                                val tracking = response.body<AliPaczkaResponse>()
+
                                 append(
-                                    "Numer paczki: ", it,
-                                    "\nDostarczono: ", if (response.isDelivered == true) "tak" else "nie",
+                                    "Numer paczki: ",
+                                    it,
+                                    "\nDostarczono: ",
+                                    if (tracking.isDelivered == true) "tak" else "nie",
                                 )
-                                response.entries?.forEach {
+                                tracking.entries.forEach {
                                     append(
                                         "\n",
                                         Instant.fromEpochSeconds(it.time.toLong())
                                             .toLocalDateTime(plZone)
                                             .run { "$dayOfMonth/$monthNumber/$year $hour:$minute" },
                                         " - ",
-                                        it.status
+                                        it.status,
                                     )
                                 }
                             }
@@ -295,7 +310,6 @@ val standardCommands = commands {
                 else -> help
             }
 
-
             Response(event, text = text, files = files?.let { event.context.upload(it) })
         }
     }
@@ -306,6 +320,8 @@ val standardCommands = commands {
         val lines by lazy {
             (Constants.commandMediaPath / "random/szkaluj.txt")
                 .readLines()
+                .map { it.replace("%n%", "\n").trim() }
+                .filter { it.isNotBlank() }
         }
 
         generic { event ->
@@ -325,14 +341,18 @@ val standardCommands = commands {
 
             val text: String
             val mentions = buildList {
-                text = lines.random()
-                    .replace("%n%", "\n")
-                    .split("%on%")
-                    .fold("") { acc, next ->
-                        add(Mention(uid, acc.length, name.length))
-
-                        "$acc$name$next"
-                    }
+                text = buildString {
+                    lines.random()
+                        .split("%on%")
+                        .forEachIndexed { index, it ->
+                            if (index == 0) {
+                                append(it)
+                            } else {
+                                add(Mention(uid, this@buildString.length, name.length))
+                                append(name, it)
+                            }
+                        }
+                }
             }
 
             Response(event, text = text, mentions = mentions)
@@ -342,7 +362,7 @@ val standardCommands = commands {
     command("czas") {
         help(returns = "aktualny czas oraz odliczenia")
 
-        text { event ->
+        text {
             val now = Clock.System.now()
 
             buildString {
@@ -353,14 +373,15 @@ val standardCommands = commands {
                         .toInstant(plZone)
                         .minus(now)
 
-                    if (delta.isPositive())
+                    if (delta.isPositive()) {
                         append(
                             "\n", text, " ",
                             delta.inWholeDays, "d ",
                             delta.inWholeHours % 24, "h ",
                             delta.inWholeMinutes % 60, "min ",
-                            delta.inWholeSeconds % 60, "sek"
+                            delta.inWholeSeconds % 60, "sek",
                         )
+                    }
                 }
             }
         }
@@ -388,25 +409,42 @@ val standardCommands = commands {
     command("kurs") {
         help(
             usage = "<z waluty> <do waluty> (ilosc=1)",
-            returns = "Kurs aktualizowany dziennie z europejskiego banku centralnego"
+            returns = "Kurs aktualizowany dziennie z europejskiego banku centralnego",
         )
 
         text { event ->
             event.text.split(' ', limit = 4)
                 .let { if (it.size > 2) it else null }
-                ?.let {
-                    val from = it[1].uppercase()
-                    val to = it[2].uppercase()
-                    val amount = it.getOrNull(3)?.toDoubleOrNull() ?: 1.0
+                ?.let { args ->
+                    val from = args[1].uppercase()
+                    val to = args[2].uppercase()
+                    val amount = args.getOrNull(3)?.toDoubleOrNull() ?: 1.0
 
                     runCatching {
                         TheForexAPI.convert(from, to, amount)
                     }.fold(
-                        onSuccess = { "$amount $from to ${String.format("%.4f", it)} $to" },
-                        onFailure = { "Nieprawidłowa waluta"; throw it }
+                        onSuccess = { "$amount $from to ${String.format(Locale.ENGLISH, "%.4f", it)} $to" },
+                        onFailure = { "Nieprawidłowa waluta" },
                     )
                 }
                 ?: help
+        }
+    }
+
+    command("suchar") {
+        help(returns = "losowy suchar")
+
+        text {
+            val response = ImageEditCommand.client.get("https://codziennyhumor.pl/?filter-by=random").bodyAsText()
+
+            buildString {
+                htmlDocument(response) {
+                    ".entry-body" {
+                        appendLine(findFirst(".entry-header").text)
+                        appendElement(findFirst(".entry-content p"))
+                    }
+                }
+            }
         }
     }
 }
@@ -432,9 +470,8 @@ private data class AliPaczkaRequest(
 @Serializable
 private data class AliPaczkaResponse(
     @SerialName("DataEntry")
-    val entries: List<Entry>? = null,
-    val isDelivered: Boolean? = null,
-    val error: String? = null,
+    val entries: List<Entry>,
+    val isDelivered: Boolean,
 ) {
     @Serializable
     data class Entry(
@@ -445,7 +482,7 @@ private data class AliPaczkaResponse(
 
 @Serializable
 private data class CovidResponse(
-    val features: List<Feature>
+    val features: List<Feature>,
 ) {
     @Serializable
     data class Feature(val attributes: Attributes)
@@ -467,9 +504,11 @@ private data class CovidResponse(
 
 private val client = HttpClient(CIO) {
     install(ContentNegotiation) {
-        json(Json {
-            ignoreUnknownKeys = true
-        })
+        json(
+            Json {
+                ignoreUnknownKeys = true
+            },
+        )
     }
 }
 
@@ -483,37 +522,53 @@ val sundays = listOf(
     LocalDate(2023, 12, 24),
 )
 
-const val pastaXd =
-    "Serio, mało rzeczy mnie triggeruje tak jak to chore \"Xd\". Kombinacji x i d można używać na wiele wspaniałych sposobów. Coś cię śmieszy? Stawiasz \"xD\". Coś się bardzo śmieszy? Śmiało: \"XD\"! Coś doprowadza Cię do płaczu ze śmiechu? \"XDDD\" i załatwione. Uśmiechniesz się pod nosem? \"xd\". Po kłopocie. A co ma do tego ten bękart klawiaturowej ewolucji, potwór i zakała ludzkiej estetyki - \"Xd\"? Co to w ogóle ma wyrażać? Martwego człowieka z wywalonym jęzorem? Powiem Ci, co to znaczy. To znaczy, że masz w telefonie włączone zaczynanie zdań dużą literą, ale szkoda Ci klikać capsa na jedno \"d\" później. Korona z głowy spadnie? Nie sondze. \"Xd\" to symptom tego, że masz mnie, jako rozmówcę, gdzieś, bo Ci się nawet kliknąć nie chce, żeby mi wysłać poprawny emotikon. Szanujesz mnie? Używaj \"xd\", \"xD\", \"XD\", do wyboru. Nie szanujesz mnie? Okaż to. Wystarczy, że wstawisz to zjebane \"Xd\" w choć jednej wiadomości. Nie pozdrawiam"
-const val barka = """Pan kiedyś stanął nad brzegiem
-Szukał ludzi gotowych pójść za Nim
-By łowić serca
-Słów Bożych prawdą.
+val pastaXd = """
+    Serio, mało rzeczy mnie triggeruje tak jak to chore "Xd".
+    Kombinacji x i d można używać na wiele wspaniałych sposobów.
+    Coś cię śmieszy? Stawiasz "xD". Coś się bardzo śmieszy?
+    Śmiało: "XD"! Coś doprowadza Cię do płaczu ze śmiechu? "XDDD" i załatwione.
+    Uśmiechniesz się pod nosem? "xd". Po kłopocie.
+    A co ma do tego ten bękart klawiaturowej ewolucji, potwór i zakała ludzkiej estetyki - "Xd"?
+    Co to w ogóle ma wyrażać? Martwego człowieka z wywalonym jęzorem? Powiem Ci, co to znaczy.
+    To znaczy, że masz w telefonie włączone zaczynanie zdań dużą literą, ale szkoda Ci klikać capsa na jedno "d" później.
+    Korona z głowy spadnie? Nie sondze.
+    "Xd" to symptom tego, że masz mnie, jako rozmówcę, gdzieś, bo Ci się nawet kliknąć nie chce, żeby mi wysłać poprawny emotikon.
+    Szanujesz mnie? Używaj "xd", "xD", "XD", do wyboru. Nie szanujesz mnie? Okaż to.
+    Wystarczy, że wstawisz to zjebane "Xd" w choć jednej wiadomości.
+    Nie pozdrawiam
+""".trimIndent().replace("\n", " ")
 
-Ref.:
-O Panie, to Ty na mnie spojrzałeś,
-Twoje usta dziś wyrzekły me imię.
-Swoją barkę pozostawiam na brzegu,
-Razem z Tobą nowy zacznę dziś łów.
+val barka = """
+    Pan kiedyś stanął nad brzegiem
+    Szukał ludzi gotowych pójść za Nim
+    By łowić serca
+    Słów Bożych prawdą.
 
-2.
-Jestem ubogim człowiekiem,
-Moim skarbem są ręce gotowe
-Do pracy z Tobą
-I czyste serce.
+    Ref.:
+    O Panie, to Ty na mnie spojrzałeś,
+    Twoje usta dziś wyrzekły me imię.
+    Swoją barkę pozostawiam na brzegu,
+    Razem z Tobą nowy zacznę dziś łów.
 
-3.
-Ty, potrzebujesz mych dłoni,
-Mego serca młodego zapałem
-Mych kropli potu
-I samotności.
+    2.
+    Jestem ubogim człowiekiem,
+    Moim skarbem są ręce gotowe
+    Do pracy z Tobą
+    I czyste serce.
 
-4.
-Dziś wypłyniemy już razem
-Łowić serca na morzach dusz ludzkich
-Twej prawdy siecią
-I słowem życia.
+    3.
+    Ty, potrzebujesz mych dłoni,
+    Mego serca młodego zapałem
+    Mych kropli potu
+    I samotności.
+
+    4.
+    Dziś wypłyniemy już razem
+    Łowić serca na morzach dusz ludzkich
+    Twej prawdy siecią
+    I słowem życia.
 
 
-By Papież - https://www.youtube.com/watch?v=fimrULqiExA
-Z tekstem - https://www.youtube.com/watch?v=_o9mZ_DVTKA"""
+    By Papież - https://www.youtube.com/watch?v=fimrULqiExA
+    Z tekstem - https://www.youtube.com/watch?v=_o9mZ_DVTKA
+""".trimIndent()

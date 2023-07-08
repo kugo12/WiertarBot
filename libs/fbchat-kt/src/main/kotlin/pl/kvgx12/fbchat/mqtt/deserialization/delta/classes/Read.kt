@@ -7,7 +7,6 @@ import pl.kvgx12.fbchat.data.events.Event
 import pl.kvgx12.fbchat.mqtt.deserialization.delta.ThreadKey
 import pl.kvgx12.fbchat.utils.surrogateDeserializer
 
-
 @Serializable
 private data class ReadReceipt(
     val actorFbId: String,
@@ -20,8 +19,8 @@ internal val readReceiptDeserializer = surrogateDeserializer<ReadReceipt, _> {
         Event.ThreadsRead(
             author = UserId(it.actorFbId),
             threads = listOf(it.threadKey.toThreadId()),
-            timestamp = it.actionTimestampMs
-        )
+            timestamp = it.actionTimestampMs,
+        ),
     )
 }
 
@@ -32,11 +31,12 @@ private data class MarkRead(
 )
 
 internal val markReadDeserializer = surrogateDeserializer<MarkRead, _> {
+    @Suppress("UNREACHABLE_CODE")
     flowOf(
         Event.ThreadsRead(
             author = TODO(),
             threads = it.threadKeys.map(ThreadKey::toThreadId),
-            timestamp = it.actionTimestamp.toLong()
-        )
+            timestamp = it.actionTimestamp.toLong(),
+        ),
     )
 }

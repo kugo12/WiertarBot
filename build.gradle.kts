@@ -1,10 +1,18 @@
+import io.gitlab.arturbosch.detekt.Detekt
+import io.gitlab.arturbosch.detekt.DetektPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jmailen.gradle.kotlinter.KotlinterPlugin
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlinter)
+    alias(libs.plugins.detekt)
 }
 
 allprojects {
+    apply<DetektPlugin>()
+    apply<KotlinterPlugin>()
+
     group = "pl.kvgx12"
     version = ""
 
@@ -21,8 +29,9 @@ allprojects {
     tasks {
         // disable generating *-plain.jar
         withType<Jar> {
-            if (name == "jar" && findByName("bootJar") != null)
+            if (name == "jar" && findByName("bootJar") != null) {
                 enabled = false
+            }
         }
 
         withType<KotlinCompile> {
@@ -35,6 +44,14 @@ allprojects {
         withType<Test> {
             useJUnitPlatform()
         }
+
+        withType<Detekt> {
+            reports.sarif.required.set(true)
+        }
+    }
+
+    kotlinter {
+        reporters = arrayOf("sarif")
     }
 
     repositories {

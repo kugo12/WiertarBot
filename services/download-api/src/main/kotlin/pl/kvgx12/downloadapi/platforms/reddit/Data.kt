@@ -69,7 +69,7 @@ data class RedditLink(
 @SerialName(RedditThingType.COMMENT)
 data class RedditComment(
     override val id: String,
-    override val name: String
+    override val name: String,
 ) : IsRedditThing
 
 @Serializable

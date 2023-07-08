@@ -5,9 +5,9 @@ import java.util.*
 enum class ConnectorType {
     FB, Telegram;
 
-    fun set() = EnumSet.of(this)
+    fun set(): EnumSet<ConnectorType> = EnumSet.of(this)
 
     companion object {
-        fun all() = EnumSet.allOf(ConnectorType::class.java)
+        fun all(): EnumSet<ConnectorType> = EnumSet.allOf(ConnectorType::class.java)
     }
 }

@@ -12,12 +12,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.serialization.Serializable
-import pl.kvgx12.wiertarbot.command.command
-import pl.kvgx12.wiertarbot.command.commands
+import pl.kvgx12.wiertarbot.command.dsl.command
+import pl.kvgx12.wiertarbot.command.dsl.commands
+import pl.kvgx12.wiertarbot.command.dsl.generic
+import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.properties.TTRSProperties
 import pl.kvgx12.wiertarbot.connector.FileData
 import pl.kvgx12.wiertarbot.events.Response
-
 
 val ttrsCommands = commands {
     command("tts") {
@@ -36,21 +37,24 @@ val ttrsCommands = commands {
         generic { event ->
             val args = event.text.split(' ', limit = 3)
             val lang = args.getOrNull(1)?.let {
-                if (it.startsWith("lang="))
+                if (it.startsWith("lang=")) {
                     it.drop(5)
-                else null
+                } else {
+                    null
+                }
             }
 
-            if (args.size < 2 || (lang != null && args.size < 3))
+            if (args.size < 2 || (lang != null && args.size < 3)) {
                 return@generic Response(event, text = help)
+            }
 
             val response = client.post(props.ttsUrl) {
                 contentType(ContentType.Application.Json)
                 setBody(
                     TTSRequest(
                         text = args.drop(if (lang != null) 2 else 1).joinToString(" "),
-                        lang = lang ?: "pl"
-                    )
+                        lang = lang ?: "pl",
+                    ),
                 )
             }
 
@@ -58,7 +62,7 @@ val ttrsCommands = commands {
                 HttpStatusCode.OK -> {
                     val file = event.context.uploadRaw(
                         listOf(FileData("tts.mp3", response.readBytes(), "audio/mp3")),
-                        true
+                        true,
                     )
 
                     Response(event, files = file)
@@ -68,7 +72,7 @@ val ttrsCommands = commands {
                     Response(event, text = "Podano nieprawidłowy język\nDostępne języki: ${languages.await()}")
                 }
 
-                else -> Response(event, text = "Napotkano niespodziewany błąd")  // FIXME
+                else -> Response(event, text = "Napotkano niespodziewany błąd") // FIXME
             }
         }
     }
@@ -90,9 +94,9 @@ val ttrsCommands = commands {
                 setBody(
                     TranslateRequest(
                         text = text,
-                        source = null,  // TODO
+                        source = null, // TODO
                         destination = destination,
-                    )
+                    ),
                 )
             }
 
@@ -113,11 +117,11 @@ private val client = HttpClient(CIO) {
 private data class TranslateRequest(
     val text: String,
     val source: String?,
-    val destination: String
+    val destination: String,
 )
 
 @Serializable
 private data class TTSRequest(
     val text: String,
-    val lang: String?
+    val lang: String?,
 )

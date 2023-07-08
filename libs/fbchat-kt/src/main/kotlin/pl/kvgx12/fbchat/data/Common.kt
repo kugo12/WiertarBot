@@ -5,13 +5,13 @@ import org.slf4j.LoggerFactory
 
 @Serializable
 enum class ThreadLocation {
-    INBOX, PENDING, ARCHIVED, OTHER;
+    INBOX, PENDING, ARCHIVED, OTHER,
 }
 
 @Serializable
 data class ActiveStatus(
     val active: Boolean,
-    val lastActive: Long?
+    val lastActive: Long?,
 )
 
 @Serializable
@@ -25,7 +25,7 @@ data class Image(
 enum class EmojiSize(val id: String) {
     Large("369239383222810"),
     Medium("369239343222814"),
-    Small("369239263222822");
+    Small("369239263222822"),
 }
 
 object FBTags {
