@@ -1,9 +1,10 @@
-package pl.kvgx12.wiertarbot
+package pl.kvgx12.wiertarbot.benchmark
 
 import org.openjdk.jmh.annotations.Setup
 import org.openjdk.jmh.annotations.TearDown
 import org.springframework.boot.runApplication
 import org.springframework.context.ConfigurableApplicationContext
+import pl.kvgx12.wiertarbot.CoreApplication
 
 abstract class AbstractSpringBenchmark {
     private var context: ConfigurableApplicationContext? = null
