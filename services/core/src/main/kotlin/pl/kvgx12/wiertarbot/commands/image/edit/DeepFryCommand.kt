@@ -1,6 +1,7 @@
 package pl.kvgx12.wiertarbot.commands.image.edit
 
-import pl.kvgx12.wiertarbot.command.command
+import pl.kvgx12.wiertarbot.command.dsl.command
+import pl.kvgx12.wiertarbot.command.dsl.imageEdit
 import pl.kvgx12.wiertarbot.utils.*
 import java.awt.Color
 import java.awt.image.BufferedImage

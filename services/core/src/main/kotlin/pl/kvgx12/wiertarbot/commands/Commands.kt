@@ -1,7 +1,7 @@
 package pl.kvgx12.wiertarbot.commands
 
 import org.springframework.boot.context.properties.bind.Binder
-import pl.kvgx12.wiertarbot.command.commands
+import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.commands.image.edit.imageEditCommands
 import pl.kvgx12.wiertarbot.commands.image.random.localMediaCommands
 import pl.kvgx12.wiertarbot.commands.image.random.randomImageApiCommands

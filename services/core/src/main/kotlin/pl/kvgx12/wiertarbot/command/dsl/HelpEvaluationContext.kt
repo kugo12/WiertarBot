@@ -1,4 +1,4 @@
-package pl.kvgx12.wiertarbot.command
+package pl.kvgx12.wiertarbot.command.dsl
 
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 

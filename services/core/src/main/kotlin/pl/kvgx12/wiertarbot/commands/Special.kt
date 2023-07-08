@@ -3,9 +3,9 @@ package pl.kvgx12.wiertarbot.commands
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import pl.kvgx12.wiertarbot.command.SpecialCommand
-import pl.kvgx12.wiertarbot.command.commands
-import pl.kvgx12.wiertarbot.command.specialCommand
-import pl.kvgx12.wiertarbot.command.specialCommandWithContext
+import pl.kvgx12.wiertarbot.command.dsl.commands
+import pl.kvgx12.wiertarbot.command.dsl.specialCommand
+import pl.kvgx12.wiertarbot.command.dsl.specialCommandWithContext
 import pl.kvgx12.wiertarbot.events.Mention
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response

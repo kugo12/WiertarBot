@@ -11,8 +11,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.springframework.context.support.BeanDefinitionDsl
-import pl.kvgx12.wiertarbot.command.command
-import pl.kvgx12.wiertarbot.command.commands
+import pl.kvgx12.wiertarbot.command.dsl.*
 import pl.kvgx12.wiertarbot.connector.FileData
 import pl.kvgx12.wiertarbot.events.Response
 import kotlin.random.Random
@@ -61,7 +60,7 @@ val randomImageApiCommands = commands {
 
         var pages = 1000
 
-        rawFiles {
+        rawFile {
             val response = client.get("https://unsplash.com/napi/search/photos") {
                 parameter("per_page", "1")
                 parameter("query", "turtle")
@@ -73,7 +72,7 @@ val randomImageApiCommands = commands {
             val url = response.results.first().urls.regular
             val imageResponse = client.get(url)
 
-            listOf(FileData(url, imageResponse.body(), imageResponse.contentType().toString()))
+            FileData(url, imageResponse.body(), imageResponse.contentType().toString())
         }
     }
 }

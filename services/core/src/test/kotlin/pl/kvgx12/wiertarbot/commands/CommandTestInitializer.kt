@@ -5,7 +5,8 @@ import io.mockk.mockk
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.context.support.beans
-import pl.kvgx12.wiertarbot.command.command
+import pl.kvgx12.wiertarbot.command.dsl.command
+import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.bind
 import pl.kvgx12.wiertarbot.config.getBinder
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties

@@ -15,8 +15,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
-import pl.kvgx12.wiertarbot.command.command
-import pl.kvgx12.wiertarbot.command.commands
+import pl.kvgx12.wiertarbot.command.dsl.command
+import pl.kvgx12.wiertarbot.command.dsl.commands
+import pl.kvgx12.wiertarbot.command.dsl.generic
+import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.commands.modules.Fantano
 import pl.kvgx12.wiertarbot.commands.modules.TheForexAPI
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
@@ -183,7 +185,7 @@ val standardCommands = commands {
                 ${data.dailyTests} testów
                 ${data.dailyPositive} testów pozytywnych
                 ${data.quarantine} osób na kwarantannie aktualnie
-                
+
                 Ogółem:
                 ${data.totalInfections} zakażonych
                 ${data.totalRecovered} ozdrowieńców
@@ -536,32 +538,32 @@ val barka = """
     Szukał ludzi gotowych pójść za Nim
     By łowić serca
     Słów Bożych prawdą.
-    
+
     Ref.:
     O Panie, to Ty na mnie spojrzałeś,
     Twoje usta dziś wyrzekły me imię.
     Swoją barkę pozostawiam na brzegu,
     Razem z Tobą nowy zacznę dziś łów.
-    
+
     2.
     Jestem ubogim człowiekiem,
     Moim skarbem są ręce gotowe
     Do pracy z Tobą
     I czyste serce.
-    
+
     3.
     Ty, potrzebujesz mych dłoni,
     Mego serca młodego zapałem
     Mych kropli potu
     I samotności.
-    
+
     4.
     Dziś wypłyniemy już razem
     Łowić serca na morzach dusz ludzkich
     Twej prawdy siecią
     I słowem życia.
-    
-    
+
+
     By Papież - https://www.youtube.com/watch?v=fimrULqiExA
     Z tekstem - https://www.youtube.com/watch?v=_o9mZ_DVTKA
 """.trimIndent()

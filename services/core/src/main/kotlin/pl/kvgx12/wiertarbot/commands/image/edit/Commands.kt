@@ -2,8 +2,9 @@ package pl.kvgx12.wiertarbot.commands.image.edit
 
 import com.sksamuel.scrimage.ImmutableImage
 import pl.kvgx12.wiertarbot.Constants
-import pl.kvgx12.wiertarbot.command.command
-import pl.kvgx12.wiertarbot.command.commands
+import pl.kvgx12.wiertarbot.command.dsl.command
+import pl.kvgx12.wiertarbot.command.dsl.commands
+import pl.kvgx12.wiertarbot.command.dsl.immutableImageEdit
 import pl.kvgx12.wiertarbot.utils.ImageUtils
 import pl.kvgx12.wiertarbot.utils.getTextDimensions
 import java.awt.Font
