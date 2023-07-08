@@ -341,13 +341,18 @@ val standardCommands = commands {
 
             val text: String
             val mentions = buildList {
-                text = lines.random()
-                    .split("%on%")
-                    .fold("") { acc, next ->
-                        add(Mention(uid, acc.length, name.length))
-
-                        "$acc$name$next"
-                    }
+                text = buildString {
+                    lines.random()
+                        .split("%on%")
+                        .forEachIndexed { index, it ->
+                            if (index == 0) {
+                                append(it)
+                            } else {
+                                add(Mention(uid, this@buildString.length, name.length))
+                                append(name, it)
+                            }
+                        }
+                }
             }
 
             Response(event, text = text, mentions = mentions)
