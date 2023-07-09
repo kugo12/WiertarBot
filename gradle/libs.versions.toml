@@ -8,7 +8,7 @@ kotlinx-datetime = "0.4.0"
 kotlinter = "3.15.0"
 detekt = "1.23.0"
 
-spring = "3.0.1"
+spring = "3.1.1"
 spring-dependency-management = "1.1.0"
 
 ktor = "2.3.0"
@@ -94,15 +94,18 @@ spring-starter = { module = "org.springframework.boot:spring-boot-starter" }
 spring-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
 spring-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-starter-data-r2dbc = { module = "org.springframework.boot:spring-boot-starter-data-r2dbc" }
 spring-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
 spring-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
 
 spring-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 spring-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
 spring-postgresql = { module = "org.postgresql:postgresql" }
+spring-postgresql-r2dbc = { module = "org.postgresql:r2dbc-postgresql" }
 spring-rabbitmq-test = { module = "org.springframework.amqp:spring-rabbit-test" }
 
 spring-kotlin-reactor-extensions = { module = "io.projectreactor.kotlin:reactor-kotlin-extensions" }
+spring-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core" }
 spring-kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor" }
 spring-reactor-test = { module = "io.projectreactor:reactor-test" }
 

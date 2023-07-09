@@ -11,15 +11,15 @@ class PermissionService(
     private val permissionRepository: PermissionRepository,
     private val permissionDecoderService: PermissionDecoderService,
 ) {
-    fun initPermissionByCommand(command: String) {
+    suspend fun initPermissionByCommand(command: String) {
         permissionRepository.findFirstByCommand(command)
             ?: Permission(command = command, whitelist = """{"*": 0}""", blacklist = "{}")
-                .let { permissionRepository.saveAndFlush(it) }
+                .let { permissionRepository.save(it) }
     }
 
-    fun findByCommand(name: String) = permissionRepository.findFirstByCommand(name)
+    suspend fun findByCommand(name: String) = permissionRepository.findFirstByCommand(name)
 
-    fun edit(
+    suspend fun edit(
         command: String,
         uids: List<String>,
         bl: Boolean = false,
@@ -76,13 +76,13 @@ class PermissionService(
 
         permission.whitelist = Json.encodeToString(whitelist)
         permission.blacklist = Json.encodeToString(blacklist)
-        permissionRepository.saveAndFlush(permission)
+        permissionRepository.save(permission)
         permissionDecoderService.clearCache()
 
         return true
     }
 
-    fun isAuthorized(command: String, threadId: String, userId: String): Boolean { // TODO: rbac -_-
+    suspend fun isAuthorized(command: String, threadId: String, userId: String): Boolean { // TODO: rbac -_-
         val (whitelist, blacklist) = permissionDecoderService.getListsByCommand(command) ?: return false
 
         return when {

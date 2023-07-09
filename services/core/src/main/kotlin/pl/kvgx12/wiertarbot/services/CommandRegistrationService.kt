@@ -1,6 +1,7 @@
 package pl.kvgx12.wiertarbot.services
 
 import jakarta.annotation.PostConstruct
+import kotlinx.coroutines.runBlocking
 import org.springframework.scheduling.annotation.Async
 import pl.kvgx12.wiertarbot.command.CommandData
 import pl.kvgx12.wiertarbot.connector.ConnectorType
@@ -35,6 +36,8 @@ class CommandRegistrationService(
 
     @Async
     fun initCommandPermissions() {
-        commands.forEach { (name, _) -> permissionService.initPermissionByCommand(name) }
+        runBlocking {
+            commands.forEach { (name, _) -> permissionService.initPermissionByCommand(name) }
+        }
     }
 }

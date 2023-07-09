@@ -1,13 +1,12 @@
 package pl.kvgx12.wiertarbot.entities
 
-import jakarta.persistence.*
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Table
 
-@Entity(name = "messagecountmilestone")
-class MessageCountMilestone(
-    @Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
+@Table("messagecountmilestone")
+data class MessageCountMilestone(
+    @Id
     val id: Int? = null,
-
-    @Column(nullable = false, unique = true)
     val threadId: String,
     var count: Int,
 )

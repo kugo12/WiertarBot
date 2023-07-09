@@ -4,7 +4,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-import org.springframework.transaction.support.TransactionTemplate
+import org.springframework.transaction.reactive.TransactionalOperator
+import org.springframework.transaction.reactive.executeAndAwait
 import pl.kvgx12.fbchat.data.events.Event
 import pl.kvgx12.fbchat.data.events.ThreadEvent
 import pl.kvgx12.fbchat.requests.react
@@ -21,7 +22,7 @@ class FBKtEventConsumer(
     private val rabbitMQService: RabbitMQService,
     private val fbMessageRepository: FBMessageRepository,
     private val fbMilestoneTracker: FBKtMilestoneTracker,
-    private val transaction: TransactionTemplate,
+    private val transaction: TransactionalOperator,
 ) {
     private val log = getLogger()
 
@@ -75,7 +76,7 @@ class FBKtEventConsumer(
             log.error("Failed to publish message to RabbitMQ", it)
         }
 
-        transaction.executeWithoutResult {
+        transaction.executeAndAwait {
             fbMessageRepository.save(
                 FBMessage(
                     messageId = event.message.id,
@@ -88,7 +89,7 @@ class FBKtEventConsumer(
         }
     }
 
-    private fun unsendMessage(event: ThreadEvent.UnsendMessage) {
+    private suspend fun unsendMessage(event: ThreadEvent.UnsendMessage) {
         runCatching {
             rabbitMQService.publishMessageDelete(
                 buildJsonObject {
@@ -102,7 +103,7 @@ class FBKtEventConsumer(
             log.error("Failed to publish message delete to RabbitMQ", it)
         }
 
-        transaction.executeWithoutResult {
+        transaction.executeAndAwait {
             fbMessageRepository.markDeleted(event.message.id, event.timestamp)
         }
     }

@@ -1,20 +1,21 @@
 package pl.kvgx12.wiertarbot.repositories
 
+import kotlinx.coroutines.flow.Flow
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Modifying
-import org.springframework.data.jpa.repository.Query
+import org.springframework.data.r2dbc.repository.Modifying
+import org.springframework.data.r2dbc.repository.Query
+import org.springframework.data.repository.kotlin.CoroutineCrudRepository
 import org.springframework.stereotype.Repository
 import pl.kvgx12.wiertarbot.entities.FBMessage
 
 @Repository
-interface FBMessageRepository : JpaRepository<FBMessage, Int> {
-    fun findAllByDeletedAtNullAndTimeBefore(time: Long): List<FBMessage>
-    fun findAllByThreadIdAndDeletedAtNotNull(threadId: String, pageable: Pageable): List<FBMessage>
+interface FBMessageRepository : CoroutineCrudRepository<FBMessage, Int> {
+    fun findAllByDeletedAtNullAndTimeBefore(time: Long): Flow<FBMessage>
+    fun findAllByThreadIdAndDeletedAtNotNull(threadId: String, pageable: Pageable): Flow<FBMessage>
 
     @Modifying
     @Query("UPDATE fbmessage m SET m.deletedAt = :timestamp WHERE m.messageId = :messageId")
-    fun markDeleted(messageId: String, timestamp: Long)
+    suspend fun markDeleted(messageId: String, timestamp: Long)
 
-    fun deleteByDeletedAtNullAndTimeBefore(time: Long)
+    suspend fun deleteByDeletedAtNullAndTimeBefore(time: Long)
 }

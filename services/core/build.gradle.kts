@@ -31,11 +31,12 @@ dependencies {
     implementation(project(":libs:fbchat-kt"))
 
     implementation(libs.bundles.spring)
-    implementation(libs.spring.starter.data.jpa)
+    implementation(libs.spring.starter.data.r2dbc)
     implementation(libs.spring.starter.amqp)
     implementation(libs.spring.starter.cache)
 
-    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.spring.kotlinx.coroutines.core)
+    implementation(libs.spring.kotlinx.coroutines.reactor)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
 
@@ -48,6 +49,7 @@ dependencies {
     implementation(libs.skrape.html)
 
     runtimeOnly(libs.spring.postgresql)
+    runtimeOnly(libs.spring.postgresql.r2dbc)
 
     developmentOnly(libs.spring.devtools)
     annotationProcessor(libs.spring.configuration.processor)

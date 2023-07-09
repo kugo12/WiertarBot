@@ -1,8 +1,7 @@
 package pl.kvgx12.wiertarbot.commands
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.dsl.command
 import pl.kvgx12.wiertarbot.command.dsl.commands
@@ -105,8 +104,10 @@ val utilityCommands = commands {
 
                     val messages = fbMessageService.getDeletedMessages(event.threadId, count)
 
+                    var isEmpty = true
                     coroutineScope {
-                        messages.map { message ->
+                        messages.collect { message ->
+                            isEmpty = false
                             val mentions = message.mentions.map {
                                 Mention(it.threadId, it.offset, it.length)
                             }
@@ -124,7 +125,7 @@ val utilityCommands = commands {
                                 }
                             }
 
-                            async {
+                            launch {
                                 val files = when {
                                     attachments.isNotEmpty() -> event.context.upload(
                                         attachments.map { it.toString() },
@@ -142,11 +143,11 @@ val utilityCommands = commands {
                                     voiceClip = voiceClip,
                                 ).send()
                             }
-                        }.awaitAll()
+                        }
                     }
 
                     when {
-                        messages.isEmpty() -> "Nie ma żadnych zapisanych usuniętych wiadomości w tym wątku"
+                        isEmpty -> "Nie ma żadnych zapisanych usuniętych wiadomości w tym wątku"
                         else -> null
                     }
                 }

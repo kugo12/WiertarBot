@@ -1,18 +1,13 @@
 package pl.kvgx12.wiertarbot.entities
 
-import jakarta.persistence.*
+import org.springframework.data.annotation.Id
+import org.springframework.data.relational.core.mapping.Table
 
-@Entity
-class Permission(
-    @Id @GeneratedValue(strategy = GenerationType.SEQUENCE)
+@Table
+data class Permission(
+    @Id
     val id: Int? = null,
-
-    @Column(unique = true, nullable = false)
     val command: String,
-
-    @Column(columnDefinition = "TEXT", nullable = false)
     var whitelist: String,
-
-    @Column(columnDefinition = "TEXT", nullable = false)
     var blacklist: String,
 )
