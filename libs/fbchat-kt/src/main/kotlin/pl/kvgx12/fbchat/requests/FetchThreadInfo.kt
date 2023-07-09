@@ -31,7 +31,11 @@ private suspend fun fetchThreadInfo(session: Session, thread: Thread): ThreadDat
         },
     ).let(Session.json::decodeFromString)
 
-    val data = response.data?.thread ?: return null // FIXME: error checking
+    val data = response.data?.thread ?: run {
+        // FIXME: error checking
+        Session.log.error("Failed to fetch thread info: $response")
+        return null
+    }
 
     val additionalInfo = if (data.threadType == GraphQLThread.SINGLE) {
         fetchAdditionalInfo(session, listOf(thread.id))[thread.id]
