@@ -5,14 +5,17 @@ import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
 import java.util.*
 
-sealed interface CommandData {
-    val help: String
-    val name: String
-    val aliases: List<String>
-    val availableIn: EnumSet<ConnectorType>
-}
+data class CommandMetadata(
+    val help: String,
+    val name: String,
+    val aliases: List<String>,
+    val availableIn: EnumSet<ConnectorType>,
+    val handler: CommandHandler,
+)
 
-interface Command : CommandData {
+sealed interface CommandHandler
+
+fun interface GenericCommandHandler : CommandHandler {
     suspend fun process(event: MessageEvent): Response?
 }
 

@@ -1,49 +1,40 @@
 package pl.kvgx12.wiertarbot.command.dsl
 
 import com.sksamuel.scrimage.ImmutableImage
-import pl.kvgx12.wiertarbot.command.Command
-import pl.kvgx12.wiertarbot.command.CommandData
-import pl.kvgx12.wiertarbot.command.ImageEdit
-import pl.kvgx12.wiertarbot.command.ImageEditCommand
-import pl.kvgx12.wiertarbot.connector.ConnectorType
+import pl.kvgx12.wiertarbot.command.*
 import pl.kvgx12.wiertarbot.connector.FileData
 import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.utils.toImmutableImage
 import java.awt.image.BufferedImage
-import java.util.*
 
 inline fun CommandDsl.imageEdit(
     crossinline func: ImageEdit<BufferedImage>,
-) = object : ImageEditCommand(help!!, name, aliases, availableIn) {
-    override suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage =
-        func(state, image)
-}
+) = metadata(
+    object : ImageEditCommand() {
+        override suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage =
+            func(state, image)
+    },
+)
 
 inline fun CommandDsl.immutableImageEdit(
     crossinline func: ImageEdit<ImmutableImage>,
-) = object : ImageEditCommand(help!!, name, aliases, availableIn) {
-    override suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage =
-        func(state, image.toImmutableImage()).awt()
-}
+) = metadata(
+    object : ImageEditCommand() {
+        override suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage =
+            func(state, image.toImmutableImage()).awt()
+    },
+)
 
-inline fun CommandDsl.generic(
-    crossinline func: suspend (MessageEvent) -> Response?,
-): CommandData {
-    val help = help!!
-    val name = name
-    val aliases = aliases
-    val availableIn = availableIn
+fun CommandDsl.generic(func: GenericCommandHandler) = metadata(func)
 
-    return object : Command {
-        override val help: String get() = help
-        override val name: String get() = name
-        override val aliases: List<String> get() = aliases
-        override val availableIn: EnumSet<ConnectorType> get() = availableIn
-
-        override suspend fun process(event: MessageEvent): Response? = func(event)
-    }
-}
+fun CommandDsl.metadata(func: CommandHandler) = CommandMetadata(
+    help = help!!,
+    name = name,
+    aliases = aliases,
+    availableIn = availableIn,
+    handler = func,
+)
 
 inline fun CommandDsl.text(
     crossinline func: suspend (MessageEvent) -> String?,

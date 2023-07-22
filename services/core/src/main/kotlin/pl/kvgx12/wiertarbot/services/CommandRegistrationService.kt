@@ -3,7 +3,7 @@ package pl.kvgx12.wiertarbot.services
 import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.runBlocking
 import org.springframework.scheduling.annotation.Async
-import pl.kvgx12.wiertarbot.command.CommandData
+import pl.kvgx12.wiertarbot.command.CommandMetadata
 import pl.kvgx12.wiertarbot.connector.ConnectorType
 import pl.kvgx12.wiertarbot.utils.AllOpen
 import kotlin.collections.component1
@@ -12,9 +12,9 @@ import kotlin.collections.component2
 @AllOpen
 class CommandRegistrationService(
     val permissionService: PermissionService,
-    commands: List<CommandData>,
+    commands: List<CommandMetadata>,
 ) {
-    private val commands: Map<String, CommandData> = commands.associateBy { it.name }
+    private val commands: Map<String, CommandMetadata> = commands.associateBy { it.name }
 
     val aliases: Map<String, String> = commands.flatMap { command ->
         command.aliases.map {
@@ -22,7 +22,7 @@ class CommandRegistrationService(
         } + (command.name to command.name)
     }.toMap()
 
-    val commandsByConnector: Map<ConnectorType, Map<String, CommandData>> =
+    val commandsByConnector: Map<ConnectorType, Map<String, CommandMetadata>> =
         ConnectorType.all().associateWith { type ->
             commands
                 .filter { it.availableIn.contains(type) }
