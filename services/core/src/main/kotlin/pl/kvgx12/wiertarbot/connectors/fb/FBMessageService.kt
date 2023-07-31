@@ -2,12 +2,12 @@ package pl.kvgx12.wiertarbot.connectors.fb
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapConcat
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.scheduling.annotation.Scheduled
@@ -34,7 +34,7 @@ class FBMessageService(
 
     @OptIn(FlowPreview::class)
     @Scheduled(cron = "0 0 */6 * * ?")
-    suspend fun messageGarbageCollector() = coroutineScope {
+    fun messageGarbageCollector() = runBlocking {
         val time = Instant.now().epochSecond - Constants.timeToRemoveSentMessages
 
         fbMessageRepository.findAllByDeletedAtNullAndTimeBefore(time)
