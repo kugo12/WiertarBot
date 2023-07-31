@@ -10,6 +10,7 @@ import pl.kvgx12.wiertarbot.commands.standard.standardCommands
 import pl.kvgx12.wiertarbot.config.bind
 import pl.kvgx12.wiertarbot.config.properties.DownloadApiProperties
 import pl.kvgx12.wiertarbot.config.properties.TTRSProperties
+import pl.kvgx12.wiertarbot.config.properties.WeatherProperties
 
 val commandBeans = commands {
     specialCommands()
@@ -31,5 +32,11 @@ val commandBeans = commands {
     if (env.getProperty("wiertarbot.download-api.url") != null) {
         bean { ref<Binder>().bind<DownloadApiProperties>() }
         downloadCommand()
+    }
+
+    if (env.getProperty("wiertarbot.weather.url") != null) {
+        bean { ref<Binder>().bind<WeatherProperties>() }
+
+        weatherCommand()
     }
 }
