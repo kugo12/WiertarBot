@@ -1,6 +1,6 @@
 package pl.kvgx12.wiertarbot.commands
 
-import io.mockk.every
+import io.mockk.coEvery
 import io.mockk.mockk
 import org.springframework.context.ApplicationContextInitializer
 import org.springframework.context.support.GenericApplicationContext
@@ -24,8 +24,8 @@ class CommandTestInitializer : ApplicationContextInitializer<GenericApplicationC
             bean { binder.bind<WiertarbotProperties>() }
             bean {
                 mockk<PermissionService> {
-                    every { isAuthorized(any(), any(), any()) } returns true
-                    every { initPermissionByCommand(any()) } returns Unit
+                    coEvery { isAuthorized(any(), any(), any()) } returns true
+                    coEvery { initPermissionByCommand(any()) } returns Unit
                 }
             }
             bean<CommandRegistrationService>()

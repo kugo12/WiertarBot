@@ -1,6 +1,7 @@
 package pl.kvgx12.fbchat.requests
 
 import pl.kvgx12.fbchat.session.Session
+import pl.kvgx12.fbchat.session.Session.Companion.log
 import pl.kvgx12.fbchat.utils.SessionUtils.getJsmodsRequire
 import pl.kvgx12.fbchat.utils.tryAsArray
 import pl.kvgx12.fbchat.utils.tryAsString
@@ -21,5 +22,12 @@ suspend fun Session.fetchImageUrl(imageId: String): String {
         ?.getJsmodsRequire()
         ?.get("ServerRedirect.redirectPageTo")
         ?.firstOrNull()
-        ?.tryAsString()!!
+        ?.tryAsString()
+        .let {
+            if (it == null) {
+                log.error("Failed to fetch image URL: $response")
+            }
+
+            it!!
+        }
 }

@@ -9,6 +9,7 @@ import io.mockk.*
 import org.springframework.beans.factory.getBean
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.test.context.ContextConfiguration
+import pl.kvgx12.wiertarbot.command.CommandMetadata
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.commands.CommandTestInitializer
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
@@ -41,7 +42,8 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
             "nobody test text",
         ).forEach { cmd ->
             context(cmd) {
-                val command = context.getBean<ImageEditCommand>(cmd.split(' ').first())
+                val metadata = context.getBean<CommandMetadata>(cmd.split(' ').first())
+                val handler = metadata.handler as ImageEditCommand
 
                 beforeTest {
                     every { event.text } returns "${prefix}$cmd"
@@ -51,10 +53,10 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
                     coEvery { event.context.fetchRepliedTo(event) } returns null
                     coEvery { event.context.sendResponse(Response(event, text = "Wyślij zdjęcie")) } returns Unit
 
-                    val checked = command.check(event)
+                    val checked = handler.check(event)
 
                     checked.shouldBeInstanceOf<ImageEditCommand.ImageEditState>()
-                    checked shouldBeEqualToComparingFields command.ImageEditState(event)
+                    checked shouldBeEqualToComparingFields handler.ImageEditState(event)
 
                     val eventWithImage = mockk<MessageEvent> {
                         val e = this
@@ -71,11 +73,11 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
                             coEvery { uploadRaw(match { it.size == 1 }, false) } returns uploaded
                         }
                     }
-                    mockkObject(command)
-                    coEvery { command["getImageFromAttachments"](eventWithImage) } returns testImage
+                    mockkObject(handler)
+                    coEvery { handler["getImageFromAttachments"](eventWithImage) } returns testImage
 
                     checked.tryEditAndSend(eventWithImage) shouldBe true
-                    clearMocks(command)
+                    clearMocks(handler)
                 }
 
                 test("should return image - replied to flow") {
@@ -94,12 +96,12 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
                         coEvery { fetchRepliedTo(event) } returns eventWithImage
                     }
 
-                    mockkObject(command)
-                    coEvery { command["getImageFromAttachments"](eventWithImage) } returns testImage
+                    mockkObject(handler)
+                    coEvery { handler["getImageFromAttachments"](eventWithImage) } returns testImage
 
-                    command.check(event).shouldBeNull()
+                    handler.check(event).shouldBeNull()
 
-                    clearMocks(command)
+                    clearMocks(handler)
                 }
             }
         }

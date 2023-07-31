@@ -10,13 +10,12 @@ description = ""
 license = "GPL-3.0-only"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "~3.11"
 
-sentry-sdk = {version="^1", extras=["flask"]}
-flask = "^2"
 gTTS = "^2"
 translatepy = "^2"
-gunicorn = {version="^20", extras=["gevent"]}
-markupsafe = "^2"
+
+sentry-sdk = "^1"
 dacite = "^1"
 requests = "^2"
+aiohttp = "^3"

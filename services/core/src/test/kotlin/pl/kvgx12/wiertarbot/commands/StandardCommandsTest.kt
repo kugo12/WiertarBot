@@ -33,19 +33,19 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
         }
 
         context("wybierz") {
-            val command = context.getCommand("wybierz")
+            val (_, handler) = context.getCommand("wybierz")
 
             test("no arguments") {
                 every { event.text } returns "${prefix}wybierz"
-                command.process(event) shouldBe Response(event, text = "Brak opcji do wyboru")
+                handler.process(event) shouldBe Response(event, text = "Brak opcji do wyboru")
             }
 
             test("returns correctly") {
                 every { event.text } returns "${prefix}wybierz asd"
-                command.process(event) shouldBe Response(event, text = "asd")
+                handler.process(event) shouldBe Response(event, text = "asd")
 
                 every { event.text } returns "${prefix}wybierz asd asd2 asd3"
-                command.process(event) shouldBe Response(event, text = "asd asd2 asd3")
+                handler.process(event) shouldBe Response(event, text = "asd asd2 asd3")
 
                 every { event.text } returns "${prefix}wybierz asd, asd2, asd3"
 
@@ -53,32 +53,32 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
                     .map { Response(event, text = it) }
 
                 repeat(100) {
-                    command.process(event) shouldBeIn responses
+                    handler.process(event) shouldBeIn responses
                 }
             }
         }
 
         test("moneta") {
-            val command = context.getCommand("moneta")
+            val (_, handler) = context.getCommand("moneta")
             every { event.text } returns "${prefix}moneta"
 
             val responses = listOf("Orzeł!", "Reszka!")
                 .map { Response(event, text = it) }
 
             repeat(100) {
-                command.process(event) shouldBeIn responses
+                handler.process(event) shouldBeIn responses
             }
         }
 
         test("kostka") {
-            val command = context.getCommand("kostka")
+            val (_, handler) = context.getCommand("kostka")
             every { event.text } returns "${prefix}kostka"
 
             val responses = (1..6)
                 .map { Response(event, text = "Wyrzuciłeś $it") }
 
             repeat(100) {
-                command.process(event) shouldBeIn responses
+                handler.process(event) shouldBeIn responses
             }
         }
 
@@ -91,95 +91,95 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
             "Xd" to pastaXd,
         ).forEach { (commandName, result) ->
             test(commandName) {
-                val command = context.getCommand(commandName)
+                val (_, handler) = context.getCommand(commandName)
                 every { event.text } returns "${prefix}$commandName"
 
-                command.process(event) shouldBe Response(event, text = result)
+                handler.process(event) shouldBe Response(event, text = result)
             }
         }
 
         test("Xd - xd and xD return nothing") {
-            val command = context.getCommand("Xd")
+            val (_, handler) = context.getCommand("Xd")
 
             every { event.text } returns "${prefix}xd"
-            command.process(event) shouldBe Response(event)
+            handler.process(event) shouldBe Response(event)
             every { event.text } returns "${prefix}xD"
-            command.process(event) shouldBe Response(event)
+            handler.process(event) shouldBe Response(event)
         }
 
         context("miejski") {
-            val command = context.getCommand("miejski")
+            val (metadata, handler) = context.getCommand("miejski")
 
             test("no arguments") {
                 every { event.text } returns "${prefix}miejski"
-                command.process(event) shouldBe Response(event, text = command.help)
+                handler.process(event) shouldBe Response(event, text = metadata.help)
             }
 
             test("not found") {
                 every { event.text } returns "${prefix}miejski abcadsasdas"
-                command.process(event) shouldBe Response(event, text = "Nie znaleziono podanego słowa")
+                handler.process(event) shouldBe Response(event, text = "Nie znaleziono podanego słowa")
             }
 
             test("returns with one example") {
                 every { event.text } returns "${prefix}miejski ***** ***"
-                command.process(event) shouldBe Response(
+                handler.process(event) shouldBe Response(
                     event,
                     text = """
-                ***** ***
-                Definicja:
-                 5 gwiazdek w pierwszej części oznacza słowo j*bać, 3 gwiazdki w drugiej części oznaczają rządzącą aktualnie partię PIS
-                 Tego zwrotu używa się w związku z rosnącą cenzurą 
-                
-                Przyklad/y:
-                 - Mordo co myślisz o PISie?
-                 - ***** *** 
+                        ***** ***
+                        Definicja:
+                         5 gwiazdek w pierwszej części oznacza słowo j*bać, 3 gwiazdki w drugiej części oznaczają rządzącą aktualnie partię PIS
+                         Tego zwrotu używa się w związku z rosnącą cenzurą${" "}
+
+                        Przyklad/y:
+                         - Mordo co myślisz o PISie?
+                         - ***** ***
                     """.trimIndent(),
                 )
             }
 
             test("returns without example") {
                 every { event.text } returns "${prefix}miejski scamer"
-                command.process(event) shouldBe Response(
+                handler.process(event) shouldBe Response(
                     event,
                     text = """
                 scamer
                 Definicja:
-                 oszust 
+                 oszust
                     """.trimIndent(),
                 )
             }
         }
 
         context("kurs") {
-            val command = context.getCommand("kurs")
+            val (metadata, handler) = context.getCommand("kurs")
             val invalidCurrencyResponse = Response(event, text = "Nieprawidłowa waluta")
-            val helpResponse = Response(event, text = command.help)
+            val helpResponse = Response(event, text = metadata.help)
 
             test("invalid currency") {
                 every { event.text } returns "${prefix}kurs abc pln"
-                command.process(event) shouldBe invalidCurrencyResponse
+                handler.process(event) shouldBe invalidCurrencyResponse
 
                 every { event.text } returns "${prefix}kurs pln abc"
-                command.process(event) shouldBe invalidCurrencyResponse
+                handler.process(event) shouldBe invalidCurrencyResponse
             }
 
             test("returns help on invalid arguments") {
                 every { event.text } returns "${prefix}kurs"
-                command.process(event) shouldBe helpResponse
+                handler.process(event) shouldBe helpResponse
 
                 every { event.text } returns "${prefix}kurs abc"
-                command.process(event) shouldBe helpResponse
+                handler.process(event) shouldBe helpResponse
             }
 
             test("returns correct value") {
                 every { event.text } returns "${prefix}kurs usd usd"
-                command.process(event) shouldBe Response(event, text = "1.0 USD to 1.0000 USD")
+                handler.process(event) shouldBe Response(event, text = "1.0 USD to 1.0000 USD")
 
                 every { event.text } returns "${prefix}kurs usd usd 2.137345"
-                command.process(event) shouldBe Response(event, text = "2.137345 USD to 2.1373 USD")
+                handler.process(event) shouldBe Response(event, text = "2.137345 USD to 2.1373 USD")
 
                 every { event.text } returns "${prefix}kurs usd pln 21.37"
-                command.process(event) shouldNotBeIn listOf(
+                handler.process(event) shouldNotBeIn listOf(
                     invalidCurrencyResponse,
                     helpResponse,
                 )
@@ -187,17 +187,17 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
         }
 
         context("fantano") {
-            val command = context.getCommand("fantano")
+            val (metadata, handler) = context.getCommand("fantano")
 
             test("returns help on invalid arguments") {
                 every { event.text } returns "${prefix}fantano"
-                command.process(event) shouldBe Response(event, text = command.help)
+                handler.process(event) shouldBe Response(event, text = metadata.help)
             }
 
             // flaky test
             xtest("returns correct value") {
                 every { event.text } returns "${prefix}fantano 123123 213123"
-                command.process(event) shouldBe Response(
+                handler.process(event) shouldBe Response(
                     event,
                     text = """
                 Nazwa albumu: Kanye West - My Beautiful Dark Twisted Fantasy
@@ -207,7 +207,7 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
                 )
 
                 every { event.text } returns "${prefix}fantano 72 seasons"
-                command.process(event) shouldBe Response(
+                handler.process(event) shouldBe Response(
                     event,
                     text = """
                 Nazwa albumu: Metallica - 72 Seasons
@@ -219,17 +219,17 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
         }
 
         context("mc") {
-            val command = context.getCommand("mc")
+            val (metadata, handler) = context.getCommand("mc")
 
             test("returns help on invalid arguments") {
                 every { event.text } returns "${prefix}mc"
-                command.process(event) shouldBe Response(event, text = command.help)
+                handler.process(event) shouldBe Response(event, text = metadata.help)
 
                 every { event.text } returns "${prefix}mc asd"
-                command.process(event) shouldBe Response(event, text = command.help)
+                handler.process(event) shouldBe Response(event, text = metadata.help)
 
                 every { event.text } returns "${prefix}mc skin"
-                command.process(event) shouldBe Response(event, text = command.help)
+                handler.process(event) shouldBe Response(event, text = metadata.help)
             }
 
             test("returns correct value") {
@@ -245,7 +245,7 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
                 // TODO: check if passed urls are reachable images
                 coEvery { event.context.upload(match<List<String>> { it.size == 4 }) } returns files
 
-                command.process(event) shouldBe Response(
+                handler.process(event) shouldBe Response(
                     event,
                     text = "",
                     files = files,
@@ -254,39 +254,38 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
 
             test("returns invalid nickname message") {
                 every { event.text } returns "${prefix}mc skin ${UUID.randomUUID()} ${UUID.randomUUID()}"
-                command.process(event) shouldBe Response(event, text = "Podany nick nie istnieje")
+                handler.process(event) shouldBe Response(event, text = "Podany nick nie istnieje")
             }
         }
 
         context("slownik") {
-            val command = context.getCommand("slownik")
+            val (metadata, handler) = context.getCommand("slownik")
 
             test("returns help on invalid arguments") {
                 every { event.text } returns "${prefix}slownik"
-                command.process(event) shouldBe Response(event, text = command.help)
+                handler.process(event) shouldBe Response(event, text = metadata.help)
             }
 
             test("returns correct value") {
                 every { event.text } returns "${prefix}slownik test"
-                command.process(event) shouldBe Response(
+                handler.process(event) shouldBe Response(
                     event,
                     text = """
-                 test testu, teście; testów 
-                 stress test (bank.) stress testu, stress teście; stress testów 
-                 testo (muz.) teście 
-                 test 1. «zestaw punktowanych pytań lub zadań sprawdzających czyjąś wiedzę, inteligencję itp.; też: taki sprawdzian» 2. «próba, której poddaje się urządzenie, produkt, preparat itp. w celu sprawdzenia jego składu, właściwości i działania; też: to, co służy do przeprowadzenia takiej próby» 
-                • testowy 
-                 test ciążowy zob. próba ciążowa. 
-                 testo «w oratoriach i pasjach: partia wokalna w formie recytatywu narratora objaśniającego tło akcji oraz sytuację dramatyczną» 
-                 test 
-
+                        test testu, teście; testów${" "}
+                         stress test (bank.) stress testu, stress teście; stress testów${" "}
+                         testo (muz.) teście${" "}
+                         test 1. «zestaw punktowanych pytań lub zadań sprawdzających czyjąś wiedzę, inteligencję itp.; też: taki sprawdzian» 2. «próba, której poddaje się urządzenie, produkt, preparat itp. w celu sprawdzenia jego składu, właściwości i działania; też: to, co służy do przeprowadzenia takiej próby»${" "}
+                        • testowy${" "}
+                         test ciążowy zob. próba ciążowa.${" "}
+                         testo «w oratoriach i pasjach: partia wokalna w formie recytatywu narratora objaśniającego tło akcji oraz sytuację dramatyczną»${" "}
+                         test
                     """.trimIndent(),
                 )
             }
 
             test("returns invalid word message") {
                 every { event.text } returns "${prefix}slownik ${UUID.randomUUID()}"
-                command.process(event) shouldBe Response(
+                handler.process(event) shouldBe Response(
                     event,
                     text = "Coś poszlo nie tak, jak nie użyłeś polskich liter, to dobry moment",
                 )
@@ -294,16 +293,16 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
         }
 
         context("track") {
-            val command = context.getCommand("track")
+            val (metadata, handler) = context.getCommand("track")
 
             test("returns help on invalid arguments") {
                 every { event.text } returns "${prefix}track"
-                command.process(event) shouldBe Response(event, text = command.help)
+                handler.process(event) shouldBe Response(event, text = metadata.help)
             }
 
             test("returns invalid tracking number message") {
                 every { event.text } returns "${prefix}track ${UUID.randomUUID()} ${UUID.randomUUID()}"
-                command.process(event) shouldBe Response(
+                handler.process(event) shouldBe Response(
                     event,
                     text = "Nie znaleziono paczki",
                 )
@@ -311,7 +310,7 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
 
             test("returns correct value") {
                 every { event.text } returns "${prefix}track 27050468080"
-                command.process(event) shouldBe Response(
+                handler.process(event) shouldBe Response(
                     event,
                     text = """
                     Numer paczki: 27050468080
@@ -338,9 +337,9 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
                 "suchar",
             ).forEach {
                 test(it) {
-                    val command = context.getCommand(it)
+                    val (_, handler) = context.getCommand(it)
                     every { event.text } returns "${prefix}$it"
-                    val response = command.process(event)
+                    val response = handler.process(event)
 
                     response.shouldBeInstanceOf<Response>()
                     response.text.shouldNotBeBlank()

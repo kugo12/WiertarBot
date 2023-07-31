@@ -71,6 +71,7 @@ class RandomImageCommandsTest(context: GenericApplicationContext) : FunSpec(
                 } returns uploaded
 
                 val response = context.getCommand(commandName)
+                    .second
                     .process(event)
 
                 response.shouldBeInstanceOf<Response>()

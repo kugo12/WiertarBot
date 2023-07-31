@@ -132,7 +132,7 @@ val standardCommands = commands {
                                     }
                                 }
                             }
-                        }
+                        }.trim()
                     }
                 }
                 ?: help
@@ -224,7 +224,7 @@ val standardCommands = commands {
                                 }
                             }
                         }
-                    }
+                    }.trim()
                 }
                 ?: help
         }

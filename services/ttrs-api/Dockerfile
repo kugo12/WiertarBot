@@ -1,19 +1,17 @@
-FROM python:3.11-slim
+FROM python:3.11-alpine
 
 WORKDIR /app
 
-RUN useradd -U user && \
+RUN addgroup app && \
+        adduser -s /sbin/nologin -DH -G app app && \
     pip install --no-cache-dir poetry wheel && \
     poetry config virtualenvs.create false
 
-# dependencies
 COPY poetry.lock pyproject.toml ./
 
 RUN poetry install --no-cache
 
-COPY ./src/ ./src/
-USER user
+COPY ./main.py .
+USER app:app
 
-ENV GUNICORN_CMD_ARGS="-w 1 --preload -k gthread -t 10 -b 0.0.0.0:8080"
-
-CMD [ "gunicorn", "src:app" ]
+CMD [ "python", "main.py" ]

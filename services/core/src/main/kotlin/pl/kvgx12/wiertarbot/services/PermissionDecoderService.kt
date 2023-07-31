@@ -1,6 +1,5 @@
 package pl.kvgx12.wiertarbot.services
 
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
@@ -13,10 +12,10 @@ import java.util.*
 class PermissionDecoderService(
     private val permissionRepository: PermissionRepository,
 ) {
-    fun findByCommand(command: String): Permission? = permissionRepository.findFirstByCommand(command)
+    suspend fun findByCommand(command: String): Permission? = permissionRepository.findFirstByCommand(command)
 
     @Cacheable("permissions")
-    fun getListsByCommand(command: String) =
+    suspend fun getListsByCommand(command: String) =
         findByCommand(command)?.decodeLists()
 
     fun Permission.decodeLists(): Pair<PermissionList, PermissionList> =
