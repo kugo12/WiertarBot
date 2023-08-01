@@ -33,8 +33,8 @@ val DOCKERHUB_USER by Contexts.secrets
 val GITLAB_WB_D_TOKEN by Contexts.secrets
 val GITLAB_WB_D_URL by Contexts.secrets
 
-val isMainAndPush = expr {
-    "${github.ref_name} == '$DEFAULT_BRANCH' && ${github.event_name} == 'push'"
+val isMainAndPushOrDispatch = expr {
+    "${github.ref_name} == '$DEFAULT_BRANCH' && (${github.event_name} == 'push' || ${github.event_name} == 'workflow_dispatch')"
 }
 
 val amd64 = setOf("linux/amd64")
@@ -139,7 +139,7 @@ workflow(
             uses(name = "Setup docker buildx", action = SetupBuildxActionV2())
             uses(
                 name = "Login to docker registry",
-                condition = isMainAndPush,
+                condition = isMainAndPushOrDispatch,
                 action = LoginActionV2(
                     username = expr(DOCKER_USERNAME),
                     password = expr(DOCKER_PASSWORD),
@@ -159,7 +159,7 @@ workflow(
                         "${expr(DOCKERHUB_USER)}/$image:latest",
                         "${expr(DOCKERHUB_USER)}/$image:ci-${expr { github.run_id }}",
                     ),
-                    _customInputs = mapOf("push" to isMainAndPush),
+                    _customInputs = mapOf("push" to isMainAndPushOrDispatch),
                 ),
             )
         }
@@ -169,7 +169,7 @@ workflow(
         id = "trigger-deployment",
         runsOn = UbuntuLatest,
         needs = serviceJobs,
-        condition = isMainAndPush,
+        condition = isMainAndPushOrDispatch,
         _customArguments = mapOf("environment" to "production"),
     ) {
         run(
