@@ -1,6 +1,6 @@
 #!/usr/bin/env kotlin
 
-@file:DependsOn("io.github.typesafegithub:github-workflows-kt:0.47.0")
+@file:DependsOn("io.github.typesafegithub:github-workflows-kt:0.49.0")
 
 import Build_main.JB
 import io.github.typesafegithub.workflows.actions.actions.CheckoutV3
@@ -40,12 +40,30 @@ val isMainAndPushOrDispatch = expr {
 val amd64 = setOf("linux/amd64")
 val arm64 = setOf("linux/arm64")
 
-data class Service(val name: String, val image: String, val platforms: Set<String> = amd64)
+data class Service(val name: String, val image: String, val paths: List<String>, val platforms: Set<String> = amd64)
 
-val services = listOf(
-    Service("core", "wiertarbot"),
-    Service("download-api", "wiertarbot-download-api", amd64 + arm64),
-    Service("ttrs-api", "wiertarbot-ttrs-api"),
+val gradleStuff = listOf(
+    "gradle/**",
+    "settings.gradle.kts",
+    "build.gradle.kts",
+)
+val wbServices = listOf(
+    Service(
+        "core",
+        "wiertarbot",
+        gradleStuff + listOf("libs/fbchat-kt/**", "services/core/**"),
+    ),
+    Service(
+        "download-api",
+        "wiertarbot-download-api",
+        gradleStuff + listOf("services/download-api/**"),
+        amd64 + arm64,
+    ),
+    Service(
+        "ttrs-api",
+        "wiertarbot-ttrs-api",
+        listOf("services/ttrs-api/**"),
+    ),
 )
 
 workflow(
@@ -61,6 +79,37 @@ workflow(
         cancelInProgress = true,
     ),
 ) {
+    val changes = job(
+        id = "detect-changes",
+        runsOn = UbuntuLatest,
+        _customArguments = mapOf(
+            "outputs" to wbServices
+                .filter { it.paths.isNotEmpty() }
+                .associate { it.name to expr("steps.step-0.outputs.${it.name}") },
+        ),
+    ) {
+        uses(
+            name = "Filter",
+            action = CustomAction(
+                actionOwner = "dorny",
+                actionName = "paths-filter",
+                actionVersion = "v2",
+                inputs = mapOf(
+                    "filters" to buildString {
+                        wbServices
+                            .filter { it.paths.isNotEmpty() }
+                            .forEach {
+                                append(it.name, ":\n")
+                                it.paths.forEach { path ->
+                                    append("  - '", path, "'\n")
+                                }
+                            }
+                    },
+                ),
+            ),
+        )
+    }
+
     val gradleBuild = job(
         id = "gradle-build",
         runsOn = UbuntuLatest,
@@ -119,7 +168,7 @@ workflow(
         )
     }
 
-    val serviceJobs = services.map {
+    val serviceJobs = wbServices.map {
         val service = it.name
         val image = it.image
         val platforms = it.platforms
@@ -127,7 +176,8 @@ workflow(
         job(
             id = "docker-$service",
             runsOn = UbuntuLatest,
-            needs = listOf(gradleBuild),
+            needs = listOf(gradleBuild, changes),
+            condition = if (it.paths.isNotEmpty()) expr("needs.${changes.id}.outputs.${it.name} == 'true'") else null,
         ) {
             checkout()
 
