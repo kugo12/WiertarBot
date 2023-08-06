@@ -7,15 +7,17 @@ import pl.kvgx12.wiertarbot.command.dsl.command
 import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.utils.proto.set
 import pl.kvgx12.wiertarbot.connectors.fb.FBMessageService
-import pl.kvgx12.wiertarbot.utils.proto.Response
-import pl.kvgx12.wiertarbot.utils.proto.context
-import pl.kvgx12.wiertarbot.utils.proto.send
 import pl.kvgx12.wiertarbot.proto.ConnectorType
+import pl.kvgx12.wiertarbot.proto.connector.fetchThreadRequest
+import pl.kvgx12.wiertarbot.proto.connector.uploadRequest
 import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.services.CommandRegistrationService
 import pl.kvgx12.wiertarbot.services.PermissionService
+import pl.kvgx12.wiertarbot.utils.proto.Response
+import pl.kvgx12.wiertarbot.utils.proto.context
+import pl.kvgx12.wiertarbot.utils.proto.send
+import pl.kvgx12.wiertarbot.utils.proto.set
 import java.time.Duration
 import kotlin.io.path.div
 
@@ -48,11 +50,11 @@ val utilityCommands = commands {
             val args = event.text.split(' ', limit = 2)
 
             if (args.size == 2) {
-                lowercasedCommands[event.context.connectorType]!![args.last().lowercase()]
+                lowercasedCommands[event.connectorInfo.connectorType]!![args.last().lowercase()]
                     ?.help
                     ?: "Nie znaleziono podanej komendy"
             } else {
-                val commands = registrationService.commandsByConnector[event.context.connectorType]!!
+                val commands = registrationService.commandsByConnector[event.connectorInfo.connectorType]!!
 
                 "Prefix: $prefix\nKomendy: ${commands.keys.joinToString(", ")}"
             }
@@ -75,7 +77,9 @@ val utilityCommands = commands {
         help(returns = "ilość napisanych wiadomości od dodania bota do wątku")
 
         text {
-            val count = it.context.fetchThread(it.threadId).messageCount
+            val count = it.context.fetchThread(
+                fetchThreadRequest { threadId = it.threadId },
+            ).thread.messageCount
 
             "Odkąd tutaj jestem napisano tu $count wiadomości."
         }
@@ -135,8 +139,10 @@ val utilityCommands = commands {
                             launch {
                                 val files = when {
                                     attachments.isNotEmpty() -> event.context.upload(
-                                        attachments.map { it.toString() },
-                                        voiceClip,
+                                        uploadRequest {
+                                            files += attachments.map { it.toString() }
+                                            this.voiceClip = voiceClip
+                                        },
                                     )
 
                                     else -> null
@@ -146,7 +152,7 @@ val utilityCommands = commands {
                                     event,
                                     text = message.text,
                                     mentions = mentions,
-                                    files = files,
+                                    files = files?.filesList,
                                     voiceClip = voiceClip,
                                 ).send()
                             }

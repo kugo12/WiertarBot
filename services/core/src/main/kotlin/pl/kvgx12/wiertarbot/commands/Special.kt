@@ -6,10 +6,11 @@ import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.specialCommand
 import pl.kvgx12.wiertarbot.command.dsl.specialCommandWithContext
-import pl.kvgx12.wiertarbot.utils.proto.*
 import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.connector.fetchThreadRequest
 import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.services.PermissionService
+import pl.kvgx12.wiertarbot.utils.proto.*
 
 const val THINKING_EMOJI = "\uD83E\uDD14"
 const val ANGRY_EMOJI = "\uD83D\uDE20"
@@ -23,14 +24,15 @@ val specialCommands = commands {
                 event.isGroup &&
                 permissionService.isAuthorized("everyone", event.threadId, event.authorId)
             ) {
-                val mentions = event.context.fetchThread(event.threadId)
-                    .participantsList.map {
-                        mention {
-                            threadId = it
-                            offset = 0
-                            length = 9
-                        }
+                val mentions = event.context.fetchThread(
+                    fetchThreadRequest { threadId = event.threadId },
+                ).thread.participantsList.map {
+                    mention {
+                        threadId = it
+                        offset = 0
+                        length = 9
                     }
+                }
 
                 Response(event, text = "@everyone", mentions = mentions).send()
             }

@@ -30,6 +30,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import pl.kvgx12.wiertarbot.connector.ConnectorContext
 import pl.kvgx12.wiertarbot.proto.*
+import pl.kvgx12.wiertarbot.proto.connector.*
 import pl.kvgx12.wiertarbot.utils.contentType
 import pl.kvgx12.wiertarbot.utils.contentTypeOrNull
 import kotlin.io.path.Path
@@ -132,9 +133,9 @@ class TelegramContext(private val connector: TelegramConnector) : ConnectorConte
         }
     }
 
-    override suspend fun sendResponse(response: Response) {
+    override suspend fun sendResponse(response: Response): Empty {
         if (!response.filesList.isNullOrEmpty() && sendFiles(response, response.filesList)) {
-            return
+            return Empty.getDefaultInstance()
         }
 
         if (!response.text.isNullOrEmpty()) {
@@ -146,50 +147,64 @@ class TelegramContext(private val connector: TelegramConnector) : ConnectorConte
                 ),
             )
         }
+
+        return Empty.getDefaultInstance()
     }
 
-    override suspend fun uploadRaw(files: List<FileData>, voiceClip: Boolean): List<UploadedFile> =
-        files.map {
+    override suspend fun uploadRaw(request: UploadRawRequest): UploadResponse = uploadResponse {
+        files += request.filesList.map {
             uploadedFile {
                 id = it.uri
                 mimeType = it.mimeType
                 content = it.content
             }
         }
+    }
 
-    override suspend fun fetchThread(threadId: String): ThreadData {
-        val chat = execute(GetChat(ChatId(threadId.toLong())))
+    override suspend fun fetchThread(request: FetchThreadRequest): FetchThreadResponse {
+        val chat = execute(GetChat(ChatId(request.threadId.toLong())))
 
-        return threadData {
-            id = threadId
-            name = when (chat) {
-                is PublicChat -> chat.title
-                is UsernameChat -> chat.username?.usernameWithoutAt.orEmpty()
-                else -> ""
-            }
-            participants += when (chat) {
-                is ExtendedChatWithUsername -> chat.activeUsernames.mapNotNull { it.threadId?.toString() }
-                else -> emptyList()
+        return fetchThreadResponse {
+            thread = threadData {
+                id = request.threadId
+                name = when (chat) {
+                    is PublicChat -> chat.title
+                    is UsernameChat -> chat.username?.usernameWithoutAt.orEmpty()
+                    else -> ""
+                }
+                participants += when (chat) {
+                    is ExtendedChatWithUsername -> chat.activeUsernames.mapNotNull { it.threadId?.toString() }
+                    else -> emptyList()
+                }
             }
         }
     }
 
-    override suspend fun fetchImageUrl(imageId: String) =
-        execute(GetFile(FileId(imageId)))
+    override suspend fun fetchImageUrl(request: FetchImageUrlRequest): FetchImageUrlResponse = fetchImageUrlResponse {
+        url = execute(GetFile(FileId(request.id)))
             .fullUrl(connector.keeper)
+    }
 
-    override suspend fun sendText(event: MessageEvent, text: String) {
-        execute(SendTextMessage(ChatId(event.threadId.toLong()), text = text))
+    override suspend fun sendText(request: SendTextRequest): Empty {
+        execute(SendTextMessage(ChatId(request.event.threadId.toLong()), text = request.text))
+
+        return Empty.getDefaultInstance()
     }
 
     // https://bugs.telegram.org/c/12710
-    override suspend fun reactToMessage(event: MessageEvent, reaction: String?) = Unit
+    override suspend fun reactToMessage(request: ReactToMessageRequest): Empty = Empty.getDefaultInstance()
 
-    override suspend fun fetchRepliedTo(event: MessageEvent) = event.replyTo
+    override suspend fun fetchRepliedTo(request: FetchRepliedToRequest): FetchRepliedToResponse = fetchRepliedToResponse {
+        request.event.replyTo?.let {
+            event = it
+        }
+    }
 
-    override suspend fun upload(files: List<String>, voiceClip: Boolean) = coroutineScope {
-        files.map { async { downloadFile(it) } }
-            .awaitAll()
+    override suspend fun upload(request: UploadRequest): UploadResponse = coroutineScope {
+        uploadResponse {
+            files += request.filesList.map { async { downloadFile(it) } }
+                .awaitAll()
+        }
     }
 
     companion object {

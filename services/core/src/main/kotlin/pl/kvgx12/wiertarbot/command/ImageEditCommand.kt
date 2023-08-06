@@ -8,11 +8,15 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.connector.eventOrNull
+import pl.kvgx12.wiertarbot.proto.connector.fetchImageUrlRequest
+import pl.kvgx12.wiertarbot.proto.connector.fetchRepliedToRequest
+import pl.kvgx12.wiertarbot.proto.connector.uploadRawRequest
+import pl.kvgx12.wiertarbot.proto.fileData
 import pl.kvgx12.wiertarbot.utils.proto.Response
 import pl.kvgx12.wiertarbot.utils.proto.context
 import pl.kvgx12.wiertarbot.utils.proto.send
-import pl.kvgx12.wiertarbot.proto.MessageEvent
-import pl.kvgx12.wiertarbot.proto.fileData
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
@@ -39,7 +43,11 @@ abstract class ImageEditCommand : CommandHandler {
     protected abstract suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage
 
     suspend fun check(event: MessageEvent): ImageEditState? {
-        event.context.fetchRepliedTo(event)?.let { repliedTo ->
+        event.context.fetchRepliedTo(
+            fetchRepliedToRequest {
+                this.event = event
+            },
+        ).eventOrNull?.let { repliedTo ->
             getImageFromAttachments(repliedTo)?.let { file ->
                 editAndSend(ImageEditState(event), event, file)
                 return null
@@ -57,9 +65,14 @@ abstract class ImageEditCommand : CommandHandler {
             mimeType = MIME
             this.content = content.toByteString()
         }
-        val uploadedFiles = event.context.uploadRaw(listOf(fd), false)
+        val uploadedFiles = event.context.uploadRaw(
+            uploadRawRequest {
+                voiceClip = false
+                files += fd
+            },
+        )
 
-        Response(event, files = uploadedFiles).send()
+        Response(event, files = uploadedFiles.filesList).send()
     }
 
     private suspend fun getImageFromAttachments(event: MessageEvent): ByteArray? {
@@ -69,7 +82,7 @@ abstract class ImageEditCommand : CommandHandler {
             ?: return null
 
         return withContext(Dispatchers.IO) {
-            val url = event.context.fetchImageUrl(id)
+            val url = event.context.fetchImageUrl(fetchImageUrlRequest { this.id = id }).url
             val response = client.get(url)
 
             when (response.status) {

@@ -10,7 +10,6 @@ import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.proto.MessageEvent
-import pl.kvgx12.wiertarbot.utils.proto.context
 import pl.kvgx12.wiertarbot.utils.proto.send
 import java.time.Instant
 import java.util.*
@@ -54,7 +53,7 @@ class CommandService(
                         event.authorId,
                     )
                 ) {
-                    when (val command = commands[event.context.connectorType]!![commandName]?.handler) {
+                    when (val command = commands[event.connectorInfo.connectorType]!![commandName]?.handler) {
                         is ImageEditCommand -> launch {
                             command.check(event)?.let {
                                 imageEditQueue[event.editQueueId] = Instant.now().epochSecond to it

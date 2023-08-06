@@ -13,9 +13,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.springframework.context.support.BeanDefinitionDsl
 import pl.kvgx12.wiertarbot.command.dsl.*
+import pl.kvgx12.wiertarbot.proto.connector.uploadRequest
+import pl.kvgx12.wiertarbot.proto.fileData
 import pl.kvgx12.wiertarbot.utils.proto.Response
 import pl.kvgx12.wiertarbot.utils.proto.context
-import pl.kvgx12.wiertarbot.proto.fileData
 import kotlin.random.Random
 
 val randomImageApiCommands = commands {
@@ -38,7 +39,12 @@ val randomImageApiCommands = commands {
             Response(
                 event,
                 text = meme.name,
-                files = event.context.upload(meme.url),
+                files = event.context.upload(
+                    uploadRequest {
+                        files += meme.url
+                        voiceClip = false
+                    },
+                ).filesList,
             )
         }
     }
@@ -107,7 +113,12 @@ private inline fun <reified T : WithFileAndMessage> BeanDefinitionDsl.randomImag
         Response(
             event,
             text = response.message,
-            files = event.context.upload(response.file),
+            files = event.context.upload(
+                uploadRequest {
+                    files += response.file
+                    voiceClip = false
+                },
+            ).filesList,
         )
     }
 }

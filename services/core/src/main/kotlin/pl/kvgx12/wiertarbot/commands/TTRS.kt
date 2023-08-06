@@ -18,9 +18,10 @@ import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.generic
 import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.properties.TTRSProperties
+import pl.kvgx12.wiertarbot.proto.connector.uploadRawRequest
+import pl.kvgx12.wiertarbot.proto.fileData
 import pl.kvgx12.wiertarbot.utils.proto.Response
 import pl.kvgx12.wiertarbot.utils.proto.context
-import pl.kvgx12.wiertarbot.proto.fileData
 
 val ttrsCommands = commands {
     command("tts") {
@@ -63,15 +64,15 @@ val ttrsCommands = commands {
             when (response.status) {
                 HttpStatusCode.OK -> {
                     val file = event.context.uploadRaw(
-                        listOf(
-                            fileData {
+                        uploadRawRequest {
+                            files += fileData {
                                 uri = "tts.mp3"
                                 mimeType = "audio/mp3"
                                 content = response.readBytes().toByteString()
-                            },
-                        ),
-                        true,
-                    )
+                            }
+                            voiceClip = true
+                        },
+                    ).filesList
 
                     Response(event, files = file)
                 }

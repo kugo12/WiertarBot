@@ -2,10 +2,12 @@ package pl.kvgx12.wiertarbot.command.dsl
 
 import com.sksamuel.scrimage.ImmutableImage
 import pl.kvgx12.wiertarbot.command.*
-import pl.kvgx12.wiertarbot.utils.proto.context
 import pl.kvgx12.wiertarbot.proto.FileData
 import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.connector.uploadRawRequest
+import pl.kvgx12.wiertarbot.proto.connector.uploadRequest
 import pl.kvgx12.wiertarbot.proto.response
+import pl.kvgx12.wiertarbot.utils.proto.context
 import pl.kvgx12.wiertarbot.utils.toImmutableImage
 import java.awt.image.BufferedImage
 
@@ -54,7 +56,12 @@ inline fun CommandDsl.files(
 ) = generic {
     response {
         event = it
-        files += it.context.upload(func(it), voiceClip).orEmpty()
+        files += it.context.upload(
+            uploadRequest {
+                this.voiceClip = voiceClip
+                files += func(it)
+            },
+        ).filesList
     }
 }
 
@@ -64,7 +71,12 @@ inline fun CommandDsl.rawFiles(
 ) = generic {
     response {
         event = it
-        files += it.context.uploadRaw(func(it), voiceClip)
+        files += it.context.uploadRaw(
+            uploadRawRequest {
+                this.voiceClip = voiceClip
+                files += func(it)
+            },
+        ).filesList
     }
 }
 
@@ -74,7 +86,7 @@ inline fun CommandDsl.file(
 ) = generic {
     response {
         event = it
-        files += it.context.upload(listOf(func(it)), voiceClip).orEmpty()
+        files += it.context.upload(func(it), voiceClip).filesList
     }
 }
 
@@ -84,6 +96,11 @@ inline fun CommandDsl.rawFile(
 ) = generic {
     response {
         event = it
-        files += it.context.uploadRaw(listOf(func(it)), voiceClip)
+        files += it.context.uploadRaw(
+            uploadRawRequest {
+                this.voiceClip = voiceClip
+                files += func(it)
+            },
+        ).filesList
     }
 }
