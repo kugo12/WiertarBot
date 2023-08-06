@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.commands
 
+import com.google.protobuf.kotlin.toByteString
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -17,8 +18,9 @@ import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.generic
 import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.properties.TTRSProperties
-import pl.kvgx12.wiertarbot.connector.FileData
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.utils.proto.Response
+import pl.kvgx12.wiertarbot.utils.proto.context
+import pl.kvgx12.wiertarbot.proto.fileData
 
 val ttrsCommands = commands {
     command("tts") {
@@ -61,7 +63,13 @@ val ttrsCommands = commands {
             when (response.status) {
                 HttpStatusCode.OK -> {
                     val file = event.context.uploadRaw(
-                        listOf(FileData("tts.mp3", response.readBytes(), "audio/mp3")),
+                        listOf(
+                            fileData {
+                                uri = "tts.mp3"
+                                mimeType = "audio/mp3"
+                                content = response.readBytes().toByteString()
+                            },
+                        ),
                         true,
                     )
 

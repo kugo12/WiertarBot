@@ -1,7 +1,7 @@
 package pl.kvgx12.wiertarbot.command.dsl
 
 import org.springframework.context.support.BeanDefinitionDsl
-import pl.kvgx12.wiertarbot.connector.ConnectorType
+import pl.kvgx12.wiertarbot.proto.ConnectorType
 import java.util.*
 
 class CommandDsl(
@@ -10,7 +10,7 @@ class CommandDsl(
     val aliases: List<String> = emptyList(),
 ) {
     var help: String? = null
-    var availableIn: EnumSet<ConnectorType> = ConnectorType.all()
+    var availableIn: EnumSet<ConnectorType> = EnumSet.allOf(ConnectorType::class.java)
 
     inline fun help(eval: HelpEval) {
         help = eval(

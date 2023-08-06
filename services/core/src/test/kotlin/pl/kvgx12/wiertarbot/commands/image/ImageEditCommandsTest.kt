@@ -13,10 +13,8 @@ import pl.kvgx12.wiertarbot.command.CommandMetadata
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.commands.CommandTestInitializer
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.connector.UploadedFile
-import pl.kvgx12.wiertarbot.events.ImageAttachment
-import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.proto.MessageEvent
 
 @ContextConfiguration(initializers = [CommandTestInitializer::class])
 class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(

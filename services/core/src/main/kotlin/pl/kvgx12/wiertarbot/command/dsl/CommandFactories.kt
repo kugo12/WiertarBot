@@ -2,9 +2,10 @@ package pl.kvgx12.wiertarbot.command.dsl
 
 import com.sksamuel.scrimage.ImmutableImage
 import pl.kvgx12.wiertarbot.command.*
-import pl.kvgx12.wiertarbot.connector.FileData
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.utils.proto.context
+import pl.kvgx12.wiertarbot.proto.FileData
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.response
 import pl.kvgx12.wiertarbot.utils.toImmutableImage
 import java.awt.image.BufferedImage
 
@@ -38,24 +39,51 @@ fun CommandDsl.metadata(func: CommandHandler) = CommandMetadata(
 
 inline fun CommandDsl.text(
     crossinline func: suspend (MessageEvent) -> String?,
-) = generic { Response(it, text = func(it)) }
+) = generic {
+    response {
+        event = it
+        func(it)?.let { t ->
+            text = t
+        }
+    }
+}
 
 inline fun CommandDsl.files(
     voiceClip: Boolean = false,
     crossinline func: suspend (MessageEvent) -> List<String>,
-) = generic { Response(it, files = it.context.upload(func(it), voiceClip)) }
+) = generic {
+    response {
+        event = it
+        files += it.context.upload(func(it), voiceClip).orEmpty()
+    }
+}
 
 inline fun CommandDsl.rawFiles(
     voiceClip: Boolean = false,
     crossinline func: suspend (MessageEvent) -> List<FileData>,
-) = generic { Response(it, files = it.context.uploadRaw(func(it), voiceClip)) }
+) = generic {
+    response {
+        event = it
+        files += it.context.uploadRaw(func(it), voiceClip)
+    }
+}
 
 inline fun CommandDsl.file(
     voiceClip: Boolean = false,
     crossinline func: suspend (MessageEvent) -> String,
-) = generic { Response(it, files = it.context.upload(func(it), voiceClip)) }
+) = generic {
+    response {
+        event = it
+        files += it.context.upload(listOf(func(it)), voiceClip).orEmpty()
+    }
+}
 
 inline fun CommandDsl.rawFile(
     voiceClip: Boolean = false,
     crossinline func: suspend (MessageEvent) -> FileData,
-) = generic { Response(it, files = it.context.uploadRaw(listOf(func(it)), voiceClip)) }
+) = generic {
+    response {
+        event = it
+        files += it.context.uploadRaw(listOf(func(it)), voiceClip)
+    }
+}

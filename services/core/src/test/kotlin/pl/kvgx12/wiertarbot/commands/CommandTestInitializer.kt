@@ -10,7 +10,6 @@ import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.bind
 import pl.kvgx12.wiertarbot.config.getBinder
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.connector.ConnectorType
 import pl.kvgx12.wiertarbot.services.CommandRegistrationService
 import pl.kvgx12.wiertarbot.services.PermissionService
 import pl.kvgx12.wiertarbot.utils.scopedCommandName

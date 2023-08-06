@@ -11,6 +11,9 @@ detekt = "1.23.0"
 spring = "3.1.1"
 spring-dependency-management = "1.1.0"
 
+protobuf-plugin = "0.9.4"
+protobuf = "3.23.4"
+
 ktor = "2.3.0"
 
 kotest = "5.6.2"
@@ -48,6 +51,8 @@ ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 
 spring-boot = { id = "org.springframework.boot", version.ref = "spring" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+
+protobuf = { id = "com.google.protobuf", version.ref = "protobuf-plugin" }
 
 [libraries]
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
@@ -125,6 +130,9 @@ kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotest-spring = { module = "io.kotest.extensions:kotest-extensions-spring", version.ref = "kotest-extension" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf" }
 
 [bundles]
 ktor-client = [

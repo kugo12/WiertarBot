@@ -1,0 +1,34 @@
+syntax = "proto3";
+import "connector.proto";
+import "attachment.proto";
+
+option java_package = "pl.kvgx12.wiertarbot.proto";
+option java_multiple_files = true;
+
+message Event {
+    oneof event {
+        MessageEvent message = 2;
+    }
+}
+
+message MessageEvent {
+    ConnectorInfo connectorInfo = 1;
+    string text = 2;
+    string authorId = 3;
+    string threadId = 4;
+    int64 at = 5;
+    repeated Mention mentions = 6;
+    string externalId = 7;
+    optional string replyToId = 8;
+    repeated Attachment attachments = 9;
+    optional MessageEvent replyTo = 10;
+}
+
+message Response {
+    MessageEvent event = 1;
+    optional string text = 2;
+    repeated UploadedFile files = 3;
+    bool voiceClip = 4;
+    repeated Mention mentions = 5;
+    optional string replyToId = 6;
+}

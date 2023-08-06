@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option java_package = "pl.kvgx12.wiertarbot.proto";
+option java_multiple_files = true;
+
+enum ConnectorType {
+    FB = 0;
+    TELEGRAM = 1;
+}
+
+message ConnectorInfo {
+    ConnectorType connectorType = 1;
+    string botId = 2;
+}

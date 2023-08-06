@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.commands.image.random
 
+import com.google.protobuf.kotlin.toByteString
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.cio.*
@@ -12,8 +13,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.springframework.context.support.BeanDefinitionDsl
 import pl.kvgx12.wiertarbot.command.dsl.*
-import pl.kvgx12.wiertarbot.connector.FileData
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.utils.proto.Response
+import pl.kvgx12.wiertarbot.utils.proto.context
+import pl.kvgx12.wiertarbot.proto.fileData
 import kotlin.random.Random
 
 val randomImageApiCommands = commands {
@@ -72,7 +74,11 @@ val randomImageApiCommands = commands {
             val url = response.results.first().urls.regular
             val imageResponse = client.get(url)
 
-            FileData(url, imageResponse.body(), imageResponse.contentType().toString())
+            fileData {
+                uri = url
+                content = imageResponse.body<ByteArray>().toByteString()
+                mimeType = imageResponse.contentType().toString()
+            }
         }
     }
 }

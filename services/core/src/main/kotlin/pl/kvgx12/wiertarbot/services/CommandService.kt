@@ -9,7 +9,9 @@ import pl.kvgx12.wiertarbot.command.GenericCommandHandler
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.events.MessageEvent
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.utils.proto.context
+import pl.kvgx12.wiertarbot.utils.proto.send
 import java.time.Instant
 import java.util.*
 import kotlin.collections.set

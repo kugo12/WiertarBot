@@ -7,8 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.CommandLineRunner
 import pl.kvgx12.wiertarbot.connector.Connector
-import pl.kvgx12.wiertarbot.events.Event
-import pl.kvgx12.wiertarbot.events.MessageEvent
+import pl.kvgx12.wiertarbot.proto.Event
 import pl.kvgx12.wiertarbot.services.CommandService
 import pl.kvgx12.wiertarbot.utils.getLogger
 import kotlin.system.exitProcess
@@ -25,8 +24,8 @@ class Runner(
 
     private suspend fun consume(event: Event) {
         runCatching {
-            when (event) {
-                is MessageEvent -> commandService.dispatch(event)
+            when {
+                event.hasMessage() -> commandService.dispatch(event.message)
             }
         }.onFailure(log::error)
     }

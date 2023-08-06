@@ -7,10 +7,13 @@ import pl.kvgx12.wiertarbot.command.dsl.command
 import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.connector.ConnectorType
+import pl.kvgx12.wiertarbot.utils.proto.set
 import pl.kvgx12.wiertarbot.connectors.fb.FBMessageService
-import pl.kvgx12.wiertarbot.events.Mention
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.utils.proto.Response
+import pl.kvgx12.wiertarbot.utils.proto.context
+import pl.kvgx12.wiertarbot.utils.proto.send
+import pl.kvgx12.wiertarbot.proto.ConnectorType
+import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.services.CommandRegistrationService
 import pl.kvgx12.wiertarbot.services.PermissionService
 import java.time.Duration
@@ -65,7 +68,7 @@ val utilityCommands = commands {
     command("uid") {
         help(usage = "oznaczenie", returns = "twoje id lub oznaczonej osoby")
 
-        text { it.mentions.firstOrNull()?.threadId ?: it.authorId }
+        text { it.mentionsList.firstOrNull()?.threadId ?: it.authorId }
     }
 
     command("ile") {
@@ -109,7 +112,11 @@ val utilityCommands = commands {
                         messages.collect { message ->
                             isEmpty = false
                             val mentions = message.mentions.map {
-                                Mention(it.threadId, it.offset, it.length)
+                                mention {
+                                    threadId = it.threadId
+                                    offset = it.offset
+                                    length = it.length
+                                }
                             }
                             var voiceClip = false
                             val attachments = message.attachments.mapNotNull {
@@ -194,7 +201,7 @@ val utilityCommands = commands {
                     val isAdd = args[1] == "add"
                     val uids = buildList {
                         addAll(args.drop(4))
-                        event.mentions.mapTo(this) { it.threadId }
+                        event.mentionsList.mapTo(this) { it.threadId }
                     }
 
                     when (permissionService.edit(args[2], uids, isBlacklist, isAdd, tid)) {

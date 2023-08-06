@@ -1,18 +1,20 @@
 package pl.kvgx12.wiertarbot.connectors.fb
 
+import com.google.protobuf.kotlin.toByteString
 import io.ktor.client.call.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import pl.kvgx12.fbchat.data.*
+import pl.kvgx12.fbchat.data.Mention
 import pl.kvgx12.fbchat.requests.*
 import pl.kvgx12.fbchat.session.Session
-import pl.kvgx12.wiertarbot.connector.*
-import pl.kvgx12.wiertarbot.connector.ThreadData
+import pl.kvgx12.wiertarbot.connector.ConnectorContext
 import pl.kvgx12.wiertarbot.connectors.fb.FBKtConnector.Companion.toGeneric
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.utils.proto.isGroup
+import pl.kvgx12.wiertarbot.proto.*
+import pl.kvgx12.wiertarbot.proto.ThreadData
 import pl.kvgx12.wiertarbot.utils.contentType
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
@@ -30,10 +32,10 @@ class FBKtContext(
         session.sendMessage(
             thread = thread,
             text = response.text,
-            files = response.files.orEmpty()
+            files = response.filesList
                 .map { it.id to it.mimeType },
             replyTo = response.replyToId?.let { MessageId(thread, it) },
-            mentions = response.mentions.orEmpty().map {
+            mentions = response.mentionsList.map {
                 Mention(UserId(it.threadId), offset = it.offset, length = it.length)
             },
         )
@@ -44,13 +46,18 @@ class FBKtContext(
             files.map {
                 FBFileData(
                     filename = it.uri,
-                    channel = ChannelProvider(it.content.size.toLong()) { ByteReadChannel(it.content) },
-                    contentType = ContentType.parse(it.mediaType),
+                    channel = ChannelProvider(it.content.size().toLong()) { ByteReadChannel(it.content.asReadOnlyByteBuffer()) },
+                    contentType = ContentType.parse(it.mimeType),
                 )
             },
         )
 
-        return fileData.map { UploadedFile(id = it.first, mimeType = it.second) }
+        return fileData.map {
+            uploadedFile {
+                id = it.first
+                mimeType = it.second
+            }
+        }
     }
 
     override suspend fun fetchThread(threadId: String): ThreadData {
@@ -59,26 +66,26 @@ class FBKtContext(
         checkNotNull(thread) // TODO
 
         return when (thread) {
-            is GroupData -> ThreadData(
-                id = thread.id,
-                name = thread.name.orEmpty(),
-                messageCount = thread.messageCount?.toLong(),
-                participants = thread.participants.map { it.id },
-            )
+            is GroupData -> threadData {
+                id = thread.id
+                name = thread.name.orEmpty()
+                thread.messageCount?.toLong()?.let { messageCount = it }
+                participants += thread.participants.map { it.id }
+            }
 
-            is PageData -> ThreadData(
-                id = thread.id,
-                name = thread.name,
-                messageCount = thread.messageCount?.toLong(),
-                participants = listOf(thread.id, session.userId),
-            )
+            is PageData -> threadData {
+                id = thread.id
+                name = thread.name
+                thread.messageCount?.toLong()?.let { messageCount = it }
+                participants += listOf(thread.id, session.userId)
+            }
 
-            is UserData -> ThreadData(
-                id = thread.id,
-                name = thread.name,
-                messageCount = thread.messageCount?.toLong(),
-                participants = listOf(thread.id, session.userId),
-            )
+            is UserData -> threadData {
+                id = thread.id
+                name = thread.name
+                thread.messageCount?.toLong()?.let { messageCount = it }
+                participants += listOf(thread.id, session.userId)
+            }
         }
     }
 
@@ -106,23 +113,19 @@ class FBKtContext(
             MessageId(event.thread, event.replyToId),
         )
 
-        return MessageEvent(
-            this,
-            text = message.text.orEmpty(),
-            authorId = message.author.id,
-            threadId = message.thread.id,
-            at = message.createdAt!!,
-            mentions = message.mentions.map { it.toGeneric() },
-            externalId = message.id,
-            replyToId = message.repliedTo?.id,
-            attachments = message.attachments.map {
-                it.toGeneric()
-            },
-            null,
-        )
+        return messageEvent {
+            text = message.text.orEmpty()
+            authorId = message.author.id
+            threadId = message.thread.id
+            at = message.createdAt!!
+            mentions.addAll(message.mentions.map { it.toGeneric() })
+            externalId = message.id
+            message.repliedTo?.id?.let { replyToId = it }
+            attachments.addAll(message.attachments.map { it.toGeneric() })
+        }
     }
 
-    override suspend fun upload(files: List<String>, voiceClip: Boolean): List<UploadedFile>? = coroutineScope {
+    override suspend fun upload(files: List<String>, voiceClip: Boolean): List<UploadedFile> = coroutineScope {
         val downloadedFiles = files.map { async { downloadFile(it) } }
             .awaitAll()
 
@@ -137,7 +140,11 @@ class FBKtContext(
                 val content = path.readBytes()
                 val contentType = path.contentType()!!
 
-                FileData(urlString, content, contentType)
+                fileData {
+                    uri = urlString
+                    mimeType = contentType
+                    this.content = content.toByteString()
+                }
             }
         }
 
@@ -148,6 +155,10 @@ class FBKtContext(
 
         val content = response.body<ByteArray>()
 
-        return FileData(url.fullPath, content, contentType)
+        return fileData {
+            uri = url.fullPath
+            mimeType = contentType
+            this.content = content.toByteString()
+        }
     }
 }

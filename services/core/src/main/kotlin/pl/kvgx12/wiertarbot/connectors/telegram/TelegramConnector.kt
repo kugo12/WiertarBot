@@ -23,10 +23,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import pl.kvgx12.wiertarbot.config.properties.TelegramProperties
 import pl.kvgx12.wiertarbot.connector.Connector
-import pl.kvgx12.wiertarbot.events.Attachment
-import pl.kvgx12.wiertarbot.events.Event
-import pl.kvgx12.wiertarbot.events.ImageAttachment
-import pl.kvgx12.wiertarbot.events.MessageEvent
+import pl.kvgx12.wiertarbot.connectors.ContextHolder
+import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.utils.longPolling
 import pl.kvgx12.wiertarbot.utils.text
 
@@ -37,6 +35,14 @@ class TelegramConnector(
     val keeper = TelegramAPIUrlsKeeper(telegramProperties.token)
     val bot = telegramBot(keeper)
     val me = runBlocking { bot.execute(GetMe) }
+    private val info = connectorInfo {
+        connectorType = ConnectorType.TELEGRAM
+        botId = me.id.chatId.toString()
+    }
+
+    init {
+        ContextHolder.set(ConnectorType.TELEGRAM, context)
+    }
 
     override fun run(): Flow<Event> = callbackFlow {
         coroutineScope {
@@ -49,24 +55,28 @@ class TelegramConnector(
     }
 
     fun convert(update: Update): Event? = when (update) {
-        is MessageUpdate -> convert(update.data)
+        is MessageUpdate -> event {
+            message = convert(info, update.data) ?: return null
+        }
+
         else -> null
     }
 
-    fun convert(message: Message): MessageEvent? {
-        return MessageEvent(
-            context = context,
-            text = message.text.orEmpty(),
-            authorId = (message as? FromUser ?: return null).user.id.chatId.toString(),
-            threadId = Json.encodeToString(message.chat.id),
-            at = message.date.unixMillisLong / 1000,
-            mentions = emptyList(),
-            externalId = message.messageId.toString(),
-            replyToId = (message as? PossiblyReplyMessage)?.replyTo?.messageId?.toString(),
-            attachments = getAttachments(message),
-            replyTo = (message as? PossiblyReplyMessage)
-                ?.replyTo?.let(::convert),
-        )
+    fun convert(info: ConnectorInfo, message: Message): MessageEvent? = messageEvent {
+        connectorInfo = info
+        text = message.text.orEmpty()
+        authorId = (message as? FromUser ?: return null).user.id.chatId.toString()
+        threadId = Json.encodeToString(message.chat.id)
+        at = message.date.unixMillisLong / 1000
+        externalId = message.messageId.toString()
+        attachments.addAll(getAttachments(message))
+
+        (message as? PossiblyReplyMessage)?.replyTo?.messageId?.toString()
+            ?.let { replyToId = it }
+
+        (message as? PossiblyReplyMessage)
+            ?.replyTo?.let { convert(info, it) }
+            ?.let { replyTo = it }
     }
 
     fun getAttachments(message: Message) = convert((message as? ContentMessage<*>)?.content)
@@ -77,15 +87,19 @@ class TelegramConnector(
         else -> emptyList()
     }
 
-    fun convert(file: TelegramMediaFile): Attachment = when (file) {
-        is PhotoSize -> ImageAttachment(
-            id = file.fileId.fileId,
-            width = file.width,
-            height = file.height,
-            originalExtension = null,
-            isAnimated = false,
-        )
+    fun convert(file: TelegramMediaFile) = attachment {
+        id = file.fileId.fileId
 
-        else -> Attachment(id = file.fileId.fileId)
+        when (file) {
+            is PhotoSize -> {
+                image = imageAttachment {
+                    width = file.width
+                    height = file.height
+                    isAnimated = false
+                }
+            }
+
+            else -> {}
+        }
     }
 }

@@ -51,7 +51,7 @@ val wbServices = listOf(
     Service(
         "core",
         "wiertarbot",
-        gradleStuff + listOf("libs/fbchat-kt/**", "services/core/**"),
+        gradleStuff + listOf("libs/fbchat-kt/**", "libs/core-proto/**", "services/core/**"),
     ),
     Service(
         "download-api",

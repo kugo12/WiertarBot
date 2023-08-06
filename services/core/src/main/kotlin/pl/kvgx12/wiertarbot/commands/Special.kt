@@ -6,9 +6,9 @@ import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.specialCommand
 import pl.kvgx12.wiertarbot.command.dsl.specialCommandWithContext
-import pl.kvgx12.wiertarbot.events.Mention
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.utils.proto.*
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.services.PermissionService
 
 const val THINKING_EMOJI = "\uD83E\uDD14"
@@ -23,8 +23,14 @@ val specialCommands = commands {
                 event.isGroup &&
                 permissionService.isAuthorized("everyone", event.threadId, event.authorId)
             ) {
-                val mentions = event.context.fetchThread(event.threadId).participants
-                    .map { Mention(it, 0, 9) }
+                val mentions = event.context.fetchThread(event.threadId)
+                    .participantsList.map {
+                        mention {
+                            threadId = it
+                            offset = 0
+                            length = 9
+                        }
+                    }
 
                 Response(event, text = "@everyone", mentions = mentions).send()
             }

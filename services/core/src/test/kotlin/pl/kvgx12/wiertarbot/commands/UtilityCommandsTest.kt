@@ -15,10 +15,9 @@ import org.springframework.context.support.GenericApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.command.CommandMetadata
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.connector.ConnectorType
-import pl.kvgx12.wiertarbot.events.Mention
-import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.proto.ConnectorType
+import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.utils.getCommand
 import pl.kvgx12.wiertarbot.utils.scopedCommandName
 

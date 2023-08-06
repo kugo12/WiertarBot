@@ -22,8 +22,10 @@ import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.commands.modules.Fantano
 import pl.kvgx12.wiertarbot.commands.modules.TheForexAPI
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.events.Mention
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.utils.proto.Response
+import pl.kvgx12.wiertarbot.utils.proto.context
+import pl.kvgx12.wiertarbot.utils.proto.isGroup
+import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.utils.appendElement
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -330,10 +332,10 @@ val standardCommands = commands {
             val uid = when {
                 event.isGroup && args.getOrNull(1) == "random" -> {
                     event.context.fetchThread(event.threadId)
-                        .participants.random()
+                        .participantsList.random()
                 }
 
-                event.mentions.isNotEmpty() -> event.mentions.first().threadId
+                event.mentionsList.isNotEmpty() -> event.mentionsList.first().threadId
                 else -> event.authorId
             }
 
@@ -348,7 +350,13 @@ val standardCommands = commands {
                             if (index == 0) {
                                 append(it)
                             } else {
-                                add(Mention(uid, this@buildString.length, name.length))
+                                add(
+                                    mention {
+                                        threadId = uid
+                                        offset = this@buildString.length
+                                        length = name.length
+                                    },
+                                )
                                 append(name, it)
                             }
                         }

@@ -16,9 +16,9 @@ import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.commands.standard.barka
 import pl.kvgx12.wiertarbot.commands.standard.pastaXd
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.connector.UploadedFile
-import pl.kvgx12.wiertarbot.events.MessageEvent
 import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.Response
 import pl.kvgx12.wiertarbot.utils.getCommand
 import java.util.*
 

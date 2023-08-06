@@ -8,9 +8,8 @@ import org.springframework.context.support.GenericApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.command.dsl.specialCommandName
-import pl.kvgx12.wiertarbot.events.Mention
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.Response
 import pl.kvgx12.wiertarbot.services.PermissionService
 import pl.kvgx12.wiertarbot.utils.responseTextMatcher
 

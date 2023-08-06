@@ -47,6 +47,7 @@ jobs:
             - 'settings.gradle.kts'
             - 'build.gradle.kts'
             - 'libs/fbchat-kt/**'
+            - 'libs/core-proto/**'
             - 'services/core/**'
           download-api:
             - 'gradle/**'

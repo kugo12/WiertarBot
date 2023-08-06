@@ -8,7 +8,7 @@ import kotlinx.coroutines.runBlocking
 import org.openjdk.jmh.annotations.OperationsPerInvocation
 import org.springframework.beans.factory.getBean
 import org.springframework.context.ConfigurableApplicationContext
-import pl.kvgx12.wiertarbot.events.MessageEvent
+import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.services.CommandService
 
 @State(Scope.Benchmark)

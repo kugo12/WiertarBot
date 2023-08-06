@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.connectors.telegram
 
+import com.google.protobuf.kotlin.toByteString
 import dev.inmo.tgbotapi.requests.abstracts.FileId
 import dev.inmo.tgbotapi.requests.abstracts.MultipartFile
 import dev.inmo.tgbotapi.requests.abstracts.Request
@@ -27,16 +28,14 @@ import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
-import pl.kvgx12.wiertarbot.connector.*
-import pl.kvgx12.wiertarbot.events.Mention
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.connector.ConnectorContext
+import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.utils.contentType
 import pl.kvgx12.wiertarbot.utils.contentTypeOrNull
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
-class TelegramContext(private val connector: TelegramConnector) : ConnectorContext(ConnectorType.Telegram) {
+class TelegramContext(private val connector: TelegramConnector) : ConnectorContext(ConnectorType.TELEGRAM) {
     private suspend inline fun <T : Any> execute(request: Request<T>) = connector.bot.execute(request)
 
     private fun chatId(string: String) = Json.decodeFromString<ChatIdentifier>(string)
@@ -48,7 +47,7 @@ class TelegramContext(private val connector: TelegramConnector) : ConnectorConte
     private fun Response.buildEntities() = buildList {
         if (text == null) return@buildList
 
-        mentions?.let { mentions ->
+        mentionsList?.let { mentions ->
             val processed = mentions
                 .sortedBy { it.offset }
                 .fold(0) { acc, mention ->
@@ -118,7 +117,8 @@ class TelegramContext(private val connector: TelegramConnector) : ConnectorConte
         false
     }
 
-    private fun UploadedFile.asMultipartFile() = MultipartFile(id) { ByteReadPacket(content!!) }
+    private fun UploadedFile.asMultipartFile() =
+        MultipartFile(id) { ByteReadPacket(content!!.asReadOnlyByteBuffer()) }
 
     private fun fileToTelegramContent(file: UploadedFile): TelegramMedia {
         val mimeType = file.mimeType
@@ -135,7 +135,7 @@ class TelegramContext(private val connector: TelegramConnector) : ConnectorConte
     override suspend fun getBotId(): String = connector.me.id.chatId.toString()
 
     override suspend fun sendResponse(response: Response) {
-        if (!response.files.isNullOrEmpty() && sendFiles(response, response.files)) {
+        if (!response.filesList.isNullOrEmpty() && sendFiles(response, response.filesList)) {
             return
         }
 
@@ -151,24 +151,29 @@ class TelegramContext(private val connector: TelegramConnector) : ConnectorConte
     }
 
     override suspend fun uploadRaw(files: List<FileData>, voiceClip: Boolean): List<UploadedFile> =
-        files.map { UploadedFile(it.uri, it.mediaType, it.content) }
+        files.map {
+            uploadedFile {
+                id = it.uri
+                mimeType = it.mimeType
+                content = it.content
+            }
+        }
 
     override suspend fun fetchThread(threadId: String): ThreadData {
         val chat = execute(GetChat(ChatId(threadId.toLong())))
 
-        return ThreadData(
-            id = threadId,
+        return threadData {
+            id = threadId
             name = when (chat) {
                 is PublicChat -> chat.title
                 is UsernameChat -> chat.username?.usernameWithoutAt.orEmpty()
                 else -> ""
-            },
-            messageCount = null,
-            participants = when (chat) {
+            }
+            participants += when (chat) {
                 is ExtendedChatWithUsername -> chat.activeUsernames.mapNotNull { it.threadId?.toString() }
                 else -> emptyList()
-            },
-        )
+            }
+        }
     }
 
     override suspend fun fetchImageUrl(imageId: String) =
@@ -199,7 +204,11 @@ class TelegramContext(private val connector: TelegramConnector) : ConnectorConte
                     val content = path.readBytes()
                     val contentType = path.contentType()!!
 
-                    UploadedFile(urlString, contentType, content)
+                    uploadedFile {
+                        id = urlString
+                        mimeType = contentType
+                        this.content = content.toByteString()
+                    }
                 }
             }
 
@@ -213,7 +222,11 @@ class TelegramContext(private val connector: TelegramConnector) : ConnectorConte
             }
             val content = response.body<ByteArray>()
 
-            return UploadedFile(url.fullPath, contentType, content)
+            return uploadedFile {
+                id = url.fullPath
+                mimeType = contentType
+                this.content = content.toByteString()
+            }
         }
 
         private val client = HttpClient { }

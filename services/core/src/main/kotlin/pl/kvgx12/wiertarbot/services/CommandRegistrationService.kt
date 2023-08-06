@@ -4,7 +4,7 @@ import jakarta.annotation.PostConstruct
 import kotlinx.coroutines.runBlocking
 import org.springframework.scheduling.annotation.Async
 import pl.kvgx12.wiertarbot.command.CommandMetadata
-import pl.kvgx12.wiertarbot.connector.ConnectorType
+import pl.kvgx12.wiertarbot.proto.ConnectorType
 import pl.kvgx12.wiertarbot.utils.AllOpen
 import kotlin.collections.component1
 import kotlin.collections.component2
@@ -23,7 +23,7 @@ class CommandRegistrationService(
     }.toMap()
 
     val commandsByConnector: Map<ConnectorType, Map<String, CommandMetadata>> =
-        ConnectorType.all().associateWith { type ->
+        ConnectorType.entries.associateWith { type ->
             commands
                 .filter { it.availableIn.contains(type) }
                 .associateBy { it.name }

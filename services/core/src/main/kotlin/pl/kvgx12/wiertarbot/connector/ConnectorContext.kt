@@ -1,7 +1,6 @@
 package pl.kvgx12.wiertarbot.connector
 
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.proto.*
 
 abstract class ConnectorContext(
     val connectorType: ConnectorType,

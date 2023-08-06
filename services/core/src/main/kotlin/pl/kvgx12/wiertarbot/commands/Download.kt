@@ -14,6 +14,7 @@ import kotlinx.coroutines.launch
 import pl.kvgx12.wiertarbot.command.dsl.command
 import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.properties.DownloadApiProperties
+import pl.kvgx12.wiertarbot.utils.proto.context
 import kotlin.time.Duration.Companion.seconds
 
 val downloadCommand = command("download", "pobierz") {

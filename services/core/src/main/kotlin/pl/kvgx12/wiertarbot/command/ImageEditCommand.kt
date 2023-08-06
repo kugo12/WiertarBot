@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.command
 
+import com.google.protobuf.kotlin.toByteString
 import com.twelvemonkeys.imageio.stream.ByteArrayImageInputStream
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -7,11 +8,11 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import pl.kvgx12.wiertarbot.connector.FileData
-import pl.kvgx12.wiertarbot.events.ImageAttachment
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
-import pl.kvgx12.wiertarbot.utils.tryCast
+import pl.kvgx12.wiertarbot.utils.proto.Response
+import pl.kvgx12.wiertarbot.utils.proto.context
+import pl.kvgx12.wiertarbot.utils.proto.send
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.fileData
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
@@ -50,15 +51,21 @@ abstract class ImageEditCommand : CommandHandler {
     }
 
     private suspend fun editAndSend(state: ImageEditState, event: MessageEvent, file: ByteArray) {
-        val f = edit(state, file)
-        val uploadedFiles = event.context.uploadRaw(listOf(FileData(FILENAME, f, MIME)), false)
+        val content = edit(state, file)
+        val fd = fileData {
+            uri = FILENAME
+            mimeType = MIME
+            this.content = content.toByteString()
+        }
+        val uploadedFiles = event.context.uploadRaw(listOf(fd), false)
 
         Response(event, files = uploadedFiles).send()
     }
 
     private suspend fun getImageFromAttachments(event: MessageEvent): ByteArray? {
-        val id = event.attachments.firstOrNull()
-            .tryCast<ImageAttachment>()?.id
+        val id = event.attachmentsList
+            .firstOrNull { it.hasImage() }
+            ?.id
             ?: return null
 
         return withContext(Dispatchers.IO) {
