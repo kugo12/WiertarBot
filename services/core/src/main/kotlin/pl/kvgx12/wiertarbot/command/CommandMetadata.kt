@@ -19,6 +19,6 @@ fun interface GenericCommandHandler : CommandHandler {
     suspend fun process(event: MessageEvent): Response?
 }
 
-fun interface SpecialCommand {
+fun interface SpecialCommand : CommandHandler {
     suspend fun process(event: MessageEvent)
 }

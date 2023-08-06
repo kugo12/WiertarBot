@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.config
 
+import io.grpc.Server
 import org.springframework.boot.context.properties.bind.Binder
 import org.springframework.boot.context.properties.source.ConfigurationPropertySource
 import org.springframework.cache.caffeine.CaffeineCacheManager
@@ -10,11 +11,9 @@ import pl.kvgx12.wiertarbot.commands.commandBeans
 import pl.kvgx12.wiertarbot.config.properties.FBProperties
 import pl.kvgx12.wiertarbot.config.properties.TelegramProperties
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.connectors.fb.FBKtConnector
-import pl.kvgx12.wiertarbot.connectors.fb.FBKtEventConsumer
-import pl.kvgx12.wiertarbot.connectors.fb.FBKtMilestoneTracker
-import pl.kvgx12.wiertarbot.connectors.fb.FBMessageService
+import pl.kvgx12.wiertarbot.connectors.fb.*
 import pl.kvgx12.wiertarbot.connectors.telegram.TelegramConnector
+import pl.kvgx12.wiertarbot.connectors.telegram.TelegramContext
 import pl.kvgx12.wiertarbot.services.*
 import kotlin.reflect.full.findAnnotation
 
@@ -25,15 +24,17 @@ fun beans() = beans {
     bean { CaffeineCacheManager("permissions") }
 
     bean { binder.bind<WiertarbotProperties>() }
+    bean { binder.bind<GrpcProperties>() }
     rabbitBeans()
 
-    bean<RabbitMQService>()
+    bean<RabbitMQ>()
     bean<PermissionDecoderService>()
     bean<PermissionService>()
 
     commandBeans()
     bean<CommandRegistrationService>()
     bean<CommandService>()
+    bean<GrpcConfig>()
 
     if (env.get("wiertarbot.fb.enabled", false)) {
         bean { binder.bind<FBProperties>() }
@@ -42,14 +43,22 @@ fun beans() = beans {
         bean<FBKtEventConsumer>()
         bean<FBKtConnector>()
         bean<FBKtMilestoneTracker>()
+        bean<FBKtContext>()
     }
 
     if (env.get("wiertarbot.telegram.enabled", false)) {
         bean { binder.bind<TelegramProperties>() }
         bean<TelegramConnector>()
+        bean<TelegramContext>()
     }
 
-    if (!env.activeProfiles.contains("test")) bean<Runner>()
+    if (!env.activeProfiles.contains("test")) {
+        bean {
+            ref<Server>().start()
+            Unit
+        }
+        bean<Runner>()
+    }
 }
 
 inline fun <reified T : Any> ConfigurableEnvironment.get(key: String, default: T): T =

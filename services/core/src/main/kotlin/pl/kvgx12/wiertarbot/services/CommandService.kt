@@ -7,10 +7,9 @@ import kotlinx.coroutines.launch
 import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.GenericCommandHandler
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
-import pl.kvgx12.wiertarbot.command.SpecialCommand
+import pl.kvgx12.wiertarbot.config.ContextHolder
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.proto.MessageEvent
-import pl.kvgx12.wiertarbot.utils.proto.send
 import java.time.Instant
 import java.util.*
 import kotlin.collections.set
@@ -18,11 +17,12 @@ import kotlin.collections.set
 class CommandService(
     private val permissionService: PermissionService,
     private val wiertarbotProperties: WiertarbotProperties,
-    private val special: List<SpecialCommand>,
+    private val contextHolder: ContextHolder,
     commandRegistrationService: CommandRegistrationService,
 ) {
     private val commands = commandRegistrationService.commandsByConnector
     private val aliases = commandRegistrationService.aliases
+    private val specialCommands = commandRegistrationService.specialCommands
 
     private val imageEditQueue = Collections.synchronizedMap(
         mutableMapOf<String, Pair<Long, ImageEditCommand.ImageEditState>>(),
@@ -61,16 +61,21 @@ class CommandService(
                         }
 
                         is GenericCommandHandler -> launch {
-                            command.process(event)?.send()
+                            val response = command.process(event)
+
+                            if (response != null) {
+                                contextHolder[event.connectorInfo.connectorType]
+                                    .sendResponse(response)
+                            }
                         }
 
-                        null -> {}
+                        else -> {}
                     }
                 }
             }
 
             launch(specialCommandsContext) {
-                special.forEach { it.process(event) }
+                specialCommands.forEach { it.process(event) }
             }
         } else {
             val queueId = event.editQueueId

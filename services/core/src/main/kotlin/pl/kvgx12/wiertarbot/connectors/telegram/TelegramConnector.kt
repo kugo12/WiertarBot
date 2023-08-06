@@ -23,7 +23,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import pl.kvgx12.wiertarbot.config.properties.TelegramProperties
 import pl.kvgx12.wiertarbot.connector.Connector
-import pl.kvgx12.wiertarbot.connectors.ContextHolder
 import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.utils.longPolling
 import pl.kvgx12.wiertarbot.utils.text
@@ -31,17 +30,12 @@ import pl.kvgx12.wiertarbot.utils.text
 class TelegramConnector(
     telegramProperties: TelegramProperties,
 ) : Connector {
-    val context = TelegramContext(this)
     val keeper = TelegramAPIUrlsKeeper(telegramProperties.token)
     val bot = telegramBot(keeper)
     val me = runBlocking { bot.execute(GetMe) }
     private val info = connectorInfo {
         connectorType = ConnectorType.TELEGRAM
         botId = me.id.chatId.toString()
-    }
-
-    init {
-        ContextHolder.set(ConnectorType.TELEGRAM, context)
     }
 
     override fun run(): Flow<Event> = callbackFlow {

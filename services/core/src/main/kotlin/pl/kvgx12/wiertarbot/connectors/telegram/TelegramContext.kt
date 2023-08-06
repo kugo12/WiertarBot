@@ -28,7 +28,7 @@ import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
-import pl.kvgx12.wiertarbot.connector.ConnectorContext
+import pl.kvgx12.wiertarbot.connector.ConnectorContextServer
 import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.proto.connector.*
 import pl.kvgx12.wiertarbot.utils.contentType
@@ -36,7 +36,7 @@ import pl.kvgx12.wiertarbot.utils.contentTypeOrNull
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
-class TelegramContext(private val connector: TelegramConnector) : ConnectorContext(ConnectorType.TELEGRAM) {
+class TelegramContext(private val connector: TelegramConnector) : ConnectorContextServer(ConnectorType.TELEGRAM) {
     private suspend inline fun <T : Any> execute(request: Request<T>) = connector.bot.execute(request)
 
     private fun chatId(string: String) = Json.decodeFromString<ChatIdentifier>(string)
@@ -133,17 +133,17 @@ class TelegramContext(private val connector: TelegramConnector) : ConnectorConte
         }
     }
 
-    override suspend fun sendResponse(response: Response): Empty {
-        if (!response.filesList.isNullOrEmpty() && sendFiles(response, response.filesList)) {
+    override suspend fun sendResponse(request: Response): Empty {
+        if (!request.filesList.isNullOrEmpty() && sendFiles(request, request.filesList)) {
             return Empty.getDefaultInstance()
         }
 
-        if (!response.text.isNullOrEmpty()) {
+        if (!request.text.isNullOrEmpty()) {
             execute(
                 SendTextMessage(
-                    chatId(response.event.threadId),
-                    replyToMessageId = response.replyToId?.toLongOrNull(),
-                    entities = response.buildEntities(),
+                    chatId(request.event.threadId),
+                    replyToMessageId = request.replyToId?.toLongOrNull(),
+                    entities = request.buildEntities(),
                 ),
             )
         }

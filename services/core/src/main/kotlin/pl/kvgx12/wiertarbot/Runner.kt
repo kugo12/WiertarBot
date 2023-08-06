@@ -7,6 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.springframework.boot.CommandLineRunner
 import pl.kvgx12.wiertarbot.connector.Connector
+import pl.kvgx12.wiertarbot.connector.ConnectorContextServer
 import pl.kvgx12.wiertarbot.proto.Event
 import pl.kvgx12.wiertarbot.services.CommandService
 import pl.kvgx12.wiertarbot.utils.getLogger
@@ -31,6 +32,8 @@ class Runner(
     }
 
     override fun run(vararg args: String) {
+
+
         runBlocking {
             connectors.forEach {
                 it.run().onEach {

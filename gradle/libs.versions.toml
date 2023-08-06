@@ -139,6 +139,7 @@ protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protob
 
 grpc-kotlin-stub = { module = "io.grpc:grpc-kotlin-stub", version.ref = "grpc-kotlin" }
 grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
+grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
 grpc-protoc-java = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
 grpc-protoc-kotlin = { module = "io.grpc:protoc-gen-grpc-kotlin", version.ref = "grpc-kotlin" }
 

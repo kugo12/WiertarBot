@@ -22,12 +22,9 @@ import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.commands.modules.Fantano
 import pl.kvgx12.wiertarbot.commands.modules.TheForexAPI
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.proto.connector.fetchThreadRequest
-import pl.kvgx12.wiertarbot.proto.connector.uploadRequest
 import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.utils.appendElement
 import pl.kvgx12.wiertarbot.utils.proto.Response
-import pl.kvgx12.wiertarbot.utils.proto.context
 import pl.kvgx12.wiertarbot.utils.proto.isGroup
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -317,14 +314,7 @@ val standardCommands = commands {
             Response(
                 event,
                 text = text,
-                files = files?.let {
-                    event.context.upload(
-                        uploadRequest {
-                            this.files += it
-                            voiceClip = false
-                        },
-                    ).filesList
-                },
+                files = files?.let { event.context.upload(it) },
             )
         }
     }
@@ -344,15 +334,15 @@ val standardCommands = commands {
 
             val uid = when {
                 event.isGroup && args.getOrNull(1) == "random" -> {
-                    event.context.fetchThread(fetchThreadRequest { threadId = event.threadId })
-                        .thread.participantsList.random()
+                    event.context.fetchThread(event.threadId)!!
+                        .participantsList.random()
                 }
 
                 event.mentionsList.isNotEmpty() -> event.mentionsList.first().threadId
                 else -> event.authorId
             }
 
-            val name = event.context.fetchThread(fetchThreadRequest { threadId = uid }).thread.name
+            val name = event.context.fetchThread(uid)?.name.orEmpty()
 
             val text: String
             val mentions = buildList {

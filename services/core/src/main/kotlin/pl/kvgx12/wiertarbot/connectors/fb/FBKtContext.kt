@@ -10,7 +10,7 @@ import pl.kvgx12.fbchat.data.*
 import pl.kvgx12.fbchat.data.Mention
 import pl.kvgx12.fbchat.requests.*
 import pl.kvgx12.fbchat.session.Session
-import pl.kvgx12.wiertarbot.connector.ConnectorContext
+import pl.kvgx12.wiertarbot.connector.ConnectorContextServer
 import pl.kvgx12.wiertarbot.connectors.fb.FBKtConnector.Companion.toGeneric
 import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.proto.connector.*
@@ -22,18 +22,18 @@ import pl.kvgx12.fbchat.requests.FileData as FBFileData
 
 class FBKtContext(
     private val session: Session,
-) : ConnectorContext(ConnectorType.FB) {
+) : ConnectorContextServer(ConnectorType.FB) {
     private inline val MessageEvent.thread get() = if (isGroup) GroupId(threadId) else UserId(threadId)
 
-    override suspend fun sendResponse(response: Response): Empty {
-        val thread = response.event.thread
+    override suspend fun sendResponse(request: Response): Empty {
+        val thread = request.event.thread
         session.sendMessage(
             thread = thread,
-            text = response.text,
-            files = response.filesList
+            text = request.text,
+            files = request.filesList
                 .map { it.id to it.mimeType },
-            replyTo = response.replyToId?.let { MessageId(thread, it) },
-            mentions = response.mentionsList.map {
+            replyTo = request.replyToId?.let { MessageId(thread, it) },
+            mentions = request.mentionsList.map {
                 Mention(UserId(it.threadId), offset = it.offset, length = it.length)
             },
         )

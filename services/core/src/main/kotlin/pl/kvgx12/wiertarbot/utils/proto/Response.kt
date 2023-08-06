@@ -3,8 +3,6 @@ package pl.kvgx12.wiertarbot.utils.proto
 import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.proto.Response
 
-suspend fun Response.send() = event.context.sendResponse(this)
-
 fun Response(
     event: MessageEvent,
     text: String? = null,

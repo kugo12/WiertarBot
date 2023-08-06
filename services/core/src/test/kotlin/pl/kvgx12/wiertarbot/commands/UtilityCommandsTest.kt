@@ -99,7 +99,7 @@ class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
             ConnectorType.entries.forEach { connectorType ->
                 context("${connectorType.name} connector") {
                     beforeTest {
-                        every { event.context.connectorType } returns connectorType
+                        every { event.connectorInfo.connectorType } returns connectorType
                     }
 
                     test("returns prefix and list of all commands for $connectorType") {

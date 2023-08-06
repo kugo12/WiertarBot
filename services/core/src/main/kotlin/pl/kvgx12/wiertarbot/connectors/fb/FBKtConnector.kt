@@ -9,7 +9,6 @@ import pl.kvgx12.fbchat.mqtt.Listener
 import pl.kvgx12.fbchat.session.Session
 import pl.kvgx12.wiertarbot.config.properties.FBProperties
 import pl.kvgx12.wiertarbot.connector.Connector
-import pl.kvgx12.wiertarbot.connectors.ContextHolder
 import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.utils.getLogger
 import pl.kvgx12.fbchat.data.Attachment as FBAttachment
@@ -33,8 +32,6 @@ class FBKtConnector(
 
     override fun run(): Flow<Event> = flow {
         val session = session.await()
-
-        ContextHolder.set(ConnectorType.FB, FBKtContext(session))
         val info = connectorInfo {
             connectorType = ConnectorType.FB
             botId = session.userId

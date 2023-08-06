@@ -4,17 +4,14 @@ import com.sksamuel.scrimage.ImmutableImage
 import pl.kvgx12.wiertarbot.command.*
 import pl.kvgx12.wiertarbot.proto.FileData
 import pl.kvgx12.wiertarbot.proto.MessageEvent
-import pl.kvgx12.wiertarbot.proto.connector.uploadRawRequest
-import pl.kvgx12.wiertarbot.proto.connector.uploadRequest
 import pl.kvgx12.wiertarbot.proto.response
-import pl.kvgx12.wiertarbot.utils.proto.context
 import pl.kvgx12.wiertarbot.utils.toImmutableImage
 import java.awt.image.BufferedImage
 
 inline fun CommandDsl.imageEdit(
     crossinline func: ImageEdit<BufferedImage>,
 ) = metadata(
-    object : ImageEditCommand() {
+    object : ImageEditCommand(this@imageEdit) {
         override suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage =
             func(state, image)
     },
@@ -23,7 +20,7 @@ inline fun CommandDsl.imageEdit(
 inline fun CommandDsl.immutableImageEdit(
     crossinline func: ImageEdit<ImmutableImage>,
 ) = metadata(
-    object : ImageEditCommand() {
+    object : ImageEditCommand(this@immutableImageEdit) {
         override suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage =
             func(state, image.toImmutableImage()).awt()
     },
@@ -32,7 +29,7 @@ inline fun CommandDsl.immutableImageEdit(
 fun CommandDsl.generic(func: GenericCommandHandler) = metadata(func)
 
 fun CommandDsl.metadata(func: CommandHandler) = CommandMetadata(
-    help = help!!,
+    help = if (func is SpecialCommand) "" else help!!,
     name = name,
     aliases = aliases,
     availableIn = availableIn,
@@ -56,12 +53,7 @@ inline fun CommandDsl.files(
 ) = generic {
     response {
         event = it
-        files += it.context.upload(
-            uploadRequest {
-                this.voiceClip = voiceClip
-                files += func(it)
-            },
-        ).filesList
+        files += it.context.upload(func(it), voiceClip)
     }
 }
 
@@ -71,12 +63,7 @@ inline fun CommandDsl.rawFiles(
 ) = generic {
     response {
         event = it
-        files += it.context.uploadRaw(
-            uploadRawRequest {
-                this.voiceClip = voiceClip
-                files += func(it)
-            },
-        ).filesList
+        files += it.context.uploadRaw(func(it), voiceClip)
     }
 }
 
@@ -86,7 +73,7 @@ inline fun CommandDsl.file(
 ) = generic {
     response {
         event = it
-        files += it.context.upload(func(it), voiceClip).filesList
+        files += it.context.upload(func(it), voiceClip)
     }
 }
 
@@ -96,11 +83,8 @@ inline fun CommandDsl.rawFile(
 ) = generic {
     response {
         event = it
-        files += it.context.uploadRaw(
-            uploadRawRequest {
-                this.voiceClip = voiceClip
-                files += func(it)
-            },
-        ).filesList
+        files += it.context.uploadRaw(func(it), voiceClip)
     }
 }
+
+fun CommandDsl.special(func: SpecialCommand) = metadata(func)

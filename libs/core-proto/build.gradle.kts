@@ -10,6 +10,7 @@ dependencies {
     api(libs.protobuf.java)
     api(libs.grpc.kotlin.stub)
     api(libs.grpc.protobuf)
+    api(libs.grpc.netty.shaded)
 }
 
 protobuf {
