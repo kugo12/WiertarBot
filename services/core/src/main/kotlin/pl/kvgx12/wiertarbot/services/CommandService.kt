@@ -31,7 +31,7 @@ class CommandService(
     private val specialCommandsContext = Dispatchers.Default + SupervisorJob()
 
     suspend fun dispatch(event: MessageEvent) = coroutineScope {
-        if (event.authorId == event.context.getBotId() || permissionService.isAuthorized(
+        if (event.authorId == event.connectorInfo.botId || permissionService.isAuthorized(
                 "banned",
                 event.threadId,
                 event.authorId,

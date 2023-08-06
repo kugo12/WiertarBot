@@ -25,8 +25,6 @@ class FBKtContext(
 ) : ConnectorContext(ConnectorType.FB) {
     private inline val MessageEvent.thread get() = if (isGroup) GroupId(threadId) else UserId(threadId)
 
-    override suspend fun getBotId(): String = session.userId
-
     override suspend fun sendResponse(response: Response) {
         val thread = response.event.thread
         session.sendMessage(

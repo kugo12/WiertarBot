@@ -132,8 +132,6 @@ class TelegramContext(private val connector: TelegramConnector) : ConnectorConte
         }
     }
 
-    override suspend fun getBotId(): String = connector.me.id.chatId.toString()
-
     override suspend fun sendResponse(response: Response) {
         if (!response.filesList.isNullOrEmpty() && sendFiles(response, response.filesList)) {
             return

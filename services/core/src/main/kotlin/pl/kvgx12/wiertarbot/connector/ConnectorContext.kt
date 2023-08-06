@@ -5,7 +5,6 @@ import pl.kvgx12.wiertarbot.proto.*
 abstract class ConnectorContext(
     val connectorType: ConnectorType,
 ) {
-    abstract suspend fun getBotId(): String
     abstract suspend fun sendResponse(response: Response)
     abstract suspend fun uploadRaw(files: List<FileData>, voiceClip: Boolean = false): List<UploadedFile>
     abstract suspend fun fetchThread(threadId: String): ThreadData
