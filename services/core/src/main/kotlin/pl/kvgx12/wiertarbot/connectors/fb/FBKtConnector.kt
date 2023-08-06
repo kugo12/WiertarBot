@@ -61,6 +61,7 @@ class FBKtConnector(
             externalId = message.id,
             replyToId = if (this is ThreadEvent.MessageReply) repliedTo.id else message.repliedTo?.id,
             attachments = message.attachments.map { it.toGeneric() },
+            replyTo = null, // TODO: ?
         )
 
         fun FBAttachment.toGeneric(): Attachment = when (this) {

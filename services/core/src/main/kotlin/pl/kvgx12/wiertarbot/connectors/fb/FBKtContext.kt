@@ -118,6 +118,7 @@ class FBKtContext(
             attachments = message.attachments.map {
                 it.toGeneric()
             },
+            null,
         )
     }
 

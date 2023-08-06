@@ -19,6 +19,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import pl.kvgx12.wiertarbot.config.properties.TelegramProperties
 import pl.kvgx12.wiertarbot.connector.Connector
 import pl.kvgx12.wiertarbot.events.Attachment
@@ -31,6 +33,7 @@ import pl.kvgx12.wiertarbot.utils.text
 class TelegramConnector(
     telegramProperties: TelegramProperties,
 ) : Connector {
+    val context = TelegramContext(this)
     val keeper = TelegramAPIUrlsKeeper(telegramProperties.token)
     val bot = telegramBot(keeper)
     val me = runBlocking { bot.execute(GetMe) }
@@ -52,15 +55,17 @@ class TelegramConnector(
 
     fun convert(message: Message): MessageEvent? {
         return MessageEvent(
-            context = TelegramContext(this, message),
+            context = context,
             text = message.text.orEmpty(),
             authorId = (message as? FromUser ?: return null).user.id.chatId.toString(),
-            threadId = message.chat.id.chatId.toString(),
+            threadId = Json.encodeToString(message.chat.id),
             at = message.date.unixMillisLong / 1000,
             mentions = emptyList(),
             externalId = message.messageId.toString(),
             replyToId = (message as? PossiblyReplyMessage)?.replyTo?.messageId?.toString(),
             attachments = getAttachments(message),
+            replyTo = (message as? PossiblyReplyMessage)
+                ?.replyTo?.let(::convert),
         )
     }
 

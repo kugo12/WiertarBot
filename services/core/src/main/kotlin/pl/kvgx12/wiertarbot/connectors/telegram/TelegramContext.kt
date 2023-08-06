@@ -8,14 +8,13 @@ import dev.inmo.tgbotapi.requests.get.GetFile
 import dev.inmo.tgbotapi.requests.send.SendTextMessage
 import dev.inmo.tgbotapi.requests.send.media.*
 import dev.inmo.tgbotapi.types.ChatId
+import dev.inmo.tgbotapi.types.ChatIdentifier
 import dev.inmo.tgbotapi.types.UserId
 import dev.inmo.tgbotapi.types.chat.ExtendedChatWithUsername
 import dev.inmo.tgbotapi.types.chat.PublicChat
 import dev.inmo.tgbotapi.types.chat.UsernameChat
 import dev.inmo.tgbotapi.types.files.fullUrl
 import dev.inmo.tgbotapi.types.media.*
-import dev.inmo.tgbotapi.types.message.abstracts.Message
-import dev.inmo.tgbotapi.types.message.abstracts.PossiblyReplyMessage
 import dev.inmo.tgbotapi.types.message.content.MediaGroupPartContent
 import dev.inmo.tgbotapi.types.message.textsources.mention
 import dev.inmo.tgbotapi.types.message.textsources.regular
@@ -27,6 +26,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.serialization.json.Json
 import pl.kvgx12.wiertarbot.connector.*
 import pl.kvgx12.wiertarbot.events.Mention
 import pl.kvgx12.wiertarbot.events.MessageEvent
@@ -36,11 +36,10 @@ import pl.kvgx12.wiertarbot.utils.contentTypeOrNull
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
-class TelegramContext(
-    private val connector: TelegramConnector,
-    private val message: Message,
-) : ConnectorContext(ConnectorType.Telegram) {
+class TelegramContext(private val connector: TelegramConnector) : ConnectorContext(ConnectorType.Telegram) {
     private suspend inline fun <T : Any> execute(request: Request<T>) = connector.bot.execute(request)
+
+    private fun chatId(string: String) = Json.decodeFromString<ChatIdentifier>(string)
 
     private fun Mention.toEntity(text: String) =
         UserId(threadId.toLong())
@@ -69,7 +68,7 @@ class TelegramContext(
 
     @OptIn(RiskFeature::class)
     private suspend fun sendFiles(response: Response, files: List<UploadedFile>) = coroutineScope {
-        val chatId = message.chat.id
+        val chatId = chatId(response.event.threadId)
         val replyToId = response.replyToId?.toLongOrNull()
 
         if (files.size == 1) {
@@ -143,7 +142,7 @@ class TelegramContext(
         if (!response.text.isNullOrEmpty()) {
             execute(
                 SendTextMessage(
-                    message.chat.id,
+                    chatId(response.event.threadId),
                     replyToMessageId = response.replyToId?.toLongOrNull(),
                     entities = response.buildEntities(),
                 ),
@@ -183,10 +182,7 @@ class TelegramContext(
     // https://bugs.telegram.org/c/12710
     override suspend fun reactToMessage(event: MessageEvent, reaction: String?) = Unit
 
-    override suspend fun fetchRepliedTo(event: MessageEvent) =
-        (message as? PossiblyReplyMessage)
-            ?.replyTo
-            ?.let(connector::convert)
+    override suspend fun fetchRepliedTo(event: MessageEvent) = event.replyTo
 
     override suspend fun upload(files: List<String>, voiceClip: Boolean) = coroutineScope {
         files.map { async { downloadFile(it) } }

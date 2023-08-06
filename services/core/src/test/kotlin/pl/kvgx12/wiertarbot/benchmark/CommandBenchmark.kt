@@ -18,7 +18,7 @@ class CommandBenchmark : AbstractSpringBenchmark() {
 
     override fun ConfigurableApplicationContext.setup() {
         commandService = getBean()
-        event = MessageEvent(mockk(), "!czas", "", "", 0, listOf(), "", null, listOf())
+        event = MessageEvent(mockk(), "!czas", "", "", 0, listOf(), "", null, listOf(), null)
     }
 
     override fun tearDown() {

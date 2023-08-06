@@ -12,6 +12,7 @@ data class MessageEvent(
     val externalId: String,
     val replyToId: String?,
     val attachments: List<Attachment>,
+    val replyTo: MessageEvent?,
 ) : Event {
     val isGroup get() = threadId != authorId
 
