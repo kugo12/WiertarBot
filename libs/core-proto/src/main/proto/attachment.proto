@@ -2,6 +2,7 @@ syntax = "proto3";
 
 option java_package = "pl.kvgx12.wiertarbot.proto";
 option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
 
 message Attachment {
     optional string id = 1;

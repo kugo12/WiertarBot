@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.commands
 
+import com.google.protobuf.LazyStringArrayList
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.*
 import org.springframework.beans.factory.getBean
@@ -10,7 +11,11 @@ import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.command.dsl.specialCommandName
 import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.proto.Response
+import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.services.PermissionService
+import pl.kvgx12.wiertarbot.utils.proto.context
+import pl.kvgx12.wiertarbot.utils.proto.isGroup
+import pl.kvgx12.wiertarbot.utils.proto.react
 import pl.kvgx12.wiertarbot.utils.responseTextMatcher
 
 @ContextConfiguration(initializers = [CommandTestInitializer::class])
@@ -24,7 +29,16 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
 
         afterTest {
             clearMocks(event, permissionService)
+            unmockkStatic(MessageEvent::context)
+            unmockkStatic(MessageEvent::react)
+            unmockkStatic(MessageEvent::isGroup)
             coEvery { permissionService.isAuthorized(any(), any(), any()) } returns true
+        }
+
+        beforeTest {
+            mockkStatic(MessageEvent::context)
+            mockkStatic(MessageEvent::react)
+            mockkStatic(MessageEvent::isGroup)
         }
 
         test("Xd") {
@@ -111,10 +125,16 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
                 }
             }
             val mentions = listOf(
-                Mention("test-user1", 0, 9),
-                Mention("test-user2", 0, 9),
-                Mention("test-user3", 0, 9),
-            )
+                "test-user1",
+                "test-user2",
+                "test-user3",
+            ).map {
+                mention {
+                    threadId = it
+                    offset = 0
+                    length = 9
+                }
+            }
 
             beforeTest {
                 every { event.isGroup } returns true
@@ -143,13 +163,13 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
 
             test("mentions all users") {
                 coEvery {
-                    event.context.fetchThread("test-thread").participants
-                } returns mentions.map { it.threadId }
+                    event.context.fetchThread("test-thread").participantsList
+                } returns LazyStringArrayList(mentions.map { it.threadId })
 
                 val matcher = FunctionMatcher<Response>(
                     {
                         it.text == "@everyone" &&
-                            it.mentions == mentions
+                            it.mentionsList == mentions
                     },
                     Response::class,
                 )

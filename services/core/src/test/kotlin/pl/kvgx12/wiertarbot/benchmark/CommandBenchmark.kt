@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.benchmark
 
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.benchmark.*
 import kotlinx.coroutines.async
@@ -18,7 +19,9 @@ class CommandBenchmark : AbstractSpringBenchmark() {
 
     override fun ConfigurableApplicationContext.setup() {
         commandService = getBean()
-        event = MessageEvent(mockk(), "!czas", "", "", 0, listOf(), "", null, listOf(), null)
+        event = mockk {
+            every { text } returns "!czas"
+        }
     }
 
     override fun tearDown() {

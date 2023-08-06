@@ -1,21 +1,20 @@
 package pl.kvgx12.wiertarbot.commands.image
 
+import com.google.protobuf.ByteString
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.equality.shouldBeEqualToIgnoringFields
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.clearMocks
-import io.mockk.coEvery
-import io.mockk.every
-import io.mockk.mockk
+import io.mockk.*
 import org.springframework.beans.factory.getBean
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.commands.CommandTestInitializer
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.proto.Response
+import pl.kvgx12.wiertarbot.proto.uploadedFile
 import pl.kvgx12.wiertarbot.utils.getCommand
+import pl.kvgx12.wiertarbot.utils.proto.context
 
 @ContextConfiguration(initializers = [CommandTestInitializer::class])
 class RandomImageCommandsTest(context: GenericApplicationContext) : FunSpec(
@@ -25,6 +24,11 @@ class RandomImageCommandsTest(context: GenericApplicationContext) : FunSpec(
 
         afterTest {
             clearMocks(event)
+            unmockkStatic(MessageEvent::context)
+        }
+
+        beforeTest {
+            mockkStatic(MessageEvent::context)
         }
 
         listOf(
@@ -54,31 +58,34 @@ class RandomImageCommandsTest(context: GenericApplicationContext) : FunSpec(
         ).forEach { commandName ->
             test("command $commandName should return image") {
                 val uploaded = listOf(
-                    UploadedFile("test-id", "test/mimetype", ByteArray(0)),
+                    uploadedFile {
+                        id = "test-id"
+                        mimeType = "test/mimetype"
+                        content = ByteString.EMPTY
+                    },
                 )
                 every { event.text } returns "${prefix}$commandName"
-                coEvery {
-                    event.context.upload(
-                        match<List<String>> { it.size == 1 },
-                        false,
-                    )
-                } returns uploaded
-                coEvery {
-                    event.context.uploadRaw(
-                        match { it.size == 1 },
-                        false,
-                    )
-                } returns uploaded
+                every { event.context } returns mockk {
+                    coEvery {
+                        upload(
+                            match<List<String>> { it.size == 1 },
+                            false,
+                        )
+                    } returns uploaded
+                    coEvery {
+                        uploadRaw(
+                            match { it.size == 1 },
+                            false,
+                        )
+                    } returns uploaded
+                }
 
                 val response = context.getCommand(commandName)
                     .second
                     .process(event)
 
                 response.shouldBeInstanceOf<Response>()
-                response.shouldBeEqualToIgnoringFields(
-                    Response(event, files = uploaded),
-                    Response::text,
-                )
+                response.filesList shouldBe uploaded
             }
         }
     },

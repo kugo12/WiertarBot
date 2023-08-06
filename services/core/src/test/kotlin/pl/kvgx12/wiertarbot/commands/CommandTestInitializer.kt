@@ -10,8 +10,10 @@ import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.bind
 import pl.kvgx12.wiertarbot.config.getBinder
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
+import pl.kvgx12.wiertarbot.proto.ConnectorType
 import pl.kvgx12.wiertarbot.services.CommandRegistrationService
 import pl.kvgx12.wiertarbot.services.PermissionService
+import pl.kvgx12.wiertarbot.utils.proto.set
 import pl.kvgx12.wiertarbot.utils.scopedCommandName
 
 class CommandTestInitializer : ApplicationContextInitializer<GenericApplicationContext> {
@@ -31,7 +33,7 @@ class CommandTestInitializer : ApplicationContextInitializer<GenericApplicationC
 
             commandBeans()
 
-            ConnectorType.all().forEach {
+            ConnectorType.entries.forEach {
                 command(it.scopedCommandName()) {
                     availableIn = it.set()
                     help(returns = "io io $it")

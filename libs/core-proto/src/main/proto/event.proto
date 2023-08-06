@@ -4,6 +4,7 @@ import "attachment.proto";
 
 option java_package = "pl.kvgx12.wiertarbot.proto";
 option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
 
 message Event {
     oneof event {

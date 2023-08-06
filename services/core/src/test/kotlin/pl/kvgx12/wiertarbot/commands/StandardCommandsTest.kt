@@ -1,25 +1,25 @@
 package pl.kvgx12.wiertarbot.commands
 
+import com.google.protobuf.ByteString
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeBlank
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.clearMocks
-import io.mockk.coEvery
-import io.mockk.every
-import io.mockk.mockk
+import io.mockk.*
 import org.springframework.beans.factory.getBean
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.commands.standard.barka
 import pl.kvgx12.wiertarbot.commands.standard.pastaXd
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.proto.Response
+import pl.kvgx12.wiertarbot.proto.uploadedFile
 import pl.kvgx12.wiertarbot.utils.getCommand
+import pl.kvgx12.wiertarbot.utils.proto.Response
+import pl.kvgx12.wiertarbot.utils.proto.context
 import java.util.*
 
 @ContextConfiguration(initializers = [CommandTestInitializer::class])
@@ -30,6 +30,11 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
 
         afterTest {
             clearMocks(event)
+            unmockkStatic(MessageEvent::context)
+        }
+
+        beforeTest {
+            mockkStatic(MessageEvent::context)
         }
 
         context("wybierz") {
@@ -233,17 +238,19 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
             }
 
             test("returns correct value") {
-                val files = listOf(
-                    UploadedFile("test", "test", ByteArray(0)),
-                    UploadedFile("test2", "test2", ByteArray(0)),
-                    UploadedFile("test3", "test3", ByteArray(0)),
-                    UploadedFile("test4", "test4", ByteArray(0)),
-                )
+                val size = 4
+                val files = (1..size).map {
+                    uploadedFile {
+                        id = "test$it"
+                        mimeType = "test$it"
+                        content = ByteString.EMPTY
+                    }
+                }
 
                 every { event.text } returns "${prefix}mc skin notch"
 
                 // TODO: check if passed urls are reachable images
-                coEvery { event.context.upload(match<List<String>> { it.size == 4 }) } returns files
+                coEvery { event.context.upload(match<List<String>> { it.size == size }) } returns files
 
                 handler.process(event) shouldBe Response(
                     event,

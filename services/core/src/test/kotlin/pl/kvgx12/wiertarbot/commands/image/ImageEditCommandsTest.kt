@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.commands.image
 
+import com.google.protobuf.ByteString
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.nulls.shouldBeNull
@@ -13,8 +14,12 @@ import pl.kvgx12.wiertarbot.command.CommandMetadata
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.commands.CommandTestInitializer
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.events.Response
 import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.attachment
+import pl.kvgx12.wiertarbot.proto.imageAttachment
+import pl.kvgx12.wiertarbot.proto.uploadedFile
+import pl.kvgx12.wiertarbot.utils.proto.Response
+import pl.kvgx12.wiertarbot.utils.proto.context
 
 @ContextConfiguration(initializers = [CommandTestInitializer::class])
 class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
@@ -25,7 +30,40 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
             it.readBytes()
         }
         val uploaded = listOf(
-            UploadedFile("test-id", "test/mimetype", ByteArray(0)),
+            uploadedFile {
+                id = "test-id"
+                mimeType = "test/mimetype"
+                content = ByteString.EMPTY
+            },
+        )
+
+        afterTest {
+            unmockkStatic(MessageEvent::context)
+        }
+
+        beforeTest {
+            mockkStatic(MessageEvent::context)
+        }
+
+        val dummyImageAttachments = listOf(
+            attachment {
+                id = "test-id1"
+                image = imageAttachment {
+                    width = 100
+                    height = 200
+                    originalExtension = "jpg"
+                    isAnimated = false
+                }
+            },
+            attachment {
+                id = "test-id2"
+                image = imageAttachment {
+                    width = 100
+                    height = 200
+                    originalExtension = "jpg"
+                    isAnimated = false
+                }
+            },
         )
 
         afterTest {
@@ -59,10 +97,7 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
                     val eventWithImage = mockk<MessageEvent> {
                         val e = this
 
-                        every { attachments } returns listOf(
-                            ImageAttachment("test-id1", 100, 200, "jpg", false),
-                            ImageAttachment("test-id2", 100, 200, "jpg", false),
-                        )
+                        every { attachmentsList } returns dummyImageAttachments
 
                         every { this@mockk.context } returns mockk {
                             coEvery {
@@ -80,10 +115,7 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
 
                 test("should return image - replied to flow") {
                     val eventWithImage = mockk<MessageEvent> {
-                        every { attachments } returns listOf(
-                            ImageAttachment("test-id1", 100, 200, "jpg", false),
-                            ImageAttachment("test-id2", 100, 200, "jpg", false),
-                        )
+                        every { attachmentsList } returns dummyImageAttachments
                     }
 
                     every { event.context } returns mockk {
