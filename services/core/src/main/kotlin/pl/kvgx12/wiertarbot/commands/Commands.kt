@@ -1,6 +1,9 @@
 package pl.kvgx12.wiertarbot.commands
 
 import pl.kvgx12.wiertarbot.command.dsl.commands
+import pl.kvgx12.wiertarbot.commands.clients.clientBeans
+import pl.kvgx12.wiertarbot.commands.clients.httpClient
+import pl.kvgx12.wiertarbot.commands.clients.internal.TTRSClient
 import pl.kvgx12.wiertarbot.commands.image.edit.imageEditCommands
 import pl.kvgx12.wiertarbot.commands.image.random.localMediaCommands
 import pl.kvgx12.wiertarbot.commands.image.random.randomImageApiCommands
@@ -8,6 +11,8 @@ import pl.kvgx12.wiertarbot.commands.image.random.randomImageScrapingCommands
 import pl.kvgx12.wiertarbot.commands.standard.standardCommands
 
 val commandBeans = commands {
+    clientBeans()
+
     specialCommands()
 
     imageEditCommands()

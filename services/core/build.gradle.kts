@@ -31,6 +31,8 @@ dependencies {
     implementation(project(":libs:core-proto"))
 
     implementation(libs.bundles.spring)
+    implementation(libs.spring.starter.web)
+    implementation(libs.spring.starter.webflux)
     implementation(libs.spring.starter.data.r2dbc)
     implementation(libs.spring.starter.amqp)
     implementation(libs.spring.starter.cache)
@@ -39,8 +41,6 @@ dependencies {
     implementation(libs.spring.kotlinx.coroutines.reactor)
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
-
-    implementation(libs.bundles.ktor.client)
 
     implementation(libs.caffeine)
     implementation(libs.scrimage.core)

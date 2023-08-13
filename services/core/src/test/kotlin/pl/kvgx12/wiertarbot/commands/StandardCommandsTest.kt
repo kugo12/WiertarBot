@@ -26,7 +26,7 @@ import java.util.*
 @ContextConfiguration(initializers = [CommandTestInitializer::class])
 class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
     {
-        val event = mockk<MessageEvent>()
+        val event = mockk<MessageEvent>(relaxed = true)
         val prefix = context.getBean<WiertarbotProperties>().prefix
         val connectorContext = context.getBean<ConnectorContextClient>()
 
@@ -164,10 +164,10 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
             val helpResponse = Response(event, text = metadata.help)
 
             test("invalid currency") {
-                every { event.text } returns "${prefix}kurs abc pln"
+                every { event.text } returns "${prefix}kurs abc123 pln"
                 handler.process(event) shouldBe invalidCurrencyResponse
 
-                every { event.text } returns "${prefix}kurs pln abc"
+                every { event.text } returns "${prefix}kurs pln abc123"
                 handler.process(event) shouldBe invalidCurrencyResponse
             }
 

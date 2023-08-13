@@ -1,29 +1,14 @@
 package pl.kvgx12.wiertarbot.commands.standard
 
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import it.skrape.core.htmlDocument
 import kotlinx.datetime.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import pl.kvgx12.wiertarbot.Constants
-import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.command.dsl.command
 import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.generic
 import pl.kvgx12.wiertarbot.command.dsl.text
-import pl.kvgx12.wiertarbot.commands.modules.Fantano
-import pl.kvgx12.wiertarbot.commands.modules.TheForexAPI
+import pl.kvgx12.wiertarbot.commands.clients.external.*
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.proto.mention
-import pl.kvgx12.wiertarbot.utils.appendElement
 import pl.kvgx12.wiertarbot.utils.proto.Response
 import pl.kvgx12.wiertarbot.utils.proto.isGroup
 import java.time.format.DateTimeFormatter
@@ -99,43 +84,12 @@ val standardCommands = commands {
     command("miejski") {
         help(usage = "<wyraz>", returns = "definicję podanego wyrazu z www.miejski.pl")
 
-        val baseUrl = Url("https://www.miejski.pl")
+        val miejski = dsl.ref<Miejski>()
 
         text { event ->
             event.text.split(' ', limit = 2)
                 .getOrNull(1)
-                ?.let {
-                    val phrase = it.lowercase()
-                    val url = URLBuilder(baseUrl)
-                        .appendPathSegments("slowo-${phrase.replace(' ', '+')}")
-                        .build()
-
-                    val response = client.get(url)
-
-                    if (response.status == HttpStatusCode.NotFound) {
-                        "Nie znaleziono podanego słowa"
-                    } else {
-                        buildString {
-                            append(phrase)
-                            append('\n')
-
-                            htmlDocument(response.bodyAsText()) {
-                                findFirst("main p") {
-                                    append("Definicja:\n")
-                                    appendElement(this)
-                                }
-
-                                relaxed = true
-                                findAll("main blockquote").firstOrNull()?.apply {
-                                    if (text.isNotEmpty()) {
-                                        append("\n\nPrzyklad/y:\n")
-                                        appendElement(this)
-                                    }
-                                }
-                            }
-                        }.trim()
-                    }
-                }
+                ?.let { miejski.getDefinition(it) }
                 ?: help
         }
     }
@@ -168,65 +122,20 @@ val standardCommands = commands {
     command("covid") {
         help(returns = "aktualne informacje o covid w Polsce")
 
-        text {
-            val data =
-                client.get(
-                    @Suppress("ktlint:standard:max-line-length", "MaxLineLength")
-                    "https://services-eu1.arcgis.com/zk7YlClTgerl62BY/arcgis/rest/services/global_corona_actual_widok3/FeatureServer/0/query?f=json&cacheHint=true&resultOffset=0&resultRecordCount=1&where=1%3D1&outFields=*",
-                )
-                    .body<CovidResponse>()
-                    .features.first().attributes
+        val stats = dsl.ref<PLCovidStats>()
 
-            """
-                Statystyki COVID19 w Polsce na ${data.date}:
-                Dziennie:
-                ${data.dailyInfections} zakażonych
-                ${data.dailyDeaths} zgonów
-                ${data.dailyRecovered} ozdrowieńców
-                ${data.dailyTests} testów
-                ${data.dailyPositive} testów pozytywnych
-                ${data.quarantine} osób na kwarantannie aktualnie
-
-                Ogółem:
-                ${data.totalInfections} zakażonych
-                ${data.totalRecovered} ozdrowieńców
-                ${data.totalDeaths} zgonów
-            """.trimIndent()
-        }
+        text { stats.get() }
     }
 
     command("slownik", "słownik") {
         help(usage = "<wyraz>", returns = "definicje podanego wyrazu z sjp.pwn.pl")
 
-        val baseUrl = Url("https://sjp.pwn.pl/slowniki")
+        val sjpPwn = dsl.ref<SjpPwn>()
 
         text { event ->
             event.text.split(' ', limit = 2)
                 .getOrNull(1)
-                ?.let {
-                    val phrase = it.lowercase()
-                    val url = URLBuilder(baseUrl)
-                        .appendPathSegments(phrase.replace(' ', '-'))
-                        .build()
-
-                    val body = client.get(url).bodyAsText()
-
-                    buildString {
-                        htmlDocument(body) {
-                            relaxed = true
-                            findAll(".entry-body .ribbon-element") {
-                                if (isEmpty()) {
-                                    append("Coś poszlo nie tak, jak nie użyłeś polskich liter, to dobry moment")
-                                } else {
-                                    forEach {
-                                        appendElement(it)
-                                        append('\n')
-                                    }
-                                }
-                            }
-                        }
-                    }.trim()
-                }
+                ?.let { sjpPwn.getDefinition(it) }
                 ?: help
         }
     }
@@ -234,48 +143,20 @@ val standardCommands = commands {
     command("track", "tracking") {
         help(usage = "<numer śledzenia>", returns = "status paczki")
 
+        val aliPaczka = dsl.ref<AliPaczka>()
+
         text { event ->
             event.text.split(' ', limit = 2)
                 .getOrNull(1)
-                ?.let {
-                    val response = client.post("https://api.alipaczka.pl/track/$it/") {
-                        contentType(ContentType.Application.Json)
-                        setBody(AliPaczkaRequest())
-                    }
-
-                    buildString {
-                        when (response.status) {
-                            HttpStatusCode.NotFound -> append("Nie znaleziono paczki")
-
-                            HttpStatusCode.OK -> {
-                                val tracking = response.body<AliPaczkaResponse>()
-
-                                append(
-                                    "Numer paczki: ",
-                                    it,
-                                    "\nDostarczono: ",
-                                    if (tracking.isDelivered == true) "tak" else "nie",
-                                )
-                                tracking.entries.forEach {
-                                    append(
-                                        "\n",
-                                        Instant.fromEpochSeconds(it.time.toLong())
-                                            .toLocalDateTime(plZone)
-                                            .run { "$dayOfMonth/$monthNumber/$year $hour:$minute" },
-                                        " - ",
-                                        it.status,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
+                ?.let { aliPaczka.track(it) }
                 ?: help
         }
     }
 
     command("mc") {
         help(usage = "<skin> <nick>", returns = "skin dla podanego nicku")
+
+        val minecraft = dsl.ref<Minecraft>()
 
         generic { event ->
             val args = event.text.split(' ', limit = 3)
@@ -284,24 +165,12 @@ val standardCommands = commands {
             val text = when (args.size) {
                 3 -> {
                     val (command, nick) = args.drop(1)
-                    val getUuid = suspend {
-                        runCatching {
-                            client.get("https://api.mojang.com/users/profiles/minecraft/$nick")
-                                .body<MojangUserResponse>()
-                                .id
-                        }.getOrNull()
-                    }
 
                     when (command.lowercase()) {
-                        "skin" -> getUuid()?.let {
-                            files = listOf(
-                                "https://crafatar.com/skins/$it.png",
-                                "https://crafatar.com/renders/body/$it.png?overlay&scale=6",
-                                "https://crafatar.com/avatars/$it.png",
-                                "https://crafatar.com/renders/head/$it.png?overlay&scale=6",
-                            )
+                        "skin" -> run {
+                            files = minecraft.getProfileSkinUrls(nick)
 
-                            ""
+                            files?.let { "" }
                         }
 
                         else -> help
@@ -401,11 +270,13 @@ val standardCommands = commands {
     command("fantano") {
         help(usage = "<nazwa albumu>", returns = "ocene albumu fantano")
 
+        val fantano = dsl.ref<Fantano>()
+
         text { event ->
             event.text.split(' ', limit = 2)
                 .getOrNull(1)
                 ?.let {
-                    val review = Fantano.getRate(it)
+                    val review = fantano.getRate(it)
 
                     """
                         Nazwa albumu: ${review.title}
@@ -423,6 +294,8 @@ val standardCommands = commands {
             returns = "Kurs aktualizowany dziennie z europejskiego banku centralnego",
         )
 
+        val client = dsl.ref<TheForexApi>()
+
         text { event ->
             event.text.split(' ', limit = 4)
                 .let { if (it.size > 2) it else null }
@@ -432,7 +305,7 @@ val standardCommands = commands {
                     val amount = args.getOrNull(3)?.toDoubleOrNull() ?: 1.0
 
                     runCatching {
-                        TheForexAPI.convert(from, to, amount)
+                        client.convert(from, to, amount)
                     }.fold(
                         onSuccess = { "$amount $from to ${String.format(Locale.ENGLISH, "%.4f", it)} $to" },
                         onFailure = { "Nieprawidłowa waluta" },
@@ -445,83 +318,20 @@ val standardCommands = commands {
     command("suchar") {
         help(returns = "losowy suchar")
 
-        text {
-            val response = ImageEditCommand.client.get("https://codziennyhumor.pl/?filter-by=random").bodyAsText()
+        val suchar = dsl.ref<Suchar>()
 
-            buildString {
-                htmlDocument(response) {
-                    ".entry-body" {
-                        appendLine(findFirst(".entry-header").text)
-                        appendElement(findFirst(".entry-content p"))
-                    }
-                }
-            }
-        }
+        text { suchar.random() }
     }
 }
 
 private val zeroTime = LocalTime(0, 0)
-private val plZone = kotlinx.datetime.TimeZone.of("Europe/Warsaw")
+val plZone = kotlinx.datetime.TimeZone.of("Europe/Warsaw")
 private val dateTimeFormat = DateTimeFormatter.ofPattern("eeee dd MMMM HH:mm ", Locale("pl", "PL"))
 
 private val czasTimers = listOf(
     "Początek wakacji (23 czerwca) za" to LocalDate(2023, 6, 23),
     "Początek \"wakacji\" dla maturzystów (28 kwietnia) za" to LocalDate(2023, 4, 28),
 )
-
-@Serializable
-private data class MojangUserResponse(val id: String)
-
-@Serializable
-private data class AliPaczkaRequest(
-    val uid: String = "2222",
-    val ver: String = "22",
-)
-
-@Serializable
-private data class AliPaczkaResponse(
-    @SerialName("DataEntry")
-    val entries: List<Entry>,
-    val isDelivered: Boolean,
-) {
-    @Serializable
-    data class Entry(
-        val time: String,
-        val status: String,
-    )
-}
-
-@Serializable
-private data class CovidResponse(
-    val features: List<Feature>,
-) {
-    @Serializable
-    data class Feature(val attributes: Attributes)
-
-    @Serializable
-    data class Attributes(
-        @SerialName("DATA_SHOW") val date: String,
-        @SerialName("ZAKAZENIA_DZIENNE") val dailyInfections: Int,
-        @SerialName("ZGONY_DZIENNE") val dailyDeaths: Int,
-        @SerialName("LICZBA_OZDROWIENCOW") val dailyRecovered: Int,
-        @SerialName("TESTY") val dailyTests: Int,
-        @SerialName("TESTY_POZYTYWNE") val dailyPositive: Int,
-        @SerialName("KWARANTANNA") val quarantine: Int,
-        @SerialName("LICZBA_ZAKAZEN") val totalInfections: Int,
-        @SerialName("WSZYSCY_OZDROWIENCY") val totalRecovered: Int,
-        @SerialName("LICZBA_ZGONOW") val totalDeaths: Int,
-    )
-}
-
-private val client = HttpClient(CIO) {
-    install(ContentNegotiation) {
-        json(
-            Json {
-                ignoreUnknownKeys = true
-            },
-        )
-    }
-}
 
 val sundays = listOf(
     LocalDate(2023, 1, 29),

@@ -7,3 +7,5 @@ inline fun <reified T> T.getLogger(): Logger = when {
     T::class.isCompanion -> T::class.java.declaringClass
     else -> T::class.java
 }.let(LoggerFactory::getLogger)
+
+fun Logger.error(throwable: Throwable) = error(throwable.message, throwable)

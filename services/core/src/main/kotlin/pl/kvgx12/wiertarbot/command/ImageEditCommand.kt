@@ -2,12 +2,10 @@ package pl.kvgx12.wiertarbot.command
 
 import com.google.protobuf.kotlin.toByteString
 import com.twelvemonkeys.imageio.stream.ByteArrayImageInputStream
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.awaitBodyOrNull
 import pl.kvgx12.wiertarbot.command.dsl.CommandDsl
 import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.proto.fileData
@@ -24,6 +22,8 @@ typealias ImageEdit<T> = suspend ImageEditCommand.ImageEditState.(T) -> T
 abstract class ImageEditCommand(
     private val dsl: CommandDsl
 ) : CommandHandler {
+    private val client = dsl.dsl.ref<WebClient>()
+
     inner class ImageEditState(
         private val initialMessage: MessageEvent,
     ) {
@@ -73,17 +73,14 @@ abstract class ImageEditCommand(
             ?.id
             ?: return null
 
-        return withContext(Dispatchers.IO) {
-            val url = with(dsl) {
-                event.context.fetchImageUrl(id)
-            }
-            val response = client.get(url)
-
-            when (response.status) {
-                HttpStatusCode.OK -> response.body<ByteArray>()
-                else -> null
-            }
+        val url = with(dsl) {
+            event.context.fetchImageUrl(id)
         }
+
+        return client.get()
+            .uri(url)
+            .retrieve()
+            .awaitBodyOrNull<ByteArray>()
     }
 
     private fun write(image: BufferedImage): ByteArray = ByteArrayOutputStream().use {
@@ -105,8 +102,6 @@ abstract class ImageEditCommand(
     }
 
     companion object {
-        val client = HttpClient()
-
         init {
             System.setProperty("java.awt.headless", "true")
             ImageIO.setUseCache(false)

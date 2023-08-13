@@ -2,12 +2,12 @@ package pl.kvgx12.wiertarbot
 
 import com.google.protobuf.InvalidProtocolBufferException
 import com.rabbitmq.client.Channel
-import io.ktor.util.logging.*
 import org.springframework.amqp.core.Message
 import org.springframework.amqp.rabbit.annotation.RabbitListener
 import pl.kvgx12.wiertarbot.proto.Event
 import pl.kvgx12.wiertarbot.services.CommandService
 import pl.kvgx12.wiertarbot.utils.getLogger
+import pl.kvgx12.wiertarbot.utils.error
 
 class QueueConsumer(
     private val commandService: CommandService,
