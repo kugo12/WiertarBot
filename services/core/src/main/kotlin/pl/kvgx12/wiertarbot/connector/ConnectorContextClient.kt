@@ -85,4 +85,13 @@ class ConnectorContextClient(private val channel: ManagedChannel) : Closeable {
             this.event = event
         },
     ).eventOrNull
+
+    suspend fun delegatedCommand(command: String, event: MessageEvent) {
+        stub.delegatedCommand(
+            delegatedCommandRequest {
+                this.command = command
+                this.event = event
+            },
+        )
+    }
 }

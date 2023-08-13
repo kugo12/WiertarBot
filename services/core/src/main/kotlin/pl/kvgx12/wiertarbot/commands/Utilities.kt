@@ -1,21 +1,15 @@
 package pl.kvgx12.wiertarbot.commands
 
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.dsl.command
 import pl.kvgx12.wiertarbot.command.dsl.commands
+import pl.kvgx12.wiertarbot.command.dsl.delegated
 import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.connectors.fb.FBMessageService
 import pl.kvgx12.wiertarbot.proto.ConnectorType
-import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.services.CommandRegistrationService
 import pl.kvgx12.wiertarbot.services.PermissionService
-import pl.kvgx12.wiertarbot.utils.proto.Response
 import pl.kvgx12.wiertarbot.utils.proto.set
 import java.time.Duration
-import kotlin.io.path.div
 
 val utilityCommands = commands {
     command("help", "pomoc") {
@@ -93,72 +87,11 @@ val utilityCommands = commands {
         }
     }
 
-    bean {
-        provider<FBMessageService>().ifAvailable { fbMessageService ->
-            command("see") {
-                help(usage = "(ilosc <= 10)", returns = "jedną lub więcej ostatnio usuniętych wiadomości w wątku")
-                availableIn = ConnectorType.FB.set()
+    command("see") {
+        help(usage = "(ilosc <= 10)", returns = "jedną lub więcej ostatnio usuniętych wiadomości w wątku")
+        availableIn = ConnectorType.FB.set()
 
-                text { event ->
-                    val count = event.text.split(' ', limit = 2).last()
-                        .toIntOrNull()?.coerceIn(1, 10)
-                        ?: 1
-
-                    val messages = fbMessageService.getDeletedMessages(event.threadId, count)
-
-                    var isEmpty = true
-                    coroutineScope {
-                        messages.collect { message ->
-                            isEmpty = false
-                            val mentions = message.mentions.map {
-                                mention {
-                                    threadId = it.threadId
-                                    offset = it.offset
-                                    length = it.length
-                                }
-                            }
-                            var voiceClip = false
-                            val attachments = message.attachments.mapNotNull {
-                                when (it.type) {
-                                    "ImageAttachment" -> Constants.attachmentSavePath / "${it.id}.${it.originalExtension}"
-                                    "VideoAttachment" -> Constants.attachmentSavePath / "${it.id}.mp4"
-                                    "AudioAttachment" -> {
-                                        voiceClip = true
-                                        Constants.attachmentSavePath / "${it.filename}"
-                                    }
-
-                                    else -> null
-                                }
-                            }
-
-                            launch {
-                                val files = when {
-                                    attachments.isNotEmpty() -> event.context.upload(
-                                        attachments.map { it.toString() },
-                                        voiceClip,
-                                    )
-
-                                    else -> null
-                                }
-
-                                Response(
-                                    event,
-                                    text = message.text,
-                                    mentions = mentions,
-                                    files = files,
-                                    voiceClip = voiceClip,
-                                ).send()
-                            }
-                        }
-                    }
-
-                    when {
-                        isEmpty -> "Nie ma żadnych zapisanych usuniętych wiadomości w tym wątku"
-                        else -> null
-                    }
-                }
-            }
-        }
+        delegated()
     }
 
     command("perm") {

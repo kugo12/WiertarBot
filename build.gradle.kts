@@ -9,6 +9,8 @@ plugins {
     alias(libs.plugins.detekt)
 }
 
+val rootDir = projectDir
+
 allprojects {
     apply<DetektPlugin>()
     apply<KotlinterPlugin>()
@@ -29,7 +31,12 @@ allprojects {
     tasks {
         // disable generating *-plain.jar
         withType<Jar> {
-            if (name == "jar" && findByName("bootJar") != null) {
+            if (projectDir.relativeTo(rootDir).startsWith("libs/")) {
+                when (name) {
+                    "jar" -> enabled = true
+                    "bootJar" -> enabled = false
+                }
+            } else if (name == "jar" && findByName("bootJar") != null) {
                 enabled = false
             }
         }

@@ -1,13 +1,21 @@
 package pl.kvgx12.wiertarbot.config
 
-import org.springframework.amqp.rabbit.core.RabbitTemplate
+import org.springframework.amqp.core.AcknowledgeMode
+import org.springframework.amqp.rabbit.annotation.RabbitListenerConfigurer
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory
 import org.springframework.context.support.BeanDefinitionDsl
-import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 
 fun BeanDefinitionDsl.rabbitBeans() {
+    bean("rabbitListenerContainerFactory") {
+        SimpleRabbitListenerContainerFactory().apply {
+            setConnectionFactory(ref())
+            setAcknowledgeMode(AcknowledgeMode.MANUAL)
+        }
+    }
+
     bean {
-        RabbitTemplate(ref()).apply {
-            setExchange(ref<WiertarbotProperties>().rabbitMQExchange)
+        RabbitListenerConfigurer {
+            it.setContainerFactory(ref())
         }
     }
 }

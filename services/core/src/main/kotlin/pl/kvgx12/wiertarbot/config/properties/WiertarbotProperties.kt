@@ -6,5 +6,4 @@ import pl.kvgx12.wiertarbot.config.ConfigProperties
 data class WiertarbotProperties(
     val prefix: String = "!",
     val timezone: String = "Europe/Warsaw",
-    val rabbitMQExchange: String = "bot.default",
 )

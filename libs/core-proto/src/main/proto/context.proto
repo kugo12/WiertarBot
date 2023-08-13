@@ -57,6 +57,11 @@ message UploadRequest {
     bool voiceClip = 2;
 }
 
+message DelegatedCommandRequest {
+    MessageEvent event = 1;
+    string command = 2;
+}
+
 service ConnectorContext {
     rpc SendResponse(Response) returns (Empty);
     rpc UploadRaw(UploadRawRequest) returns (UploadResponse);
@@ -66,4 +71,5 @@ service ConnectorContext {
     rpc ReactToMessage(ReactToMessageRequest) returns (Empty);
     rpc FetchRepliedTo(FetchRepliedToRequest) returns (FetchRepliedToResponse);
     rpc Upload(UploadRequest) returns (UploadResponse);
+    rpc DelegatedCommand(DelegatedCommandRequest) returns (Empty);
 }
