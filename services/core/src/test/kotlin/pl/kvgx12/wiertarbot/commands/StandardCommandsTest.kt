@@ -7,19 +7,20 @@ import io.kotest.matchers.collections.shouldNotBeIn
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeBlank
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.*
+import io.mockk.clearMocks
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import org.springframework.beans.factory.getBean
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.commands.standard.barka
 import pl.kvgx12.wiertarbot.commands.standard.pastaXd
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.proto.MessageEvent
-import pl.kvgx12.wiertarbot.proto.Response
-import pl.kvgx12.wiertarbot.proto.uploadedFile
+import pl.kvgx12.wiertarbot.connector.ConnectorContextClient
+import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.utils.getCommand
 import pl.kvgx12.wiertarbot.utils.proto.Response
-import pl.kvgx12.wiertarbot.utils.proto.context
 import java.util.*
 
 @ContextConfiguration(initializers = [CommandTestInitializer::class])
@@ -27,14 +28,16 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
     {
         val event = mockk<MessageEvent>()
         val prefix = context.getBean<WiertarbotProperties>().prefix
+        val connectorContext = context.getBean<ConnectorContextClient>()
 
         afterTest {
-            clearMocks(event)
-            unmockkStatic(MessageEvent::context)
+            clearMocks(event, connectorContext)
         }
 
         beforeTest {
-            mockkStatic(MessageEvent::context)
+            every { event.connectorInfo } returns connectorInfo {
+                connectorType = ConnectorType.TELEGRAM
+            }
         }
 
         context("wybierz") {
@@ -250,7 +253,7 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
                 every { event.text } returns "${prefix}mc skin notch"
 
                 // TODO: check if passed urls are reachable images
-                coEvery { event.context.upload(match<List<String>> { it.size == size }) } returns files
+                coEvery { connectorContext.upload(match<List<String>> { it.size == size }) } returns files
 
                 handler.process(event) shouldBe Response(
                     event,

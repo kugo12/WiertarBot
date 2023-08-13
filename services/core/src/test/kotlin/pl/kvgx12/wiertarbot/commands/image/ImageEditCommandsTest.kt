@@ -14,18 +14,16 @@ import pl.kvgx12.wiertarbot.command.CommandMetadata
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
 import pl.kvgx12.wiertarbot.commands.CommandTestInitializer
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.proto.MessageEvent
-import pl.kvgx12.wiertarbot.proto.attachment
-import pl.kvgx12.wiertarbot.proto.imageAttachment
-import pl.kvgx12.wiertarbot.proto.uploadedFile
+import pl.kvgx12.wiertarbot.connector.ConnectorContextClient
+import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.utils.proto.Response
-import pl.kvgx12.wiertarbot.utils.proto.context
 
 @ContextConfiguration(initializers = [CommandTestInitializer::class])
 class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
     {
         val event = mockk<MessageEvent>()
         val prefix = context.getBean<WiertarbotProperties>().prefix
+        val connectorContext = context.getBean<ConnectorContextClient>()
         val testImage = javaClass.classLoader.getResourceAsStream("test.jpg")!!.use {
             it.readBytes()
         }
@@ -36,15 +34,6 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
                 content = ByteString.EMPTY
             },
         )
-
-        afterTest {
-            unmockkStatic(MessageEvent::context)
-        }
-
-        beforeTest {
-            mockkStatic(MessageEvent::context)
-        }
-
         val dummyImageAttachments = listOf(
             attachment {
                 id = "test-id1"
@@ -66,8 +55,14 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
             },
         )
 
+        beforeTest {
+            every { event.connectorInfo } returns connectorInfo {
+                connectorType = ConnectorType.TELEGRAM
+            }
+        }
+
         afterTest {
-            clearMocks(event)
+            clearMocks(connectorContext, event)
         }
 
         listOf(
@@ -86,8 +81,8 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
                 }
 
                 test("should return image - normal flow") {
-                    coEvery { event.context.fetchRepliedTo(event) } returns null
-                    coEvery { event.context.sendResponse(Response(event, text = "Wyślij zdjęcie")) } returns Unit
+                    coEvery { connectorContext.fetchRepliedTo(event) } returns null
+                    coEvery { connectorContext.sendResponse(Response(event, text = "Wyślij zdjęcie")) } returns Unit
 
                     val checked = handler.check(event)
 
@@ -95,17 +90,15 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
                     checked shouldBeEqualToComparingFields handler.ImageEditState(event)
 
                     val eventWithImage = mockk<MessageEvent> {
-                        val e = this
-
                         every { attachmentsList } returns dummyImageAttachments
-
-                        every { this@mockk.context } returns mockk {
-                            coEvery {
-                                sendResponse(Response(e, files = uploaded))
-                            } returns Unit
-                            coEvery { uploadRaw(match { it.size == 1 }, false) } returns uploaded
+                        every { connectorInfo } returns connectorInfo {
+                            connectorType = ConnectorType.TELEGRAM
                         }
                     }
+                    coEvery {
+                        connectorContext.sendResponse(Response(eventWithImage, files = uploaded))
+                    } returns Unit
+                    coEvery { connectorContext.uploadRaw(any<FileData>(), false) } returns uploaded
                     mockkObject(handler)
                     coEvery { handler["getImageFromAttachments"](eventWithImage) } returns testImage
 
@@ -118,13 +111,9 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
                         every { attachmentsList } returns dummyImageAttachments
                     }
 
-                    every { event.context } returns mockk {
-                        coEvery {
-                            sendResponse(Response(event, files = uploaded))
-                        } returns Unit
-                        coEvery { uploadRaw(match { it.size == 1 }, false) } returns uploaded
-                        coEvery { fetchRepliedTo(event) } returns eventWithImage
-                    }
+                    coEvery { connectorContext.sendResponse(Response(event, files = uploaded)) } returns Unit
+                    coEvery { connectorContext.uploadRaw(any<FileData>(), false) } returns uploaded
+                    coEvery { connectorContext.fetchRepliedTo(event) } returns eventWithImage
 
                     mockkObject(handler)
                     coEvery { handler["getImageFromAttachments"](eventWithImage) } returns testImage

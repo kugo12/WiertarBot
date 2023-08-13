@@ -28,7 +28,6 @@ benchmark {
 }
 
 dependencies {
-    implementation(project(":libs:fbchat-kt"))
     implementation(project(":libs:core-proto"))
 
     implementation(libs.bundles.spring)
@@ -44,7 +43,6 @@ dependencies {
     implementation(libs.bundles.ktor.client)
 
     implementation(libs.caffeine)
-    implementation(libs.inmo.telegram)
     implementation(libs.scrimage.core)
     implementation(libs.bundles.imageio)
     implementation(libs.skrape.html)

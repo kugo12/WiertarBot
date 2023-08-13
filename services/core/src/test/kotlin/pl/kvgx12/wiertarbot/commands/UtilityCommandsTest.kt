@@ -5,19 +5,21 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContainOnlyOnce
 import io.kotest.matchers.string.shouldNotContain
-import io.mockk.*
+import io.mockk.clearMocks
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import org.springframework.beans.factory.getBean
 import org.springframework.beans.factory.getBeanProvider
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.command.CommandMetadata
+import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.proto.ConnectorType
-import pl.kvgx12.wiertarbot.proto.MessageEvent
-import pl.kvgx12.wiertarbot.proto.mention
+import pl.kvgx12.wiertarbot.connector.ConnectorContextClient
+import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.utils.getCommand
 import pl.kvgx12.wiertarbot.utils.proto.Response
-import pl.kvgx12.wiertarbot.utils.proto.context
 import pl.kvgx12.wiertarbot.utils.scopedCommandName
 
 @ContextConfiguration(initializers = [CommandTestInitializer::class])
@@ -26,14 +28,16 @@ class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
         val event = mockk<MessageEvent>()
         val props = context.getBean<WiertarbotProperties>()
         val prefix = props.prefix
+        val connectorContext = context.getBean<ConnectorContextClient>()
 
         afterTest {
-            clearMocks(event)
-            unmockkStatic(MessageEvent::context)
+            clearMocks(event, connectorContext)
         }
 
         beforeTest {
-            mockkStatic(MessageEvent::context)
+            every { event.connectorInfo } returns connectorInfo {
+                connectorType = ConnectorType.TELEGRAM
+            }
         }
 
         test("tid") {
@@ -75,7 +79,9 @@ class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
             val (_, handler) = context.getCommand("ile")
 
             every { event.threadId } returns "test-thread-id"
-            coEvery { event.context.fetchThread("test-thread-id").messageCount } returns 21
+            coEvery { connectorContext.fetchThread("test-thread-id") } returns threadData {
+                messageCount = 21
+            }
 
             handler.process(event) shouldBe Response(event, text = "Odkąd tutaj jestem napisano tu 21 wiadomości.")
         }
@@ -83,6 +89,7 @@ class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
         context("help") {
             val (_, handler) = context.getCommand("help")
             val allCommands = context.getBeanProvider<CommandMetadata>()
+                .filter { it.handler !is SpecialCommand }
                 .toList()
 
             val unknownCommandResponse = Response(event, text = "Nie znaleziono podanej komendy")
@@ -92,7 +99,7 @@ class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
                 response?.text shouldNotBe null
                 response!!.text shouldContainOnlyOnce prefix
                 allCommands
-                    .filter { it.availableIn.contains(connectorType) }
+                    .filter { connectorType in it.availableIn }
                     .forEach { response.text shouldContainOnlyOnce it.name }
             }
 
@@ -109,7 +116,7 @@ class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
 
                     test("returns all help texts") {
                         allCommands
-                            .filter { it.availableIn.contains(connectorType) }
+                            .filter { connectorType in it.availableIn }
                             .forEach {
                                 every { event.text } returns "${prefix}help ${it.name}"
 

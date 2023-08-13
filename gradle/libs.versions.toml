@@ -98,6 +98,7 @@ skrape-html = { module = "it.skrape:skrapeit-html-parser", version.ref = "skrape
 inmo-telegram = { module = "dev.inmo:tgbotapi.core", version.ref = "inmo-telegram" }
 
 spring-starter = { module = "org.springframework.boot:spring-boot-starter" }
+spring-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
 spring-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
 spring-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }

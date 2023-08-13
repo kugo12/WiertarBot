@@ -87,13 +87,13 @@ val specialCommands = commands {
         }
     }
 
-    command("spierdalaj") {
+    command("spierdalaj".special) {
         special {
             sam(it, "spierdalaj")
         }
     }
 
-    command("wypierdalaj") {
+    command("wypierdalaj".special) {
         special {
             sam(it, "wypierdalaj")
         }
