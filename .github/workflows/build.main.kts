@@ -40,29 +40,40 @@ val isMainAndPushOrDispatch = expr {
 val amd64 = setOf("linux/amd64")
 val arm64 = setOf("linux/arm64")
 
-data class Service(val name: String, val image: String, val paths: List<String>, val platforms: Set<String> = amd64)
+data class Service(val name: String, val image: String, val paths: Set<String>, val platforms: Set<String> = amd64)
 
-val gradleStuff = listOf(
-    "gradle/**",
-    "settings.gradle.kts",
-    "build.gradle.kts",
-)
+val gradleStuff = setOf("gradle/**", "settings.gradle.kts", "build.gradle.kts")
+val libProto = setOf("libs/core-proto/**")
+val libConnector = libProto + setOf("libs/connector/**")
 val wbServices = listOf(
     Service(
         "core",
         "wiertarbot",
-        gradleStuff + listOf("libs/fbchat-kt/**", "libs/core-proto/**", "services/core/**"),
+        gradleStuff + libProto + "services/core/**",
+    ),
+    Service(
+        "connector-fb",
+        "wiertarbot-connector-fb",
+        gradleStuff + libConnector + setOf(
+            "libs/fbchat-kt/**",
+            "services/connector-fb/**",
+        ),
+    ),
+    Service(
+        "connector-telegram",
+        "wiertarbot-connector-telegram",
+        gradleStuff + libConnector + "services/connector-telegram/**",
     ),
     Service(
         "download-api",
         "wiertarbot-download-api",
-        gradleStuff + listOf("services/download-api/**"),
+        gradleStuff + "services/download-api/**",
         amd64 + arm64,
     ),
     Service(
         "ttrs-api",
         "wiertarbot-ttrs-api",
-        listOf("services/ttrs-api/**"),
+        setOf("services/ttrs-api/**"),
     ),
 )
 

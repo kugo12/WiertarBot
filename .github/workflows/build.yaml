@@ -34,6 +34,8 @@ jobs:
     - 'check_yaml_consistency'
     outputs:
       core: '${{ steps.step-0.outputs.core }}'
+      connector-fb: '${{ steps.step-0.outputs.connector-fb }}'
+      connector-telegram: '${{ steps.step-0.outputs.connector-telegram }}'
       download-api: '${{ steps.step-0.outputs.download-api }}'
       ttrs-api: '${{ steps.step-0.outputs.ttrs-api }}'
     steps:
@@ -46,9 +48,23 @@ jobs:
             - 'gradle/**'
             - 'settings.gradle.kts'
             - 'build.gradle.kts'
-            - 'libs/fbchat-kt/**'
             - 'libs/core-proto/**'
             - 'services/core/**'
+          connector-fb:
+            - 'gradle/**'
+            - 'settings.gradle.kts'
+            - 'build.gradle.kts'
+            - 'libs/core-proto/**'
+            - 'libs/connector/**'
+            - 'libs/fbchat-kt/**'
+            - 'services/connector-fb/**'
+          connector-telegram:
+            - 'gradle/**'
+            - 'settings.gradle.kts'
+            - 'build.gradle.kts'
+            - 'libs/core-proto/**'
+            - 'libs/connector/**'
+            - 'services/connector-telegram/**'
           download-api:
             - 'gradle/**'
             - 'settings.gradle.kts'
@@ -165,6 +181,80 @@ jobs:
           ${{ secrets.DOCKERHUB_USER }}/wiertarbot:latest
           ${{ secrets.DOCKERHUB_USER }}/wiertarbot:ci-${{ github.run_id }}
         push: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
+  docker-connector-fb:
+    runs-on: 'ubuntu-latest'
+    needs:
+    - 'gradle-build'
+    - 'detect-changes'
+    - 'check_yaml_consistency'
+    if: '${{ needs.detect-changes.outputs.connector-fb == ''true'' }}'
+    steps:
+    - id: 'step-0'
+      name: 'Check out'
+      uses: 'actions/checkout@v3'
+    - id: 'step-1'
+      name: 'Setup docker buildx'
+      uses: 'docker/setup-buildx-action@v2'
+    - id: 'step-2'
+      name: 'Login to docker registry'
+      uses: 'docker/login-action@v2'
+      with:
+        username: '${{ secrets.DOCKER_USERNAME }}'
+        password: '${{ secrets.DOCKER_PASSWORD }}'
+      if: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
+    - id: 'step-3'
+      name: 'Download build artifacts'
+      uses: 'actions/download-artifact@v3'
+      with:
+        name: 'jars'
+    - id: 'step-4'
+      name: 'Build docker image'
+      uses: 'docker/build-push-action@v4'
+      with:
+        context: 'services/connector-fb'
+        file: 'services/connector-fb/Dockerfile'
+        platforms: 'linux/amd64'
+        tags: |-
+          ${{ secrets.DOCKERHUB_USER }}/wiertarbot-connector-fb:latest
+          ${{ secrets.DOCKERHUB_USER }}/wiertarbot-connector-fb:ci-${{ github.run_id }}
+        push: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
+  docker-connector-telegram:
+    runs-on: 'ubuntu-latest'
+    needs:
+    - 'gradle-build'
+    - 'detect-changes'
+    - 'check_yaml_consistency'
+    if: '${{ needs.detect-changes.outputs.connector-telegram == ''true'' }}'
+    steps:
+    - id: 'step-0'
+      name: 'Check out'
+      uses: 'actions/checkout@v3'
+    - id: 'step-1'
+      name: 'Setup docker buildx'
+      uses: 'docker/setup-buildx-action@v2'
+    - id: 'step-2'
+      name: 'Login to docker registry'
+      uses: 'docker/login-action@v2'
+      with:
+        username: '${{ secrets.DOCKER_USERNAME }}'
+        password: '${{ secrets.DOCKER_PASSWORD }}'
+      if: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
+    - id: 'step-3'
+      name: 'Download build artifacts'
+      uses: 'actions/download-artifact@v3'
+      with:
+        name: 'jars'
+    - id: 'step-4'
+      name: 'Build docker image'
+      uses: 'docker/build-push-action@v4'
+      with:
+        context: 'services/connector-telegram'
+        file: 'services/connector-telegram/Dockerfile'
+        platforms: 'linux/amd64'
+        tags: |-
+          ${{ secrets.DOCKERHUB_USER }}/wiertarbot-connector-telegram:latest
+          ${{ secrets.DOCKERHUB_USER }}/wiertarbot-connector-telegram:ci-${{ github.run_id }}
+        push: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
   docker-download-api:
     runs-on: 'ubuntu-latest'
     needs:
@@ -246,6 +336,8 @@ jobs:
     runs-on: 'ubuntu-latest'
     needs:
     - 'docker-core'
+    - 'docker-connector-fb'
+    - 'docker-connector-telegram'
     - 'docker-download-api'
     - 'docker-ttrs-api'
     - 'check_yaml_consistency'
