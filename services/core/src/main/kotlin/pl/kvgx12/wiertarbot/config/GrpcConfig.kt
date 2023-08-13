@@ -1,12 +1,14 @@
 package pl.kvgx12.wiertarbot.config
 
 import io.grpc.ManagedChannelBuilder
+import org.springframework.boot.context.properties.ConfigurationProperties
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import pl.kvgx12.wiertarbot.connector.ConnectorContextClient
 import pl.kvgx12.wiertarbot.proto.ConnectorInfo
 import pl.kvgx12.wiertarbot.proto.ConnectorType
 
-@ConfigProperties("wiertarbot.grpc")
+@ConfigurationProperties("wiertarbot.grpc")
 data class GrpcProperties(
     val clients: Map<ConnectorType, Client>,
 ) {
@@ -15,6 +17,7 @@ data class GrpcProperties(
     )
 }
 
+@EnableConfigurationProperties(GrpcProperties::class)
 class GrpcConfig(private val props: GrpcProperties) {
     @Bean
     fun contextHolder() =

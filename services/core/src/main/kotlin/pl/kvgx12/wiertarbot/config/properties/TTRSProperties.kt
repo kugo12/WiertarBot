@@ -1,8 +1,8 @@
 package pl.kvgx12.wiertarbot.config.properties
 
-import pl.kvgx12.wiertarbot.config.ConfigProperties
+import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigProperties("wiertarbot.ttrs")
+@ConfigurationProperties("wiertarbot.ttrs", ignoreInvalidFields = true)
 data class TTRSProperties(
     val url: String,
 ) {

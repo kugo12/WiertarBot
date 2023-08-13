@@ -19,10 +19,6 @@ import pl.kvgx12.wiertarbot.utils.scopedCommandName
 class CommandTestInitializer : ApplicationContextInitializer<GenericApplicationContext> {
     override fun initialize(applicationContext: GenericApplicationContext) {
         beans {
-            val binder = env.getBinder()
-
-            bean { binder }
-            bean { binder.bind<WiertarbotProperties>() }
             bean {
                 mockk<PermissionService> {
                     coEvery { isAuthorized(any(), any(), any()) } returns true
