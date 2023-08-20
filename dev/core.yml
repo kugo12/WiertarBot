@@ -1,0 +1,25 @@
+wiertarbot:
+  ttrs:
+    url: http://ttrs-api:5000
+
+  download-api:
+    url: http://download-api:8080
+
+  #  weather:
+  #    url: http://localhost:8081/weather
+
+  grpc.clients:
+    TELEGRAM:
+      url: connector-telegram:8080
+
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://db:5432/wiertarbot
+    username: postgres
+    password: postgres
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest

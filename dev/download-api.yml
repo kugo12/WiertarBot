@@ -1,0 +1,17 @@
+platform:
+  reddit:
+    client_id: ${REDDIT_CLIENT_ID}
+    client_secret: ${REDDIT_CLIENT_SECRET}
+  youtube:
+    client_name: ${YOUTUBE_CLIENT_NAME}
+    client_version: ${YOUTUBE_CLIENT_VERSION}
+
+storage.s3:
+  url: http://minio:9000
+  access-key-id: minioadmin
+  secret-access-key: minioadmin
+  bucket: download-api
+
+signature:
+  key: asd
+  base-url: http://localhost:9001
