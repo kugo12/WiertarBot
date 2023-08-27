@@ -1,13 +1,9 @@
 package pl.kvgx12.wiertarbot.commands
 
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import pl.kvgx12.wiertarbot.command.dsl.command
 import pl.kvgx12.wiertarbot.command.dsl.text
-import pl.kvgx12.wiertarbot.config.properties.WeatherProperties
+import pl.kvgx12.wiertarbot.commands.clients.internal.WeatherClient
 
 val weatherCommand = command("pogoda", "weather") {
     help(
@@ -15,8 +11,7 @@ val weatherCommand = command("pogoda", "weather") {
         returns = "pogoda w danym mieście",
     )
 
-    val props = dsl.ref<WeatherProperties>()
-    val client = HttpClient(CIO)
+    val client = dsl.ref<WeatherClient>()
 
     text {
         val city = it.text.split(' ', limit = 2)
@@ -24,17 +19,12 @@ val weatherCommand = command("pogoda", "weather") {
             ?.takeIf { it.isNotBlank() }
             ?: return@text help
 
-        val response = client.get {
-            url {
-                takeFrom(props.url)
-                parameters.append("city", city)
-            }
-        }
-
-        when (response.status) {
-            HttpStatusCode.NotFound -> "Nie znaleziono podanego miasta"
-            HttpStatusCode.OK -> response.bodyAsText()
-            else -> "Wystąpił niespodziewany błąd"
+        try {
+            client.weather(city)
+        } catch (_: WebClientResponseException.NotFound) {
+            "Nie znaleziono podanego miasta"
+        } catch (e: Exception) {
+            "Wystąpił niespodziewany błąd"
         }
     }
 }

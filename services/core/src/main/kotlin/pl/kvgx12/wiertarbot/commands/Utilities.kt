@@ -1,20 +1,15 @@
 package pl.kvgx12.wiertarbot.commands
 
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
-import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.dsl.command
 import pl.kvgx12.wiertarbot.command.dsl.commands
+import pl.kvgx12.wiertarbot.command.dsl.delegated
 import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.connector.ConnectorType
-import pl.kvgx12.wiertarbot.connectors.fb.FBMessageService
-import pl.kvgx12.wiertarbot.events.Mention
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.proto.ConnectorType
 import pl.kvgx12.wiertarbot.services.CommandRegistrationService
 import pl.kvgx12.wiertarbot.services.PermissionService
+import pl.kvgx12.wiertarbot.utils.proto.set
 import java.time.Duration
-import kotlin.io.path.div
 
 val utilityCommands = commands {
     command("help", "pomoc") {
@@ -45,11 +40,11 @@ val utilityCommands = commands {
             val args = event.text.split(' ', limit = 2)
 
             if (args.size == 2) {
-                lowercasedCommands[event.context.connectorType]!![args.last().lowercase()]
+                lowercasedCommands[event.connectorInfo.connectorType]!![args.last().lowercase()]
                     ?.help
                     ?: "Nie znaleziono podanej komendy"
             } else {
-                val commands = registrationService.commandsByConnector[event.context.connectorType]!!
+                val commands = registrationService.commandsByConnector[event.connectorInfo.connectorType]!!
 
                 "Prefix: $prefix\nKomendy: ${commands.keys.joinToString(", ")}"
             }
@@ -65,14 +60,15 @@ val utilityCommands = commands {
     command("uid") {
         help(usage = "oznaczenie", returns = "twoje id lub oznaczonej osoby")
 
-        text { it.mentions.firstOrNull()?.threadId ?: it.authorId }
+        text { it.mentionsList.firstOrNull()?.threadId ?: it.authorId }
     }
 
     command("ile") {
         help(returns = "ilość napisanych wiadomości od dodania bota do wątku")
 
         text {
-            val count = it.context.fetchThread(it.threadId).messageCount
+            val count = it.context.fetchThread(it.threadId)
+                ?.messageCount ?: 0
 
             "Odkąd tutaj jestem napisano tu $count wiadomości."
         }
@@ -91,68 +87,11 @@ val utilityCommands = commands {
         }
     }
 
-    bean {
-        provider<FBMessageService>().ifAvailable { fbMessageService ->
-            command("see") {
-                help(usage = "(ilosc <= 10)", returns = "jedną lub więcej ostatnio usuniętych wiadomości w wątku")
-                availableIn = ConnectorType.FB.set()
+    command("see") {
+        help(usage = "(ilosc <= 10)", returns = "jedną lub więcej ostatnio usuniętych wiadomości w wątku")
+        availableIn = ConnectorType.FB.set()
 
-                text { event ->
-                    val count = event.text.split(' ', limit = 2).last()
-                        .toIntOrNull()?.coerceIn(1, 10)
-                        ?: 1
-
-                    val messages = fbMessageService.getDeletedMessages(event.threadId, count)
-
-                    var isEmpty = true
-                    coroutineScope {
-                        messages.collect { message ->
-                            isEmpty = false
-                            val mentions = message.mentions.map {
-                                Mention(it.threadId, it.offset, it.length)
-                            }
-                            var voiceClip = false
-                            val attachments = message.attachments.mapNotNull {
-                                when (it.type) {
-                                    "ImageAttachment" -> Constants.attachmentSavePath / "${it.id}.${it.originalExtension}"
-                                    "VideoAttachment" -> Constants.attachmentSavePath / "${it.id}.mp4"
-                                    "AudioAttachment" -> {
-                                        voiceClip = true
-                                        Constants.attachmentSavePath / "${it.filename}"
-                                    }
-
-                                    else -> null
-                                }
-                            }
-
-                            launch {
-                                val files = when {
-                                    attachments.isNotEmpty() -> event.context.upload(
-                                        attachments.map { it.toString() },
-                                        voiceClip,
-                                    )
-
-                                    else -> null
-                                }
-
-                                Response(
-                                    event,
-                                    text = message.text,
-                                    mentions = mentions,
-                                    files = files,
-                                    voiceClip = voiceClip,
-                                ).send()
-                            }
-                        }
-                    }
-
-                    when {
-                        isEmpty -> "Nie ma żadnych zapisanych usuniętych wiadomości w tym wątku"
-                        else -> null
-                    }
-                }
-            }
-        }
+        delegated()
     }
 
     command("perm") {
@@ -194,7 +133,7 @@ val utilityCommands = commands {
                     val isAdd = args[1] == "add"
                     val uids = buildList {
                         addAll(args.drop(4))
-                        event.mentions.mapTo(this) { it.threadId }
+                        event.mentionsList.mapTo(this) { it.threadId }
                     }
 
                     when (permissionService.edit(args[2], uids, isBlacklist, isAdd, tid)) {

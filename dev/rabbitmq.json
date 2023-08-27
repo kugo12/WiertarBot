@@ -1,0 +1,80 @@
+{
+    "rabbit_version": "3.12.2",
+    "rabbitmq_version": "3.12.2",
+    "product_name": "RabbitMQ",
+    "product_version": "3.12.2",
+    "users": [
+        {
+            "name": "guest",
+            "password_hash": "cELvdpK3IjP+NL2Uu8MSx8mCH3OVs41hZjQnHwU0qc3Hrv9n",
+            "hashing_algorithm": "rabbit_password_hashing_sha256",
+            "tags": [
+                "administrator"
+            ],
+            "limits": {}
+        }
+    ],
+    "vhosts": [
+        {
+            "name": "/"
+        }
+    ],
+    "permissions": [
+        {
+            "user": "guest",
+            "vhost": "/",
+            "configure": ".*",
+            "write": ".*",
+            "read": ".*"
+        }
+    ],
+    "topic_permissions": [
+        {
+            "user": "guest",
+            "vhost": "/",
+            "exchange": "",
+            "write": ".*",
+            "read": ".*"
+        }
+    ],
+    "parameters": [],
+    "global_parameters": [
+        {
+            "name": "internal_cluster_id",
+            "value": "rabbitmq-cluster-id-0-lS8mHt6YHyIk4aOGXfcA"
+        }
+    ],
+    "policies": [],
+    "queues": [
+        {
+            "name": "core.command",
+            "vhost": "/",
+            "durable": true,
+            "auto_delete": false,
+            "arguments": {
+                "x-message-ttl": 300000
+            }
+        }
+    ],
+    "exchanges": [
+        {
+            "name": "core.event",
+            "vhost": "/",
+            "type": "fanout",
+            "durable": true,
+            "auto_delete": false,
+            "internal": false,
+            "arguments": {}
+        }
+    ],
+    "bindings": [
+        {
+            "source": "core.event",
+            "vhost": "/",
+            "destination": "core.command",
+            "destination_type": "queue",
+            "routing_key": "core.event.message",
+            "arguments": {}
+        }
+    ]
+}

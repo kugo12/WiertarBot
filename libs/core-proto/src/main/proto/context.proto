@@ -1,0 +1,75 @@
+syntax = "proto3";
+import "connector.proto";
+import "attachment.proto";
+import "event.proto";
+
+option java_package = "pl.kvgx12.wiertarbot.proto.connector";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+
+message Empty {}
+
+message UploadRawRequest {
+    repeated FileData files = 1;
+    bool voiceClip = 2;
+}
+
+message UploadResponse {
+    repeated UploadedFile files = 1;
+}
+
+message FetchThreadRequest {
+    string threadId = 1;
+}
+
+message FetchThreadResponse {
+    optional ThreadData thread  = 1;
+}
+
+message FetchImageUrlRequest {
+    string id = 1;
+}
+
+message FetchImageUrlResponse {
+    optional string url = 1;
+}
+
+message SendTextRequest {
+    MessageEvent event = 1;
+    string text = 2;
+}
+
+message ReactToMessageRequest {
+    MessageEvent event = 1;
+    string reaction = 2;
+}
+
+message FetchRepliedToRequest {
+    MessageEvent event = 1;
+}
+
+message FetchRepliedToResponse {
+    optional MessageEvent event = 1;
+}
+
+message UploadRequest {
+    repeated string files = 1;
+    bool voiceClip = 2;
+}
+
+message DelegatedCommandRequest {
+    MessageEvent event = 1;
+    string command = 2;
+}
+
+service ConnectorContext {
+    rpc SendResponse(Response) returns (Empty);
+    rpc UploadRaw(UploadRawRequest) returns (UploadResponse);
+    rpc FetchThread(FetchThreadRequest) returns (FetchThreadResponse);
+    rpc FetchImageUrl(FetchImageUrlRequest) returns (FetchImageUrlResponse);
+    rpc SendText(SendTextRequest) returns (Empty);
+    rpc ReactToMessage(ReactToMessageRequest) returns (Empty);
+    rpc FetchRepliedTo(FetchRepliedToRequest) returns (FetchRepliedToResponse);
+    rpc Upload(UploadRequest) returns (UploadResponse);
+    rpc DelegatedCommand(DelegatedCommandRequest) returns (Empty);
+}

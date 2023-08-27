@@ -6,26 +6,37 @@ import org.springframework.beans.factory.getBean
 import org.springframework.beans.factory.getBeansOfType
 import org.springframework.context.support.GenericApplicationContext
 import org.springframework.test.context.ContextConfiguration
+import pl.kvgx12.wiertarbot.command.CommandMetadata
 import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.command.dsl.specialCommandName
-import pl.kvgx12.wiertarbot.events.Mention
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.connector.ConnectorContextClient
+import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.services.PermissionService
+import pl.kvgx12.wiertarbot.utils.proto.isGroup
 import pl.kvgx12.wiertarbot.utils.responseTextMatcher
 
 @ContextConfiguration(initializers = [CommandTestInitializer::class])
 class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
     {
-        val commands = context.getBeansOfType<SpecialCommand>()
+        val commands = context.getBeansOfType<CommandMetadata>()
+            .filterValues { it.handler is SpecialCommand }
         val permissionService = context.getBean<PermissionService>()
+        val connectorContext = context.getBean<ConnectorContextClient>()
         val event = mockk<MessageEvent>()
 
-        fun command(name: String) = checkNotNull(commands[specialCommandName(name)])
+        fun command(name: String) = checkNotNull(commands[specialCommandName(name)]).handler as SpecialCommand
+
+        beforeTest {
+            mockkStatic(MessageEvent::isGroup)
+            coEvery { permissionService.isAuthorized(any(), any(), any()) } returns true
+            every { event.connectorInfo } returns connectorInfo {
+                connectorType = ConnectorType.TELEGRAM
+            }
+        }
 
         afterTest {
-            clearMocks(event, permissionService)
-            coEvery { permissionService.isAuthorized(any(), any(), any()) } returns true
+            clearMocks(event, permissionService, connectorContext)
+            unmockkStatic(MessageEvent::isGroup)
         }
 
         test("Xd") {
@@ -36,17 +47,17 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
             command.test(event, "xD")
             command.test(event, "XD")
             command.test(event, "xd")
-            coEvery { event.react(ANGRY_EMOJI) } returns Unit
+
+            coEvery { connectorContext.reactToMessage(event, ANGRY_EMOJI) } returns Unit
             command.test(
                 event,
                 "Xd",
-                verify = { coVerify { event.react(ANGRY_EMOJI) } },
+                verify = { coVerify { connectorContext.reactToMessage(event, ANGRY_EMOJI) } },
             )
-            coEvery { event.react(ANGRY_EMOJI) } returns Unit
             command.test(
                 event,
                 "asdfdsfasdfXdasdasd",
-                verify = { coVerify { event.react(ANGRY_EMOJI) } },
+                verify = { coVerify { connectorContext.reactToMessage(event, ANGRY_EMOJI) } },
             )
         }
 
@@ -57,8 +68,8 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
             command.test(event, "dasdasdasdasdasds")
 
             val matcher = responseTextMatcher("haha toż to papieżowa liczba")
-            command.testWithSend(event, "2137", matcher)
-            command.testWithSend(event, "asdjhdgfsdigjub211130983489e321370hf", matcher)
+            command.testWithSend(connectorContext, event, "2137", matcher)
+            command.testWithSend(connectorContext, event, "asdjhdgfsdigjub211130983489e321370hf", matcher)
         }
 
         test("thinking") {
@@ -68,7 +79,7 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
             command.test(event, "dasdasda")
             command.test(event, "${THINKING_EMOJI}a")
             command.test(event, "a$THINKING_EMOJI")
-            command.testWithSend(event, THINKING_EMOJI, responseTextMatcher(THINKING_EMOJI))
+            command.testWithSend(connectorContext, event, THINKING_EMOJI, responseTextMatcher(THINKING_EMOJI))
         }
 
         test("1337") {
@@ -87,16 +98,16 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
             every { event.threadId } returns "test-thread"
             every { event.authorId } returns "test-user"
 
-            command.testWithSend(event, "1337", youAreMatcher, verify)
+            command.testWithSend(connectorContext, event, "1337", youAreMatcher, verify)
             confirmVerified(permissionService)
-            command.testWithSend(event, "adlkfldkshf1337fldfhdslk", youAreMatcher, verify)
+            command.testWithSend(connectorContext, event, "adlkfldkshf1337fldfhdslk", youAreMatcher, verify)
             confirmVerified(permissionService)
 
             val youAreNotMatcher = responseTextMatcher("Nie jesteś elitą")
             coEvery { permissionService.isAuthorized("leet", "test-thread", "test-user") } returns false
-            command.testWithSend(event, "1337", youAreNotMatcher, verify)
+            command.testWithSend(connectorContext, event, "1337", youAreNotMatcher, verify)
             confirmVerified(permissionService)
-            command.testWithSend(event, "adlkfldkshf1337fldfhdslk", youAreNotMatcher, verify)
+            command.testWithSend(connectorContext, event, "adlkfldkshf1337fldfhdslk", youAreNotMatcher, verify)
             confirmVerified(permissionService)
         }
 
@@ -112,10 +123,16 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
                 }
             }
             val mentions = listOf(
-                Mention("test-user1", 0, 9),
-                Mention("test-user2", 0, 9),
-                Mention("test-user3", 0, 9),
-            )
+                "test-user1",
+                "test-user2",
+                "test-user3",
+            ).map {
+                mention {
+                    threadId = it
+                    offset = 0
+                    length = 9
+                }
+            }
 
             beforeTest {
                 every { event.isGroup } returns true
@@ -144,19 +161,21 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
 
             test("mentions all users") {
                 coEvery {
-                    event.context.fetchThread("test-thread").participants
-                } returns mentions.map { it.threadId }
+                    connectorContext.fetchThread("test-thread")
+                } returns threadData {
+                    this.participants += mentions.map { it.threadId }
+                }
 
                 val matcher = FunctionMatcher<Response>(
                     {
                         it.text == "@everyone" &&
-                            it.mentions == mentions
+                            it.mentionsList == mentions
                     },
                     Response::class,
                 )
 
-                command.testWithSend(event, "@everyone", matcher, verify = verifyAll)
-                command.testWithSend(event, "dasdasdasd@everyonedasdasdasd", matcher, verify = verifyAll)
+                command.testWithSend(connectorContext, event, "@everyone", matcher, verify = verifyAll)
+                command.testWithSend(connectorContext, event, "dasdasdasd@everyonedasdasdasd", matcher, verify = verifyAll)
             }
         }
 
@@ -164,8 +183,8 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
             test(word) {
                 val command = command(word)
 
-                coEvery { event.react(ANGRY_EMOJI) } returns Unit
-                val verify = { coVerify { event.react(ANGRY_EMOJI) } }
+                coEvery { connectorContext.reactToMessage(event, ANGRY_EMOJI) } returns Unit
+                val verify = { coVerify { connectorContext.reactToMessage(event, ANGRY_EMOJI) } }
 
                 command.test(event, "")
                 command.test(event, "asdasdasdas")
@@ -173,15 +192,16 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
                 command.test(event, "sam")
 
                 val sam = responseTextMatcher("sam $word")
-                command.testWithSend(event, word, sam, verify)
-                command.testWithSend(event, "dalkfdshjfklj${word}dasdjkasnd", sam, verify)
-                command.testWithSend(event, "asam $word", sam, verify)
-                command.testWithSend(event, "sam ${word}w", sam, verify)
-                command.testWithSend(event, " sam $word", sam, verify)
-                command.testWithSend(event, "sam $word ", sam, verify)
+                command.testWithSend(connectorContext, event, word, sam, verify)
+                command.testWithSend(connectorContext, event, "dalkfdshjfklj${word}dasdjkasnd", sam, verify)
+                command.testWithSend(connectorContext, event, "asam $word", sam, verify)
+                command.testWithSend(connectorContext, event, "sam ${word}w", sam, verify)
+                command.testWithSend(connectorContext, event, " sam $word", sam, verify)
+                command.testWithSend(connectorContext, event, "sam $word ", sam, verify)
 
-                command.testWithSend(event, "sam $word", responseTextMatcher("sam sam $word"), verify)
+                command.testWithSend(connectorContext, event, "sam $word", responseTextMatcher("sam sam $word"), verify)
                 command.testWithSend(
+                    connectorContext,
                     event,
                     "sam sam sam $word",
                     responseTextMatcher("sam sam sam sam $word"),
@@ -202,22 +222,24 @@ private suspend inline fun SpecialCommand.test(
     verify {
         event.text
     }
+    verify(atLeast = 0) { event.connectorInfo }
     verify()
     confirmVerified(event)
 }
 
 private suspend inline fun SpecialCommand.testWithSend(
+    connectorContext: ConnectorContextClient,
     event: MessageEvent,
     text: String,
     matcher: Matcher<Response>,
     verify: () -> Unit = {},
 ) {
-    coEvery { event.context.sendResponse(match(matcher)) } returns Unit
+    coEvery { connectorContext.sendResponse(match(matcher)) } returns Unit
     test(
         event,
         text,
         verify = {
-            coVerify { event.context.sendResponse(match(matcher)) }
+            coVerify { connectorContext.sendResponse(match(matcher)) }
             verify()
         },
     )

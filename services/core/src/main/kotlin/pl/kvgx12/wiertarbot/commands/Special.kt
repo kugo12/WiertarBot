@@ -2,59 +2,69 @@ package pl.kvgx12.wiertarbot.commands
 
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import pl.kvgx12.wiertarbot.command.SpecialCommand
-import pl.kvgx12.wiertarbot.command.dsl.commands
-import pl.kvgx12.wiertarbot.command.dsl.specialCommand
-import pl.kvgx12.wiertarbot.command.dsl.specialCommandWithContext
-import pl.kvgx12.wiertarbot.events.Mention
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.command.dsl.*
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.services.PermissionService
+import pl.kvgx12.wiertarbot.utils.proto.Response
+import pl.kvgx12.wiertarbot.utils.proto.isGroup
 
 const val THINKING_EMOJI = "\uD83E\uDD14"
 const val ANGRY_EMOJI = "\uD83D\uDE20"
 
-val specialCommands = commands {
-    specialCommandWithContext("everyone") {
-        val permissionService = ref<PermissionService>()
+private val String.special get() = specialCommandName(this)
 
-        SpecialCommand { event ->
+val specialCommands = commands {
+    command("everyone".special) {
+        val permissionService = dsl.ref<PermissionService>()
+
+        special { event ->
             if ("@everyone" in event.text &&
                 event.isGroup &&
                 permissionService.isAuthorized("everyone", event.threadId, event.authorId)
             ) {
-                val mentions = event.context.fetchThread(event.threadId).participants
-                    .map { Mention(it, 0, 9) }
+                val mentions = event.context.fetchThread(event.threadId)!!
+                    .participantsList.map {
+                        mention {
+                            threadId = it
+                            offset = 0
+                            length = 9
+                        }
+                    }
 
                 Response(event, text = "@everyone", mentions = mentions).send()
             }
         }
     }
 
-    specialCommand("thinking") {
-        if (it.text == THINKING_EMOJI) {
-            Response(it, text = THINKING_EMOJI).send()
-        }
-    }
-
-    specialCommand("grek") {
-        when (it.text.lowercase()) {
-            "grek" -> {
-                if (it.text == "Grek") {
-                    Response(it, text = "grek*").send()
-                }
-                Response(it, text = "to pedał").send()
+    command("thinking".special) {
+        special {
+            if (it.text == THINKING_EMOJI) {
+                Response(it, text = THINKING_EMOJI).send()
             }
-
-            "pedał" -> Response(it, text = "sam jesteś grek").send()
-            "pedał to" -> Response(it, text = "grek").send()
         }
     }
 
-    specialCommandWithContext("1337") {
-        val permissionService = ref<PermissionService>()
+    command("grek".special) {
+        special {
+            when (it.text.lowercase()) {
+                "grek" -> {
+                    if (it.text == "Grek") {
+                        Response(it, text = "grek*").send()
+                    }
+                    Response(it, text = "to pedał").send()
+                }
 
-        SpecialCommand {
+                "pedał" -> Response(it, text = "sam jesteś grek").send()
+                "pedał to" -> Response(it, text = "grek").send()
+            }
+        }
+    }
+
+    command("1337".special) {
+        val permissionService = dsl.ref<PermissionService>()
+
+        special {
             if ("1337" in it.text) {
                 val isLeet = permissionService.isAuthorized("leet", it.threadId, it.authorId)
 
@@ -63,22 +73,34 @@ val specialCommands = commands {
         }
     }
 
-    specialCommand("2137") {
-        if ("2137" in it.text) {
-            Response(it, text = "haha toż to papieżowa liczba").send()
+    command("2137".special) {
+        special {
+            if ("2137" in it.text) {
+                Response(it, text = "haha toż to papieżowa liczba").send()
+            }
         }
     }
 
-    specialCommand("Xd") {
-        if ("Xd" in it.text) it.react(ANGRY_EMOJI)
+    command("Xd".special) {
+        special {
+            if ("Xd" in it.text) it.context.reactToMessage(it, ANGRY_EMOJI)
+        }
     }
 
-    specialCommand("spierdalaj") { sam(it, "spierdalaj") }
+    command("spierdalaj".special) {
+        special {
+            sam(it, "spierdalaj")
+        }
+    }
 
-    specialCommand("wypierdalaj") { sam(it, "wypierdalaj") }
+    command("wypierdalaj".special) {
+        special {
+            sam(it, "wypierdalaj")
+        }
+    }
 }
 
-private suspend fun sam(event: MessageEvent, word: String) = coroutineScope {
+private suspend fun CommandDsl.sam(event: MessageEvent, word: String) = coroutineScope {
     val text = event.text.lowercase()
 
     if (word !in text) return@coroutineScope
@@ -96,5 +118,5 @@ private suspend fun sam(event: MessageEvent, word: String) = coroutineScope {
     }
 
     launch { Response(event, text = msg + word).send() }
-    launch { event.react(ANGRY_EMOJI) }
+    launch { event.context.reactToMessage(event, ANGRY_EMOJI) }
 }

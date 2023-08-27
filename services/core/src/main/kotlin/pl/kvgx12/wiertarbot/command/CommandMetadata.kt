@@ -1,8 +1,8 @@
 package pl.kvgx12.wiertarbot.command
 
-import pl.kvgx12.wiertarbot.connector.ConnectorType
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.proto.ConnectorType
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.Response
 import java.util.*
 
 data class CommandMetadata(
@@ -19,6 +19,6 @@ fun interface GenericCommandHandler : CommandHandler {
     suspend fun process(event: MessageEvent): Response?
 }
 
-fun interface SpecialCommand {
+fun interface SpecialCommand : CommandHandler {
     suspend fun process(event: MessageEvent)
 }

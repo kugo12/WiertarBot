@@ -1,7 +1,10 @@
 package pl.kvgx12.wiertarbot.command.dsl
 
 import org.springframework.context.support.BeanDefinitionDsl
-import pl.kvgx12.wiertarbot.connector.ConnectorType
+import pl.kvgx12.wiertarbot.config.ContextHolder
+import pl.kvgx12.wiertarbot.proto.ConnectorType
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.Response
 import java.util.*
 
 class CommandDsl(
@@ -9,8 +12,9 @@ class CommandDsl(
     val name: String,
     val aliases: List<String> = emptyList(),
 ) {
+    private val contextHolder = dsl.ref<ContextHolder>()
     var help: String? = null
-    var availableIn: EnumSet<ConnectorType> = ConnectorType.all()
+    var availableIn: EnumSet<ConnectorType> = EnumSet.allOf(ConnectorType::class.java)
 
     inline fun help(eval: HelpEval) {
         help = eval(
@@ -28,4 +32,7 @@ class CommandDsl(
             }
         }
     }
+
+    val MessageEvent.context get() = contextHolder[connectorInfo]
+    suspend fun Response.send() = contextHolder[event.connectorInfo].sendResponse(this)
 }

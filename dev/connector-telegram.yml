@@ -1,0 +1,15 @@
+wiertarbot:
+  telegram:
+    token: ${TELEGRAM_TOKEN}
+
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://db:5432/wiertarbot
+    username: postgres
+    password: postgres
+
+  rabbitmq:
+    host: rabbitmq
+    port: 5672
+    username: guest
+    password: guest

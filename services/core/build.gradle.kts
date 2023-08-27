@@ -28,9 +28,11 @@ benchmark {
 }
 
 dependencies {
-    implementation(project(":libs:fbchat-kt"))
+    implementation(project(":libs:core-proto"))
 
     implementation(libs.bundles.spring)
+    implementation(libs.spring.starter.web)
+    implementation(libs.spring.starter.webflux)
     implementation(libs.spring.starter.data.r2dbc)
     implementation(libs.spring.starter.amqp)
     implementation(libs.spring.starter.cache)
@@ -40,10 +42,7 @@ dependencies {
     implementation(libs.kotlinx.datetime)
     implementation(libs.kotlinx.serialization.json)
 
-    implementation(libs.bundles.ktor.client)
-
     implementation(libs.caffeine)
-    implementation(libs.inmo.telegram)
     implementation(libs.scrimage.core)
     implementation(libs.bundles.imageio)
     implementation(libs.skrape.html)

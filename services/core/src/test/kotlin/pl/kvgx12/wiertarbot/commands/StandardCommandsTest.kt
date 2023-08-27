@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.commands
 
+import com.google.protobuf.ByteString
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
@@ -16,20 +17,27 @@ import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.commands.standard.barka
 import pl.kvgx12.wiertarbot.commands.standard.pastaXd
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
-import pl.kvgx12.wiertarbot.connector.UploadedFile
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
+import pl.kvgx12.wiertarbot.connector.ConnectorContextClient
+import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.utils.getCommand
+import pl.kvgx12.wiertarbot.utils.proto.Response
 import java.util.*
 
 @ContextConfiguration(initializers = [CommandTestInitializer::class])
 class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
     {
-        val event = mockk<MessageEvent>()
+        val event = mockk<MessageEvent>(relaxed = true)
         val prefix = context.getBean<WiertarbotProperties>().prefix
+        val connectorContext = context.getBean<ConnectorContextClient>()
 
         afterTest {
-            clearMocks(event)
+            clearMocks(event, connectorContext)
+        }
+
+        beforeTest {
+            every { event.connectorInfo } returns connectorInfo {
+                connectorType = ConnectorType.TELEGRAM
+            }
         }
 
         context("wybierz") {
@@ -156,10 +164,10 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
             val helpResponse = Response(event, text = metadata.help)
 
             test("invalid currency") {
-                every { event.text } returns "${prefix}kurs abc pln"
+                every { event.text } returns "${prefix}kurs abc123 pln"
                 handler.process(event) shouldBe invalidCurrencyResponse
 
-                every { event.text } returns "${prefix}kurs pln abc"
+                every { event.text } returns "${prefix}kurs pln abc123"
                 handler.process(event) shouldBe invalidCurrencyResponse
             }
 
@@ -233,17 +241,19 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
             }
 
             test("returns correct value") {
-                val files = listOf(
-                    UploadedFile("test", "test", ByteArray(0)),
-                    UploadedFile("test2", "test2", ByteArray(0)),
-                    UploadedFile("test3", "test3", ByteArray(0)),
-                    UploadedFile("test4", "test4", ByteArray(0)),
-                )
+                val size = 4
+                val files = (1..size).map {
+                    uploadedFile {
+                        id = "test$it"
+                        mimeType = "test$it"
+                        content = ByteString.EMPTY
+                    }
+                }
 
                 every { event.text } returns "${prefix}mc skin notch"
 
                 // TODO: check if passed urls are reachable images
-                coEvery { event.context.upload(match<List<String>> { it.size == 4 }) } returns files
+                coEvery { connectorContext.upload(match<List<String>> { it.size == size }) } returns files
 
                 handler.process(event) shouldBe Response(
                     event,

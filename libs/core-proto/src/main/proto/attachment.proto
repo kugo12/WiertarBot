@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+option java_package = "pl.kvgx12.wiertarbot.proto";
+option java_multiple_files = true;
+option java_generate_equals_and_hash = true;
+
+message Attachment {
+    optional string id = 1;
+    oneof attachment {
+        ImageAttachment image = 2;
+    }
+}
+
+message ImageAttachment {
+    optional int32 width = 1;
+    optional int32 height = 2;
+    optional string originalExtension = 3;
+    optional bool isAnimated = 4;
+}
+
+message Mention {
+    string threadId = 1;
+    int32 offset = 2;
+    int32 length = 3;
+}
+
+message UploadedFile {
+    string id = 1;
+    string mimeType = 2;
+    optional bytes content = 3;
+}
+
+message FileData {
+    string uri = 1;
+    string mimeType = 2;
+    bytes content = 3;
+}
+
+message ThreadData {
+    string id = 1;
+    string name = 2;
+    optional int64 messageCount = 3;
+    repeated string participants = 4;
+}

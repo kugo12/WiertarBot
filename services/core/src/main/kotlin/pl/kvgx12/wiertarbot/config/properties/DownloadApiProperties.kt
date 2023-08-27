@@ -1,10 +1,6 @@
 package pl.kvgx12.wiertarbot.config.properties
 
-import pl.kvgx12.wiertarbot.config.ConfigProperties
+import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigProperties("wiertarbot.download-api")
-data class DownloadApiProperties(
-    val url: String,
-) {
-    val platformsUrl = "$url/platforms"
-}
+@ConfigurationProperties("wiertarbot.download-api", ignoreInvalidFields = true)
+data class DownloadApiProperties(val url: String)

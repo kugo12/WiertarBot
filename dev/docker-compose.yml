@@ -1,0 +1,47 @@
+version: "3.8"
+
+services:
+  download-api:
+    image: kugo12/wiertarbot-download-api
+    env_file: ../.env
+    volumes: [./download-api.yml:/app/application.yml]
+  ttrs-api:
+    image: kugo12/wiertarbot-ttrs-api
+    platform: linux/amd64
+    env_file: ../.env
+  connector-telegram:
+    image: kugo12/wiertarbot-connector-telegram
+    env_file: ../.env
+    volumes: [./connector-telegram.yml:/app/application.yml]
+#  connector-fb:
+#    image: kugo12/wiertarbot-connector-fb
+  core:
+    image: kugo12/wiertarbot
+    env_file: ../.env
+    volumes: [./core.yml:/app/application.yml]
+
+  db:
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: wiertarbot
+    ports: ["5433:5432"]
+    volumes: [./schema.sql:/docker-entrypoint-initdb.d/schema.sql]
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    environment:
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management load_definitions "/etc/rabbitmq/rabbitmq.json"
+    ports: ["15671:15672"]
+    volumes: [./rabbitmq.json:/etc/rabbitmq/rabbitmq.json]
+  minio:
+    image: minio/minio
+    entrypoint: [sh, -c]
+    command: >
+      set -eux &&
+      mkdir -p /data/download-api &&
+      minio server /data --console-address ':9001'
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports: ["9001:9001"]

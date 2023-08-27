@@ -1,17 +1,15 @@
 package pl.kvgx12.wiertarbot.command
 
+import com.google.protobuf.kotlin.toByteString
 import com.twelvemonkeys.imageio.stream.ByteArrayImageInputStream
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.request.*
-import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import pl.kvgx12.wiertarbot.connector.FileData
-import pl.kvgx12.wiertarbot.events.ImageAttachment
-import pl.kvgx12.wiertarbot.events.MessageEvent
-import pl.kvgx12.wiertarbot.events.Response
-import pl.kvgx12.wiertarbot.utils.tryCast
+import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.awaitBodyOrNull
+import pl.kvgx12.wiertarbot.command.dsl.CommandDsl
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.fileData
+import pl.kvgx12.wiertarbot.utils.proto.Response
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
@@ -21,7 +19,11 @@ private const val FILENAME = "imageedit.jpg"
 
 typealias ImageEdit<T> = suspend ImageEditCommand.ImageEditState.(T) -> T
 
-abstract class ImageEditCommand : CommandHandler {
+abstract class ImageEditCommand(
+    private val dsl: CommandDsl
+) : CommandHandler {
+    private val client = dsl.dsl.ref<WebClient>()
+
     inner class ImageEditState(
         private val initialMessage: MessageEvent,
     ) {
@@ -38,38 +40,47 @@ abstract class ImageEditCommand : CommandHandler {
     protected abstract suspend fun edit(state: ImageEditState, image: BufferedImage): BufferedImage
 
     suspend fun check(event: MessageEvent): ImageEditState? {
-        event.context.fetchRepliedTo(event)?.let { repliedTo ->
-            getImageFromAttachments(repliedTo)?.let { file ->
-                editAndSend(ImageEditState(event), event, file)
-                return null
-            }
+        with(dsl) {
+            event.context.fetchRepliedTo(event)
+                ?.let { repliedTo ->
+                    getImageFromAttachments(repliedTo)?.let { file ->
+                        editAndSend(ImageEditState(event), event, file)
+                        return null
+                    }
+                }
+            Response(event, text = "Wyślij zdjęcie").send()
         }
 
-        Response(event, text = "Wyślij zdjęcie").send()
         return ImageEditState(event)
     }
 
     private suspend fun editAndSend(state: ImageEditState, event: MessageEvent, file: ByteArray) {
-        val f = edit(state, file)
-        val uploadedFiles = event.context.uploadRaw(listOf(FileData(FILENAME, f, MIME)), false)
+        val content = edit(state, file)
+        val fd = fileData {
+            uri = FILENAME
+            mimeType = MIME
+            this.content = content.toByteString()
+        }
 
-        Response(event, files = uploadedFiles).send()
+        with(dsl) {
+            Response(event, files = event.context.uploadRaw(fd)).send()
+        }
     }
 
     private suspend fun getImageFromAttachments(event: MessageEvent): ByteArray? {
-        val id = event.attachments.firstOrNull()
-            .tryCast<ImageAttachment>()?.id
+        val id = event.attachmentsList
+            .firstOrNull { it.hasImage() }
+            ?.id
             ?: return null
 
-        return withContext(Dispatchers.IO) {
-            val url = event.context.fetchImageUrl(id)
-            val response = client.get(url)
-
-            when (response.status) {
-                HttpStatusCode.OK -> response.body<ByteArray>()
-                else -> null
-            }
+        val url = with(dsl) {
+            event.context.fetchImageUrl(id)
         }
+
+        return client.get()
+            .uri(url)
+            .retrieve()
+            .awaitBodyOrNull<ByteArray>()
     }
 
     private fun write(image: BufferedImage): ByteArray = ByteArrayOutputStream().use {
@@ -91,8 +102,6 @@ abstract class ImageEditCommand : CommandHandler {
     }
 
     companion object {
-        val client = HttpClient()
-
         init {
             System.setProperty("java.awt.headless", "true")
             ImageIO.setUseCache(false)

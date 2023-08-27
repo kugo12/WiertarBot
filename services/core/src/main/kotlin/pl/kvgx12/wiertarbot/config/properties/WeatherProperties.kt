@@ -1,6 +1,6 @@
 package pl.kvgx12.wiertarbot.config.properties
 
-import pl.kvgx12.wiertarbot.config.ConfigProperties
+import org.springframework.boot.context.properties.ConfigurationProperties
 
-@ConfigProperties("wiertarbot.weather")
+@ConfigurationProperties("wiertarbot.weather", ignoreInvalidFields = true)
 data class WeatherProperties(val url: String)
