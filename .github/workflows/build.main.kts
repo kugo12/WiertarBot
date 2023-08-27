@@ -99,6 +99,7 @@ workflow(
                 .associate { it.name to expr("steps.step-0.outputs.${it.name}") },
         ),
     ) {
+        checkout()
         uses(
             name = "Filter",
             action = CustomAction(
