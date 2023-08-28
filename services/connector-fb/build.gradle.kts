@@ -8,7 +8,7 @@ plugins {
 }
 
 allOpen {
-    annotation("pl.kvgx12.wiertarbot.fb.utils.AllOpen")
+    annotation("pl.kvgx12.wiertarbot.connector.utils.AllOpen")
 }
 
 dependencies {
