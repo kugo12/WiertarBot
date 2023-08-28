@@ -5,7 +5,8 @@ WORKDIR /app
 COPY build/libs/*.jar app.jar
 
 RUN useradd -U user && \
-    chown -R user:user /app
+    chown -R user:user /app && \
+    chmod +x ./app.jar
 
 USER user
 
