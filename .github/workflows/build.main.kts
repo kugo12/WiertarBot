@@ -82,7 +82,16 @@ workflow(
     on = listOf(
         Push(listOf(DEFAULT_BRANCH)),
         PullRequest(branches = listOf(DEFAULT_BRANCH)),
-        WorkflowDispatch(),
+        WorkflowDispatch(
+            inputs = mapOf(
+                "services" to WorkflowDispatch.Input(
+                    "Services to build",
+                    true,
+                    WorkflowDispatch.Type.String,
+                    default = wbServices.joinToString(",") { it.name },
+                ),
+            ),
+        ),
     ),
     sourceFile = __FILE__.toPath(),
     concurrency = Concurrency(
@@ -189,7 +198,13 @@ workflow(
             id = "docker-$service",
             runsOn = UbuntuLatest,
             needs = listOf(gradleBuild, changes),
-            condition = if (it.paths.isNotEmpty()) expr("needs.${changes.id}.outputs.${it.name} == 'true'") else null,
+            condition = when {
+                it.paths.isNotEmpty() -> expr {
+                    "needs.${changes.id}.outputs.${it.name} == 'true' || contains(github.event.inputs.services, '${it.name}')"
+                }
+
+                else -> null
+            },
         ) {
             checkout()
 

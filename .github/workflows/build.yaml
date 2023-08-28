@@ -10,7 +10,13 @@ on:
   pull_request:
     branches:
     - 'main'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      services:
+        description: 'Services to build'
+        type: 'string'
+        required: true
+        default: 'core,connector-fb,connector-telegram,download-api,ttrs-api'
 concurrency:
   group: '${{ github.ref }}'
   cancel-in-progress: true
@@ -153,7 +159,7 @@ jobs:
     - 'gradle-build'
     - 'detect-changes'
     - 'check_yaml_consistency'
-    if: '${{ needs.detect-changes.outputs.core == ''true'' }}'
+    if: '${{ needs.detect-changes.outputs.core == ''true'' || contains(github.event.inputs.services, ''core'') }}'
     steps:
     - id: 'step-0'
       name: 'Check out'
@@ -190,7 +196,7 @@ jobs:
     - 'gradle-build'
     - 'detect-changes'
     - 'check_yaml_consistency'
-    if: '${{ needs.detect-changes.outputs.connector-fb == ''true'' }}'
+    if: '${{ needs.detect-changes.outputs.connector-fb == ''true'' || contains(github.event.inputs.services, ''connector-fb'') }}'
     steps:
     - id: 'step-0'
       name: 'Check out'
@@ -227,7 +233,7 @@ jobs:
     - 'gradle-build'
     - 'detect-changes'
     - 'check_yaml_consistency'
-    if: '${{ needs.detect-changes.outputs.connector-telegram == ''true'' }}'
+    if: '${{ needs.detect-changes.outputs.connector-telegram == ''true'' || contains(github.event.inputs.services, ''connector-telegram'') }}'
     steps:
     - id: 'step-0'
       name: 'Check out'
@@ -264,7 +270,7 @@ jobs:
     - 'gradle-build'
     - 'detect-changes'
     - 'check_yaml_consistency'
-    if: '${{ needs.detect-changes.outputs.download-api == ''true'' }}'
+    if: '${{ needs.detect-changes.outputs.download-api == ''true'' || contains(github.event.inputs.services, ''download-api'') }}'
     steps:
     - id: 'step-0'
       name: 'Check out'
@@ -304,7 +310,7 @@ jobs:
     - 'gradle-build'
     - 'detect-changes'
     - 'check_yaml_consistency'
-    if: '${{ needs.detect-changes.outputs.ttrs-api == ''true'' }}'
+    if: '${{ needs.detect-changes.outputs.ttrs-api == ''true'' || contains(github.event.inputs.services, ''ttrs-api'') }}'
     steps:
     - id: 'step-0'
       name: 'Check out'
