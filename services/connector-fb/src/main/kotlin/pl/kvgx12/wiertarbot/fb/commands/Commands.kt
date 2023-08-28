@@ -16,9 +16,10 @@ import kotlin.io.path.div
 fun BeanDefinitionDsl.delegatedCommandsBeans() {
     bean(DelegatedCommand.name("see")) {
         val fbMessageService = ref<FBMessageService>()
-        val context = ref<FBContext>()
+        val contextProvider = provider<FBContext>()
 
         DelegatedCommand { event ->
+            val context = contextProvider.first()
             val count = event.text.split(' ', limit = 2).last()
                 .toIntOrNull()?.coerceIn(1, 10)
                 ?: 1
