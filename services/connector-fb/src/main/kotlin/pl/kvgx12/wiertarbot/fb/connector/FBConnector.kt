@@ -1,44 +1,35 @@
 package pl.kvgx12.wiertarbot.fb.connector
 
 import io.ktor.util.logging.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.launch
 import pl.kvgx12.fbchat.data.events.ThreadEvent
 import pl.kvgx12.fbchat.mqtt.Listener
 import pl.kvgx12.fbchat.session.Session
 import pl.kvgx12.wiertarbot.connector.Connector
 import pl.kvgx12.wiertarbot.connector.utils.getLogger
-import pl.kvgx12.wiertarbot.fb.config.FBProperties
 import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.fbchat.data.Attachment as FBAttachment
 import pl.kvgx12.fbchat.data.ImageAttachment as FBImageAttachment
 import pl.kvgx12.fbchat.data.Mention as FBMention
 
 class FBConnector(
-    private val props: FBProperties,
+    private val session: Session,
     private val eventConsumer: FBEventConsumer,
 ) : Connector {
-    val log = getLogger()
-
-    private val scope = CoroutineScope(Dispatchers.Default)
-    val session = scope.async {
-        Session(props.email, props.password)
-    }
-
-    val listener = scope.async {
-        Listener(session.await())
-    }
+    private val log = getLogger()
+    private val listener = Listener(session)
 
     override fun run(): Flow<Event> = flow {
-        val session = session.await()
         val info = connectorInfo {
             connectorType = ConnectorType.FB
             botId = session.userId
         }
 
         coroutineScope {
-            listener.await().listen()
+            listener.listen()
                 .collect {
                     launch {
                         runCatching {
