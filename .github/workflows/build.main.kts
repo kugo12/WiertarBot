@@ -1,16 +1,27 @@
 #!/usr/bin/env kotlin
 
-@file:DependsOn("io.github.typesafegithub:github-workflows-kt:0.49.0")
+@file:Repository("https://repo.maven.apache.org/maven2/")
+@file:Repository("https://bindings.krzeminski.it")
 
-import Build_main.JB
-import io.github.typesafegithub.workflows.actions.actions.CheckoutV3
-import io.github.typesafegithub.workflows.actions.actions.DownloadArtifactV3
-import io.github.typesafegithub.workflows.actions.actions.SetupJavaV3
-import io.github.typesafegithub.workflows.actions.actions.UploadArtifactV3
-import io.github.typesafegithub.workflows.actions.docker.BuildPushActionV4
-import io.github.typesafegithub.workflows.actions.docker.LoginActionV2
-import io.github.typesafegithub.workflows.actions.docker.SetupBuildxActionV2
-import io.github.typesafegithub.workflows.actions.gradle.GradleBuildActionV2
+@file:DependsOn("io.github.typesafegithub:github-workflows-kt:3.0.1")
+
+@file:DependsOn("actions:checkout:v4")
+@file:DependsOn("actions:download-artifact:v3")
+@file:DependsOn("actions:upload-artifact:v3")
+@file:DependsOn("actions:setup-java:v3")
+@file:DependsOn("docker:setup-buildx-action:v2")
+@file:DependsOn("docker:login-action:v2")
+@file:DependsOn("docker:build-push-action:v4")
+@file:DependsOn("gradle:gradle-build-action:v2")
+
+import io.github.typesafegithub.workflows.actions.actions.Checkout
+import io.github.typesafegithub.workflows.actions.actions.DownloadArtifact
+import io.github.typesafegithub.workflows.actions.actions.SetupJava
+import io.github.typesafegithub.workflows.actions.actions.UploadArtifact
+import io.github.typesafegithub.workflows.actions.docker.BuildPushAction
+import io.github.typesafegithub.workflows.actions.docker.LoginAction
+import io.github.typesafegithub.workflows.actions.docker.SetupBuildxAction
+import io.github.typesafegithub.workflows.actions.gradle.GradleBuildAction
 import io.github.typesafegithub.workflows.domain.Concurrency
 import io.github.typesafegithub.workflows.domain.Container
 import io.github.typesafegithub.workflows.domain.RunnerType.UbuntuLatest
@@ -23,7 +34,6 @@ import io.github.typesafegithub.workflows.dsl.expressions.Contexts
 import io.github.typesafegithub.workflows.dsl.expressions.expr
 import io.github.typesafegithub.workflows.dsl.port
 import io.github.typesafegithub.workflows.dsl.workflow
-import io.github.typesafegithub.workflows.yaml.writeToFile
 
 val DEFAULT_BRANCH = "main"
 
@@ -93,7 +103,7 @@ workflow(
             ),
         ),
     ),
-    sourceFile = __FILE__.toPath(),
+    sourceFile = __FILE__,
     concurrency = Concurrency(
         group = expr { github.ref },
         cancelInProgress = true,
@@ -140,7 +150,7 @@ workflow(
         gradle("Gradle build", "assemble")
         uses(
             name = "Upload build artifacts",
-            action = UploadArtifactV3(
+            action = UploadArtifact(
                 name = "jars",
                 path = listOf("**/build/libs"),
             ),
@@ -179,7 +189,7 @@ workflow(
         uses(
             name = "Upload test artifacts",
             condition = expr { always() },
-            action = UploadArtifactV3(
+            action = UploadArtifact(
                 name = "test-results",
                 path = listOf(
                     "**/build/test-results",
@@ -213,22 +223,22 @@ workflow(
                 action = CustomAction("docker", "setup-qemu-action", "v2"),
             )
 
-            uses(name = "Setup docker buildx", action = SetupBuildxActionV2())
+            uses(name = "Setup docker buildx", action = SetupBuildxAction())
             uses(
                 name = "Login to docker registry",
                 condition = isMainAndPushOrDispatch,
-                action = LoginActionV2(
+                action = LoginAction(
                     username = expr(DOCKER_USERNAME),
                     password = expr(DOCKER_PASSWORD),
                 ),
             )
             uses(
                 name = "Download build artifacts",
-                action = DownloadArtifactV3(name = "jars"),
+                action = DownloadArtifact(name = "jars"),
             )
             uses(
                 name = "Build docker image",
-                action = BuildPushActionV4(
+                action = BuildPushAction(
                     context = "services/$service",
                     file = "services/$service/Dockerfile",
                     platforms = platforms.toList(),
@@ -260,26 +270,26 @@ workflow(
             """.trimIndent(),
         )
     }
-}.writeToFile()
+}
 
 typealias JB = JobBuilder<*>
 
 fun JB.gradle(name: String, tasks: String) = uses(
     name = name,
-    action = GradleBuildActionV2(
+    action = GradleBuildAction(
         arguments = tasks,
     ),
 )
 
 fun JB.checkout() = uses(
     name = "Check out",
-    action = CheckoutV3(),
+    action = Checkout(),
 )
 
 fun JB.setupJava() = uses(
     name = "Set up jdk",
-    action = SetupJavaV3(
+    action = SetupJava(
         javaVersion = "17",
-        distribution = SetupJavaV3.Distribution.Temurin,
+        distribution = SetupJava.Distribution.Temurin,
     ),
 )

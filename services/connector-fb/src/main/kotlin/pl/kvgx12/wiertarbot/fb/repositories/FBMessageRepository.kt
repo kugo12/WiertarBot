@@ -14,7 +14,7 @@ interface FBMessageRepository : CoroutineCrudRepository<FBMessage, Int> {
     fun findAllByThreadIdAndDeletedAtNotNull(threadId: String, pageable: Pageable): Flow<FBMessage>
 
     @Modifying
-    @Query("UPDATE fbmessage m SET m.deletedAt = :timestamp WHERE m.messageId = :messageId")
+    @Query("UPDATE fbmessage SET deleted_at = :timestamp WHERE message_id = :messageId")
     suspend fun markDeleted(messageId: String, timestamp: Long)
 
     suspend fun deleteByDeletedAtNullAndTimeBefore(time: Long)
