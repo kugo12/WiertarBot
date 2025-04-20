@@ -38,7 +38,7 @@ class StreamablePlatform : Platform {
 
     private fun isValidUrl(url: Url) =
         hostPredicate.test(url.host) &&
-            url.pathSegments.size == 1
+            url.segments.size == 1
 
     companion object {
         private val hostPredicate = HostPredicate("streamable.com")

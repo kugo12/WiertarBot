@@ -3,6 +3,7 @@ package pl.kvgx12.wiertarbot.telegram
 import dev.inmo.micro_utils.coroutines.subscribe
 import dev.inmo.tgbotapi.abstracts.FromUser
 import dev.inmo.tgbotapi.bot.ktor.telegramBot
+import dev.inmo.tgbotapi.extensions.utils.updates.retrieving.longPolling
 import dev.inmo.tgbotapi.requests.bot.GetMe
 import dev.inmo.tgbotapi.types.files.PhotoSize
 import dev.inmo.tgbotapi.types.files.TelegramMediaFile

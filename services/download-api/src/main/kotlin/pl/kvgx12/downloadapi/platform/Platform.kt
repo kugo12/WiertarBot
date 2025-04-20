@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory
 import pl.kvgx12.downloadapi.utils.io
 import pl.kvgx12.downloadapi.utils.isUrl
 import java.io.File
+import java.nio.ByteBuffer
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
 
@@ -106,7 +107,7 @@ interface Platform {
 
         suspend fun getFile(url: Url, file: File, builder: HttpRequestBuilder.() -> Unit = {}): ContentType? {
             val response = client.get(url) {
-                timeout { requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS }
+                timeout { requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS }
                 builder()
             }
             log.info("${response.contentLength()}")
@@ -138,7 +139,7 @@ interface Platform {
                 .apply { if (last() != length - 1) add(length - 1) }.zipWithNext { a, b ->
                     scope.async {
                         client.prepareGet(url) {
-                            timeout { requestTimeoutMillis = HttpTimeout.INFINITE_TIMEOUT_MS }
+                            timeout { requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS }
                             header(HttpHeaders.Range, "bytes=${a - 1}-$b")
                         }.execute {
                             val body = it.bodyAsChannel()
@@ -147,10 +148,10 @@ interface Platform {
                             var position = a - 1
                             do {
                                 body.read { source, _, _ ->
-                                    fileChannel.write(source.buffer, position)
+                                    fileChannel.write(ByteBuffer.wrap(source), position)
                                     position += source.size
 
-                                    source.size32
+                                    source.size
                                 }
                             } while (!body.isClosedForRead)
 

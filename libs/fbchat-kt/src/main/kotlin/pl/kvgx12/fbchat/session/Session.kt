@@ -2,7 +2,6 @@ package pl.kvgx12.fbchat.session
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.HttpTimeout.Plugin.INFINITE_TIMEOUT_MS
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
@@ -54,7 +53,7 @@ class Session internal constructor(
         return when (response.locationHeader) {
             client.href(Messenger()),
             client.href(Messenger.Checkpoint.Block()),
-            -> true
+                -> true
 
             else -> false
         }
@@ -75,7 +74,7 @@ class Session internal constructor(
                     formData.forEach { append(it.key, it.value) }
                     files.forEach { append(it) }
                 }
-                timeout { requestTimeoutMillis = INFINITE_TIMEOUT_MS }
+                timeout { requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS }
             } else {
                 bodyForm {
                     formData.forEach { append(it.key, it.value) }
@@ -161,6 +160,7 @@ class Session internal constructor(
     companion object {
         internal val log = LoggerFactory.getLogger(Session::class.java)
         internal val baseUrl = Url("https://www.messenger.com/")
+        internal const val userAgent = "curl/7.61.0"
 
         internal val json = Json {
             ignoreUnknownKeys = true

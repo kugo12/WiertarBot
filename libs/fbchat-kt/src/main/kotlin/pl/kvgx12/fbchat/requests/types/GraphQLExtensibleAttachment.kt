@@ -52,6 +52,15 @@ internal data class GraphQLExtensibleAttachment(
             @SerialName("deduplication_key")
             override val id: String? = null,
         ) : Shared()
+
+        @Serializable
+        @SerialName("Video")
+        data class Video(
+            override val id: String,
+
+            @SerialName("video_id")
+            val videoId: String,
+        ) : Shared()
     }
 
     fun toAttachment(): Attachment? {

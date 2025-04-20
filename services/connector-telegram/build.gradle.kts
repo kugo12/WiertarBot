@@ -14,7 +14,7 @@ dependencies {
     implementation(libs.bundles.ktor.client)
 
     implementation(libs.caffeine)
-    implementation(libs.inmo.telegram)
+    implementation(libs.bundles.telegram)
     implementation(libs.scrimage.core)
     implementation(libs.bundles.imageio)
     implementation(libs.skrape.html)

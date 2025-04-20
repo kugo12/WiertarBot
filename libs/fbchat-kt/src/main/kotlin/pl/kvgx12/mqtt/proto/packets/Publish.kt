@@ -1,6 +1,7 @@
 package pl.kvgx12.mqtt.proto.packets
 
 import io.ktor.utils.io.core.*
+import kotlinx.io.Sink
 import pl.kvgx12.mqtt.proto.MQTTPacketType
 import pl.kvgx12.mqtt.proto.MQTTQoS
 
@@ -23,12 +24,12 @@ class MQTTPublish(
 
     override val payloadSize: Int get() = payload.size
 
-    override fun BytePacketBuilder.encodeVariableHeader() {
+    override fun Sink.encodeVariableHeader() {
         writeMqttString(topic)
         encodeMessageId()
     }
 
-    override fun BytePacketBuilder.encodePayload() {
+    override fun Sink.encodePayload() {
         writeFully(payload)
     }
 }

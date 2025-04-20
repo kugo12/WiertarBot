@@ -54,7 +54,7 @@ class TikTokPlatform : Platform {
     private fun isTikTokUrl(url: Url): Boolean = hostPredicate.test(url.host)
 
     private fun videoIdFrom(url: Url): String? {
-        val segments = url.pathSegments
+        val segments = url.segments
 
         if (segments.size >= 2 && segments[segments.lastIndex - 1] == "video") {
             return segments.last()

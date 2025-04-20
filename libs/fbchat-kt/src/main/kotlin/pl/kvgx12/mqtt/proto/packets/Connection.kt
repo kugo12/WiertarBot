@@ -1,6 +1,6 @@
 package pl.kvgx12.mqtt.proto.packets
 
-import io.ktor.utils.io.core.*
+import kotlinx.io.Sink
 import pl.kvgx12.mqtt.proto.MQTTConnectReturnCode
 import pl.kvgx12.mqtt.proto.MQTTPacketType
 import pl.kvgx12.mqtt.proto.MQTTProtocol
@@ -25,13 +25,13 @@ data class MQTTConnect(
             return size
         }
 
-    override fun BytePacketBuilder.encodePayload() {
+    override fun Sink.encodePayload() {
         writeMqttString(clientId)
         username?.let(::writeMqttString)
         password?.let(::writeMqttString)
     }
 
-    override fun BytePacketBuilder.encodeVariableHeader() {
+    override fun Sink.encodeVariableHeader() {
         writeMqttString(version.identifier)
         writeByte(version.version.toByte())
         writeByte(
@@ -51,7 +51,7 @@ data class MQTTConnectAck(
     override val type: MQTTPacketType get() = MQTTPacketType.CONNACK
     override val variableHeaderSize: Int get() = 2
 
-    override fun BytePacketBuilder.encodeVariableHeader() {
+    override fun Sink.encodeVariableHeader() {
         writeByte(0)
         writeByte(returnCode.value.toByte())
     }

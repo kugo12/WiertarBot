@@ -8,18 +8,15 @@ import dev.inmo.tgbotapi.requests.chat.get.GetChat
 import dev.inmo.tgbotapi.requests.get.GetFile
 import dev.inmo.tgbotapi.requests.send.SendTextMessage
 import dev.inmo.tgbotapi.requests.send.media.*
-import dev.inmo.tgbotapi.types.ChatId
-import dev.inmo.tgbotapi.types.ChatIdentifier
-import dev.inmo.tgbotapi.types.UserId
+import dev.inmo.tgbotapi.types.*
 import dev.inmo.tgbotapi.types.chat.ExtendedChatWithUsername
 import dev.inmo.tgbotapi.types.chat.PublicChat
 import dev.inmo.tgbotapi.types.chat.UsernameChat
 import dev.inmo.tgbotapi.types.files.fullUrl
 import dev.inmo.tgbotapi.types.media.*
 import dev.inmo.tgbotapi.types.message.content.MediaGroupPartContent
-import dev.inmo.tgbotapi.types.message.textsources.mention
-import dev.inmo.tgbotapi.types.message.textsources.regular
-import dev.inmo.tgbotapi.types.threadId
+import dev.inmo.tgbotapi.types.message.textsources.mentionTextSource
+import dev.inmo.tgbotapi.types.message.textsources.regularTextSource
 import dev.inmo.tgbotapi.utils.RiskFeature
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -31,7 +28,9 @@ import kotlinx.serialization.json.Json
 import pl.kvgx12.wiertarbot.connector.ConnectorContextServer
 import pl.kvgx12.wiertarbot.connector.DelegatedCommandInvoker
 import pl.kvgx12.wiertarbot.proto.*
+import pl.kvgx12.wiertarbot.proto.Response
 import pl.kvgx12.wiertarbot.proto.connector.*
+import pl.kvgx12.wiertarbot.proto.connector.Empty
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
@@ -43,9 +42,13 @@ class TelegramContext(
 
     private fun chatId(string: String) = Json.decodeFromString<ChatIdentifier>(string)
 
+    private fun Response.replyParameters(chatId: ChatIdentifier) = replyToId?.toLongOrNull()?.let {
+        ReplyParameters(chatIdentifier = chatId, messageId = MessageId(it))
+    }
+
     private fun Mention.toEntity(text: String) =
-        UserId(threadId.toLong())
-            .mention(text.substring(offset, offset + length))
+        RawChatId(threadId.toLong())
+            .mentionTextSource(text.substring(offset, offset + length))
 
     private fun Response.buildEntities() = buildList {
         if (text == null) return@buildList
@@ -55,7 +58,8 @@ class TelegramContext(
                 .sortedBy { it.offset }
                 .fold(0) { acc, mention ->
                     if (acc < mention.offset) {
-                        add(regular(text.substring(acc, mention.offset)))
+
+                        add(regularTextSource(text.substring(acc, mention.offset)))
                     }
                     add(mention.toEntity(text))
 
@@ -63,15 +67,15 @@ class TelegramContext(
                 }
 
             if (processed < text.length) {
-                add(regular(text.substring(processed, text.length)))
+                add(regularTextSource(text.substring(processed, text.length)))
             }
-        } ?: add(regular(text))
+        } ?: add(regularTextSource(text))
     }
 
     @OptIn(RiskFeature::class)
     private suspend fun sendFiles(response: Response, files: List<UploadedFile>) = coroutineScope {
         val chatId = chatId(response.event.threadId)
-        val replyToId = response.replyToId?.toLongOrNull()
+        val replyToId = response.replyParameters(chatId)
 
         if (files.size == 1) {
             val uploadedFile = files.first()
@@ -83,25 +87,25 @@ class TelegramContext(
                 mimeType.startsWith("image") -> SendPhoto(
                     chatId,
                     file,
-                    replyToMessageId = replyToId,
+                    replyParameters = replyToId,
                     entities = entities,
                 )
 
                 mimeType.startsWith("video") -> SendVideo(
                     chatId,
                     file,
-                    replyToMessageId = replyToId,
+                    replyParameters = replyToId,
                     entities = entities,
                 )
 
                 mimeType.startsWith("audio") -> SendAudio(
                     chatId,
                     file,
-                    replyToMessageId = replyToId,
+                    replyParameters = replyToId,
                     entities = entities,
                 )
 
-                else -> SendDocument(chatId, file, replyToMessageId = replyToId, entities = entities)
+                else -> SendDocument(chatId, file, replyParameters = replyToId, entities = entities)
             }
 
             execute(request)
@@ -112,7 +116,7 @@ class TelegramContext(
                 SendMediaGroup<MediaGroupPartContent>(
                     chatId,
                     files.map(::fileToTelegramContent) as List<MediaGroupMemberTelegramMedia>,
-                    replyToMessageId = replyToId,
+                    replyParameters = replyToId,
                 ),
             )
         }
@@ -141,10 +145,11 @@ class TelegramContext(
         }
 
         if (!request.text.isNullOrEmpty()) {
+            val chatId = chatId(request.event.threadId)
             execute(
                 SendTextMessage(
-                    chatId(request.event.threadId),
-                    replyToMessageId = request.replyToId?.toLongOrNull(),
+                    chatId,
+                    replyParameters = request.replyParameters(chatId),
                     entities = request.buildEntities(),
                 ),
             )
@@ -164,14 +169,14 @@ class TelegramContext(
     }
 
     override suspend fun fetchThread(request: FetchThreadRequest): FetchThreadResponse {
-        val chat = execute(GetChat(ChatId(request.threadId.toLong())))
+        val chat = execute(GetChat(chatId(request.threadId)))
 
         return fetchThreadResponse {
             thread = threadData {
                 id = request.threadId
                 name = when (chat) {
                     is PublicChat -> chat.title
-                    is UsernameChat -> chat.username?.usernameWithoutAt.orEmpty()
+                    is UsernameChat -> chat.username?.withoutAt.orEmpty()
                     else -> ""
                 }
                 participants += when (chat) {
@@ -188,7 +193,7 @@ class TelegramContext(
     }
 
     override suspend fun sendText(request: SendTextRequest): Empty {
-        execute(SendTextMessage(ChatId(request.event.threadId.toLong()), text = request.text))
+        execute(SendTextMessage(chatId(request.event.threadId), text = request.text))
 
         return Empty.getDefaultInstance()
     }

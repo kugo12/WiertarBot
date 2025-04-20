@@ -2,7 +2,6 @@
 
 package pl.kvgx12.fbchat.mqtt
 
-import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -66,7 +65,7 @@ private suspend fun MQTTClient.sendConnectionPacket(session: Session, sessionId:
         putJsonArray("pack") {}
         put("php_override", "")
         put("p", null)
-        put("a", session.client.plugin(UserAgent).agent)
+        put("a", Session.userAgent)
         put("aids", null)
     }.toString()
 

@@ -1,6 +1,7 @@
 package pl.kvgx12.mqtt.proto.packets
 
 import io.ktor.utils.io.core.*
+import kotlinx.io.Sink
 import pl.kvgx12.mqtt.proto.MQTTPacketType
 import pl.kvgx12.mqtt.proto.MQTTQoS
 
@@ -13,7 +14,7 @@ sealed class MQTTPacket(
     open val payloadSize get() = 0
     open val variableHeaderSize get() = 0
 
-    private fun BytePacketBuilder.encodeFixedHeader() {
+    private fun Sink.encodeFixedHeader() {
         writeByte(
             type.value.shl(4)
                 .or(duplicate.toInt() shl 3)
@@ -24,8 +25,8 @@ sealed class MQTTPacket(
         writeVariableByteInteger(variableHeaderSize + payloadSize)
     }
 
-    open fun BytePacketBuilder.encodeVariableHeader() {}
-    open fun BytePacketBuilder.encodePayload() {}
+    open fun Sink.encodeVariableHeader() {}
+    open fun Sink.encodePayload() {}
 
     fun asBytePacket() = buildPacket {
         encodeFixedHeader()
@@ -42,13 +43,13 @@ sealed class MQTTPacketWithMessageId(
 ) : MQTTPacket(duplicate, qos, retain) {
     override val variableHeaderSize: Int get() = if (qos == MQTTQoS.FireAndForget) 0 else 2
 
-    fun BytePacketBuilder.encodeMessageId(always: Boolean = false) {
+    fun Sink.encodeMessageId(always: Boolean = false) {
         if (always || qos != MQTTQoS.FireAndForget) {
             writeShort(messageId.toShort())
         }
     }
 
-    override fun BytePacketBuilder.encodeVariableHeader() {
+    override fun Sink.encodeVariableHeader() {
         encodeMessageId()
     }
 }
@@ -61,7 +62,7 @@ sealed class MQTTPacketWithRequiredMessageId(
 ) : MQTTPacketWithMessageId(messageId, duplicate, qos, retain) {
     override val variableHeaderSize: Int get() = 2
 
-    override fun BytePacketBuilder.encodeVariableHeader() {
+    override fun Sink.encodeVariableHeader() {
         encodeMessageId(true)
     }
 }

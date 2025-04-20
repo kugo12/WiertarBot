@@ -115,6 +115,8 @@ internal fun createClient(): Pair<DelegatedCookieStorage, HttpClient> {
     val cookies = DelegatedCookieStorage()
 
     return cookies to HttpClient(CIO) {
+        followRedirects = false
+
         install(ContentNegotiation) {
             json(Session.json)
         }
@@ -133,9 +135,9 @@ internal fun createClient(): Pair<DelegatedCookieStorage, HttpClient> {
             level = LogLevel.INFO
         }
 
-        followRedirects = false
-
-        CurlUserAgent()
+        install(UserAgent) {
+            agent = Session.userAgent
+        }
 
         defaultRequest {
             accept(ContentType.Any)
