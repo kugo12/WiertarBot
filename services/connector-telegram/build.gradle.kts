@@ -17,12 +17,7 @@ dependencies {
         exclude(module = "kotlinx-serialization-cbor")
     }
 
-    // hack to force version
-    val serializationVersion = libs.versions.kotlinx.serialization.get()
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$serializationVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:$serializationVersion")
+    implementation(libs.bundles.kotlinx.serialization)
 
     developmentOnly(libs.spring.devtools)
     annotationProcessor(libs.spring.configuration.processor)

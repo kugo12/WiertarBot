@@ -40,7 +40,7 @@ dependencies {
     implementation(libs.spring.kotlinx.coroutines.core)
     implementation(libs.spring.kotlinx.coroutines.reactor)
     implementation(libs.kotlinx.datetime)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.kotlinx.serialization)
 
     implementation(libs.caffeine)
     implementation(libs.scrimage.core)
