@@ -22,6 +22,7 @@ kotest = "5.9.1"
 kotest-extension = "1.3.0"
 mockk = "1.14.0"
 
+google-genai = "0.4.0"
 imageio = "3.12.0"
 caffeine = "3.2.0"
 scrimage = "4.3.0"
@@ -129,6 +130,8 @@ grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
 grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
 grpc-protoc-java = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
 grpc-protoc-kotlin = { module = "io.grpc:protoc-gen-grpc-kotlin", version.ref = "grpc-kotlin" }
+
+google-genai = { module = "com.google.genai:google-genai", version.ref = "google-genai" }
 
 [bundles]
 ktor-client = [

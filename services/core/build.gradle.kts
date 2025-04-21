@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.scrimage.core)
     implementation(libs.bundles.imageio)
     implementation(libs.skrape.html)
+    implementation(libs.google.genai)
 
     runtimeOnly(libs.spring.postgresql)
     runtimeOnly(libs.spring.postgresql.r2dbc)
