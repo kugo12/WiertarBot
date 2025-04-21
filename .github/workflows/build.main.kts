@@ -3,16 +3,16 @@
 @file:Repository("https://repo.maven.apache.org/maven2/")
 @file:Repository("https://bindings.krzeminski.it")
 
-@file:DependsOn("io.github.typesafegithub:github-workflows-kt:3.0.1")
+@file:DependsOn("io.github.typesafegithub:github-workflows-kt:3.3.0")
 
 @file:DependsOn("actions:checkout:v4")
-@file:DependsOn("actions:download-artifact:v3")
-@file:DependsOn("actions:upload-artifact:v3")
-@file:DependsOn("actions:setup-java:v3")
-@file:DependsOn("docker:setup-buildx-action:v2")
-@file:DependsOn("docker:login-action:v2")
-@file:DependsOn("docker:build-push-action:v4")
-@file:DependsOn("gradle:gradle-build-action:v2")
+@file:DependsOn("actions:download-artifact:v4")
+@file:DependsOn("actions:upload-artifact:v4")
+@file:DependsOn("actions:setup-java:v4")
+@file:DependsOn("docker:setup-buildx-action:v3")
+@file:DependsOn("docker:login-action:v3")
+@file:DependsOn("docker:build-push-action:v6")
+@file:DependsOn("gradle:actions__setup-gradle:v4")
 
 import io.github.typesafegithub.workflows.actions.actions.Checkout
 import io.github.typesafegithub.workflows.actions.actions.DownloadArtifact
@@ -21,7 +21,7 @@ import io.github.typesafegithub.workflows.actions.actions.UploadArtifact
 import io.github.typesafegithub.workflows.actions.docker.BuildPushAction
 import io.github.typesafegithub.workflows.actions.docker.LoginAction
 import io.github.typesafegithub.workflows.actions.docker.SetupBuildxAction
-import io.github.typesafegithub.workflows.actions.gradle.GradleBuildAction
+import io.github.typesafegithub.workflows.actions.gradle.ActionsSetupGradle
 import io.github.typesafegithub.workflows.domain.Concurrency
 import io.github.typesafegithub.workflows.domain.Container
 import io.github.typesafegithub.workflows.domain.RunnerType.UbuntuLatest
@@ -164,7 +164,7 @@ workflow(
         services = mapOf(
             "postgres" to Container(
                 image = "postgres:14-alpine",
-                env = linkedMapOf(
+                env = mapOf(
                     "POSTGRES_USER" to "postgres",
                     "POSTGRES_PASSWORD" to "postgres",
                     "POSTGRES_DB" to "wiertarbot_test",
@@ -174,7 +174,7 @@ workflow(
             ),
             "rabbitmq" to Container(
                 image = "rabbitmq:3.12-alpine",
-                env = linkedMapOf(
+                env = mapOf(
                     "RABBITMQ_DEFAULT_USER" to "guest",
                     "RABBITMQ_DEFAULT_PASS" to "guest",
                 ),
@@ -274,12 +274,13 @@ workflow(
 
 typealias JB = JobBuilder<*>
 
-fun JB.gradle(name: String, tasks: String) = uses(
-    name = name,
-    action = GradleBuildAction(
-        arguments = tasks,
-    ),
-)
+fun JB.gradle(name: String, tasks: String) {
+    uses(
+        name = "Setup gradle",
+        action = ActionsSetupGradle(),
+    )
+    run(name = name, command = "./gradlew $tasks")
+}
 
 fun JB.checkout() = uses(
     name = "Check out",
