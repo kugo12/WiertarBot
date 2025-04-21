@@ -13,7 +13,7 @@ dependencies {
     implementation(libs.ktor.client.resources)
     implementation(libs.ktor.client.auth)
     implementation(libs.ktor.client.java)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.kotlinx.serialization)
     implementation(libs.bundles.s3)
     implementation(libs.jaffree)
     implementation(libs.skrape.html)

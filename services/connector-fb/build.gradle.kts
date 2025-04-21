@@ -18,7 +18,7 @@ dependencies {
     implementation(libs.spring.starter.data.r2dbc)
     implementation(libs.spring.starter.cache)
 
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.kotlinx.serialization)
     implementation(libs.bundles.ktor.client)
 
     runtimeOnly(libs.spring.postgresql)

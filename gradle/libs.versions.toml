@@ -54,6 +54,11 @@ protobuf = { id = "com.google.protobuf", version.ref = "protobuf-plugin" }
 
 [libraries]
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json-jvm = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json-io = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-io", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-json-io-jvm = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json-io-jvm", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
+kotlinx-serialization-core-jvm = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm", version.ref = "kotlinx-serialization" }
 kotlinx-benchmark-runtime = { module = "org.jetbrains.kotlinx:kotlinx-benchmark-runtime", version.ref = "kotlinx-benchmark" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
@@ -160,3 +165,11 @@ telegram = ["inmo-telegram-core", "inmo-telegram-utils"]
 s3 = ["aws-s3", "okhttp"]
 imageio = ["imageio-core", "imageio", "imageio-jpeg"]
 kotest-spring = ["kotest-junit5", "kotest-assertions-core", "kotest-property", "kotest-spring"]
+kotlinx-serialization = [
+    "kotlinx-serialization-core",
+    "kotlinx-serialization-core-jvm",
+    "kotlinx-serialization-json",
+    "kotlinx-serialization-json-jvm",
+    "kotlinx-serialization-json-io",
+    "kotlinx-serialization-json-io-jvm",
+]
