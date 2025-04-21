@@ -1,7 +1,7 @@
 package pl.kvgx12.wiertarbot.fb.connector
 
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flatMapConcat
@@ -32,7 +32,7 @@ class FBMessageService(
             FBMessageSerialization.deserializeMessageEvent(it.message)
         }
 
-    @OptIn(FlowPreview::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     @Scheduled(cron = "0 0 */6 * * ?")
     fun messageGarbageCollector() = runBlocking {
         val time = Instant.now().epochSecond - Constants.timeToRemoveSentMessages

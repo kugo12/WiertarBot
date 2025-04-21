@@ -3,6 +3,7 @@
 package pl.kvgx12.mqtt.proto.packets
 
 import io.ktor.utils.io.core.*
+import kotlinx.io.Sink
 import pl.kvgx12.mqtt.proto.MQTTConnectReturnCode
 import pl.kvgx12.mqtt.proto.MQTTPacketType
 import pl.kvgx12.mqtt.proto.MQTTQoS
@@ -10,7 +11,7 @@ import java.nio.ByteBuffer
 
 internal fun Boolean.toInt(): Int = if (this) 1 else 0
 
-internal fun BytePacketBuilder.writeVariableByteInteger(value: Int) {
+internal fun Sink.writeVariableByteInteger(value: Int) {
     var x = value
     do {
         val byte = x and 0x7F
@@ -23,7 +24,7 @@ internal fun BytePacketBuilder.writeVariableByteInteger(value: Int) {
     } while (x > 0)
 }
 
-internal fun BytePacketBuilder.writeMqttString(string: String) {
+internal fun Sink.writeMqttString(string: String) {
     writeShort(string.length.toShort())
     append(string)
 }

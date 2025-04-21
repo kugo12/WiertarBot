@@ -9,13 +9,13 @@ import java.util.function.Predicate
 
 val String.isUrl get() = runCatching { Url(this) }.isSuccess
 
-inline val Url.lastPathSegment get() = pathSegments.last { it.isNotEmpty() }
+inline val Url.lastPathSegment get() = segments.last { it.isNotEmpty() }
 
 fun Url.getSegmentAfter(string: String): String? {
-    val index = pathSegments.indexOf(string)
+    val index = segments.indexOf(string)
 
     return if (index != -1) {
-        pathSegments.getOrNull(index + 1)
+        segments.getOrNull(index + 1)
     } else {
         null
     }

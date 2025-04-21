@@ -331,8 +331,7 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
                     19/5/2023 17:13 - Przesyłka opuściła Polskę [Poznań]
                     19/5/2023 17:13 - przesyłka jest obsługiwana w centrum sortowania [Poznań]
                     19/5/2023 17:13 - przesyłka opuściła Polskę [Poznań]
-                    22/5/2023 8:41 - przesyłka dotarła do oddziału [Rüdersdorf-15562]
-                    22/5/2023 8:43 - przesyłka doręczona do odbiorcy [Neumark-08496]
+                    22/5/2023 8:44 - przesyłka doręczona do odbiorcy [Poznań]
                     """.trimIndent(),
                 )
             }

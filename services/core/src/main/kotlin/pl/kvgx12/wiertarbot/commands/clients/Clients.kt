@@ -34,8 +34,8 @@ fun BeanDefinitionDsl.clientBeans() {
     }
 
     bean(isPrimary = true) {
-        HttpServiceProxyFactory.builder(
-            WebClientAdapter.forClient(ref()),
+        HttpServiceProxyFactory.builderFor(
+            WebClientAdapter.create(ref()),
         ).build()
     }
 
@@ -98,8 +98,8 @@ inline fun <reified T : Any> BeanDefinitionDsl.httpClient() =
 
 inline fun <reified T : Any> BeanDefinitionDsl.httpClient(crossinline builder: WebClient.Builder.() -> Unit) =
     bean {
-        HttpServiceProxyFactory.builder(
-            WebClientAdapter.forClient(
+        HttpServiceProxyFactory.builderFor(
+            WebClientAdapter.create(
                 WebClient.builder()
                     .apply<_>(builder)
                     .build(),

@@ -8,28 +8,26 @@ plugins {
 dependencies {
     implementation(project(":libs:connector"))
 
-    implementation(libs.kotlinx.datetime)
-    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.bundles.telegram) {
+        exclude(module = "ktor-server")
+        exclude(module = "ktor-server-host-common")
+        exclude(module = "kotlinx-serialization-json")
+        exclude(module = "kotlinx-serialization-core")
+        exclude(module = "kotlinx-serialization-properties")
+        exclude(module = "kotlinx-serialization-cbor")
+    }
 
-    implementation(libs.bundles.ktor.client)
-
-    implementation(libs.caffeine)
-    implementation(libs.inmo.telegram)
-    implementation(libs.scrimage.core)
-    implementation(libs.bundles.imageio)
-    implementation(libs.skrape.html)
-
-    runtimeOnly(libs.spring.postgresql)
-    runtimeOnly(libs.spring.postgresql.r2dbc)
+    // hack to force version
+    val serializationVersion = libs.versions.kotlinx.serialization.get()
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:$serializationVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:$serializationVersion")
 
     developmentOnly(libs.spring.devtools)
     annotationProcessor(libs.spring.configuration.processor)
 
     testImplementation(libs.spring.starter.test)
-    testImplementation(libs.spring.rabbitmq.test)
-    testImplementation(libs.kotlinx.benchmark.runtime)
-    testImplementation(libs.bundles.kotest.spring)
-    testImplementation(libs.mockk)
 }
 
 tasks.bootJar {

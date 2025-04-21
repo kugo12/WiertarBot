@@ -1,45 +1,43 @@
 [versions]
-kotlin = "1.9.0"
-kotlinx-benchmark = "0.4.7"
-kotlinx-serialization = "1.5.1"
-kotlinx-coroutines = "1.7.1"
-kotlinx-datetime = "0.4.0"
+kotlin = "2.1.20"
+kotlinx-benchmark = "0.4.13"
+kotlinx-serialization = "1.8.1"
+kotlinx-coroutines = "1.10.2"
+kotlinx-datetime = "0.6.2"
 
-kotlinter = "3.15.0"
-detekt = "1.23.0"
+kotlinter = "5.0.1"
+detekt = "1.23.8"
 
-spring = "3.1.1"
-spring-dependency-management = "1.1.0"
+spring = "3.4.4"
+spring-dependency-management = "1.1.7"
 
 protobuf-plugin = "0.9.4"
-protobuf = "3.23.4"
-grpc = "1.57.1"
-grpc-kotlin = "1.3.0"
+protobuf = "4.30.2"
+grpc = "1.72.0"
+grpc-kotlin = "1.4.1"
 
-ktor = "2.3.0"
+ktor = "3.1.2"
 
-kotest = "5.6.2"
-kotest-extension = "1.1.3"
-mockk = "1.13.5"
+kotest = "5.9.1"
+kotest-extension = "1.3.0"
+mockk = "1.14.0"
 
-imageio = "3.9.4"
-caffeine = "3.1.2"
-jep = "4.1.1"
-scrimage = "4.0.33"
-sentry = "6.14.0"
+google-genai = "0.4.0"
+imageio = "3.12.0"
+caffeine = "3.2.0"
+scrimage = "4.3.0"
+sentry = "8.8.0"
 skrape = "1.2.2"
-inmo-telegram = "5.2.1"
-kotlin-aws-sdk = "0.27.0-beta"
-okhttp = "5.0.0-alpha.11"
-okio = "3.3.0"
-jaffree = "2022.06.03"
-logback = "1.4.6"
+inmo-telegram = "24.0.2"
+kotlin-aws-sdk = "1.4.64"
+okhttp = "5.0.0-alpha.14"
+jaffree = "2024.08.29"
+logback = "1.5.18"
 
-commons-codec = "1.15"
+commons-codec = "1.18.0"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
 kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
@@ -48,8 +46,6 @@ kotlinx-benchmark = { id = "org.jetbrains.kotlinx.benchmark", version.ref = "kot
 
 kotlinter = { id = "org.jmailen.kotlinter", version.ref = "kotlinter" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
-
-ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 
 spring-boot = { id = "org.springframework.boot", version.ref = "spring" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
@@ -75,13 +71,6 @@ ktor-client-auth = { module = "io.ktor:ktor-client-auth", version.ref = "ktor" }
 ktor-client-logging = { module = "io.ktor:ktor-client-logging", version.ref = "ktor" }
 ktor-client-websockets = { module = "io.ktor:ktor-client-websockets", version.ref = "ktor" }
 
-ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
-ktor-server-cio = { module = "io.ktor:ktor-server-cio", version.ref = "ktor" }
-ktor-server-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
-ktor-server-routing = { module = "io.ktor:ktor-server-routing", version.ref = "ktor" }
-ktor-server-config-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
-ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
-
 ktor-serialization-kotlinx-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
 
 imageio-core = { module = "com.twelvemonkeys.imageio:imageio-core", version.ref = "imageio" }
@@ -92,16 +81,15 @@ sentry-spring = { module = "io.sentry:sentry-spring-boot-starter-jakarta", versi
 sentry-logback = { module = "io.sentry:sentry-logback", version.ref = "sentry" }
 
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
-jep = { module = "black.ninia:jep", version.ref = "jep" }
 scrimage-core = { module = "com.sksamuel.scrimage:scrimage-core", version.ref = "scrimage" }
 skrape-html = { module = "it.skrape:skrapeit-html-parser", version.ref = "skrape" }
-inmo-telegram = { module = "dev.inmo:tgbotapi.core", version.ref = "inmo-telegram" }
+inmo-telegram-core = { module = "dev.inmo:tgbotapi.core", version.ref = "inmo-telegram" }
+inmo-telegram-utils = { module = "dev.inmo:tgbotapi.utils", version.ref = "inmo-telegram" }
 
 spring-starter = { module = "org.springframework.boot:spring-boot-starter" }
 spring-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
 spring-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
-spring-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 spring-starter-data-r2dbc = { module = "org.springframework.boot:spring-boot-starter-data-r2dbc" }
 spring-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
 spring-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
@@ -120,7 +108,6 @@ spring-reactor-test = { module = "io.projectreactor:reactor-test" }
 aws-s3 = { module = "aws.sdk.kotlin:s3", version.ref = "kotlin-aws-sdk" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
-okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 jaffree = { module = "com.github.kokorin.jaffree:jaffree", version.ref = "jaffree" }
 
 logback = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
@@ -144,6 +131,8 @@ grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc"
 grpc-protoc-java = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
 grpc-protoc-kotlin = { module = "io.grpc:protoc-gen-grpc-kotlin", version.ref = "grpc-kotlin" }
 
+google-genai = { module = "com.google.genai:google-genai", version.ref = "google-genai" }
+
 [bundles]
 ktor-client = [
     "ktor-client-core",
@@ -151,17 +140,6 @@ ktor-client = [
     "ktor-client-content-negotiation",
     "ktor-client-logging",
     "ktor-serialization-kotlinx-json",
-]
-ktor-server = [
-    "ktor-server-core",
-    "ktor-server-cio",
-    "ktor-server-content-negotiation",
-    "ktor-serialization-kotlinx-json",
-    "ktor-server-config-yaml",
-    #    "ktor-server-routing",
-]
-ktor-server-test = [
-    "ktor-server-test-host"
 ]
 spring = [
     "sentry-spring",
@@ -178,7 +156,7 @@ spring-webflux = [
     "spring-kotlin-reactor-extensions",
     "spring-kotlinx-coroutines-reactor",
 ]
+telegram = ["inmo-telegram-core", "inmo-telegram-utils"]
 s3 = ["aws-s3", "okhttp"]
 imageio = ["imageio-core", "imageio", "imageio-jpeg"]
-sentry-spring = ["sentry-spring", "sentry-logback"]
 kotest-spring = ["kotest-junit5", "kotest-assertions-core", "kotest-property", "kotest-spring"]
