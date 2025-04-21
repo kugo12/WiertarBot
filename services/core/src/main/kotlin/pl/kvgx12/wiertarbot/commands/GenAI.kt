@@ -1,10 +1,7 @@
 package pl.kvgx12.wiertarbot.commands
 
 import com.google.genai.Client
-import com.google.genai.types.Content
-import com.google.genai.types.GenerateContentConfig
-import com.google.genai.types.Part
-import com.google.genai.types.ThinkingConfig
+import com.google.genai.types.*
 import kotlinx.coroutines.future.await
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -50,6 +47,7 @@ data class GenAIProperties(
     val thinkingBudget: Int? = 1024,
     val maxOutputTokens: Int = 2048,
     val temperature: Float = 1f,
+    val grounding: Boolean = true,
 )
 
 @EnableConfigurationProperties(GenAIProperties::class)
@@ -78,6 +76,17 @@ class GenAI(
                 includeThoughts(props.thinkingBudget != null)
                 thinkingBudget(props.thinkingBudget)
                 build()
+            },
+        )
+        tools(
+            buildList {
+                if (props.grounding) {
+                    add(
+                        Tool.builder()
+                            .googleSearch(GoogleSearch.builder().build())
+                            .build(),
+                    )
+                }
             },
         )
         build()
