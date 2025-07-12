@@ -10,8 +10,10 @@
 @file:DependsOn("actions:upload-artifact:v4")
 @file:DependsOn("actions:setup-java:v4")
 @file:DependsOn("docker:setup-buildx-action:v3")
+@file:DependsOn("docker:setup-qemu-action:v2")
 @file:DependsOn("docker:login-action:v3")
 @file:DependsOn("docker:build-push-action:v6")
+@file:DependsOn("dorny:paths-filter:v2")
 @file:DependsOn("gradle:actions__setup-gradle:v4")
 
 import io.github.typesafegithub.workflows.actions.actions.Checkout
@@ -21,11 +23,12 @@ import io.github.typesafegithub.workflows.actions.actions.UploadArtifact
 import io.github.typesafegithub.workflows.actions.docker.BuildPushAction
 import io.github.typesafegithub.workflows.actions.docker.LoginAction
 import io.github.typesafegithub.workflows.actions.docker.SetupBuildxAction
+import io.github.typesafegithub.workflows.actions.docker.SetupQemuAction
+import io.github.typesafegithub.workflows.actions.dorny.PathsFilter
 import io.github.typesafegithub.workflows.actions.gradle.ActionsSetupGradle
 import io.github.typesafegithub.workflows.domain.Concurrency
 import io.github.typesafegithub.workflows.domain.Container
 import io.github.typesafegithub.workflows.domain.RunnerType.UbuntuLatest
-import io.github.typesafegithub.workflows.domain.actions.CustomAction
 import io.github.typesafegithub.workflows.domain.triggers.PullRequest
 import io.github.typesafegithub.workflows.domain.triggers.Push
 import io.github.typesafegithub.workflows.domain.triggers.WorkflowDispatch
@@ -121,22 +124,17 @@ workflow(
         checkout()
         uses(
             name = "Filter",
-            action = CustomAction(
-                actionOwner = "dorny",
-                actionName = "paths-filter",
-                actionVersion = "v2",
-                inputs = mapOf(
-                    "filters" to buildString {
-                        wbServices
-                            .filter { it.paths.isNotEmpty() }
-                            .forEach {
-                                append(it.name, ":\n")
-                                it.paths.forEach { path ->
-                                    append("  - '", path, "'\n")
-                                }
+            action = PathsFilter(
+                filters = buildString {
+                    wbServices
+                        .filter { it.paths.isNotEmpty() }
+                        .forEach {
+                            append(it.name, ":\n")
+                            it.paths.forEach { path ->
+                                append("  - '", path, "'\n")
                             }
-                    },
-                ),
+                        }
+                },
             ),
         )
     }
@@ -220,7 +218,7 @@ workflow(
 
             if (platforms != amd64) uses(
                 name = "Setup QEMU",
-                action = CustomAction("docker", "setup-qemu-action", "v2"),
+                action = SetupQemuAction(),
             )
 
             uses(name = "Setup docker buildx", action = SetupBuildxAction())
