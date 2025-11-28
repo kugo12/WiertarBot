@@ -142,6 +142,7 @@ google-genai = { module = "com.google.genai:google-genai", version.ref = "google
 [bundles]
 ktor-client = [
     "ktor-client-core",
+    "ktor-client-cio",
     "ktor-client-java",
     "ktor-client-content-negotiation",
     "ktor-client-encoding",
