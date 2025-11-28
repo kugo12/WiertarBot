@@ -3,18 +3,19 @@
 @file:Repository("https://repo.maven.apache.org/maven2/")
 @file:Repository("https://bindings.krzeminski.it")
 
-@file:DependsOn("io.github.typesafegithub:github-workflows-kt:3.3.0")
+@file:DependsOn("io.github.typesafegithub:github-workflows-kt:3.6.0")
 
-@file:DependsOn("actions:checkout:v4")
-@file:DependsOn("actions:download-artifact:v4")
-@file:DependsOn("actions:upload-artifact:v4")
-@file:DependsOn("actions:setup-java:v4")
+@file:DependsOn("actions:checkout:v6")
+@file:DependsOn("actions:download-artifact:v6")
+@file:DependsOn("actions:upload-artifact:v5")
+@file:DependsOn("actions:setup-java:v5")
 @file:DependsOn("docker:setup-buildx-action:v3")
-@file:DependsOn("docker:setup-qemu-action:v2")
+@file:DependsOn("docker:setup-qemu-action:v3")
 @file:DependsOn("docker:login-action:v3")
 @file:DependsOn("docker:build-push-action:v6")
 @file:DependsOn("dorny:paths-filter:v2")
-@file:DependsOn("gradle:actions__setup-gradle:v4")
+@file:DependsOn("gradle:actions__setup-gradle:v5")
+
 
 import io.github.typesafegithub.workflows.actions.actions.Checkout
 import io.github.typesafegithub.workflows.actions.actions.DownloadArtifact
@@ -118,7 +119,7 @@ workflow(
         _customArguments = mapOf(
             "outputs" to wbServices
                 .filter { it.paths.isNotEmpty() }
-                .associate { it.name to expr("steps.step-0.outputs.${it.name}") },
+                .associate { it.name to expr("steps.step-1.outputs.${it.name}") },
         ),
     ) {
         checkout()
