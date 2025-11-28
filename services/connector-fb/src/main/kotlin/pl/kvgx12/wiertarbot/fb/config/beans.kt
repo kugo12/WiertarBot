@@ -23,7 +23,7 @@ fun beans() = beans {
         val props = ref<FBProperties>()
 
         runBlocking {
-            Session(props.email, props.password)
+            Session(loadCookies(props.cookiesFile))
         }
     }
 

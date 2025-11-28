@@ -4,6 +4,5 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("wiertarbot.fb")
 data class FBProperties(
-    val password: String,
-    val email: String,
+    val cookiesFile: String = "cookies.json"
 )

@@ -1,7 +1,7 @@
 package pl.kvgx12.fbchat.session
 
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.java.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
@@ -12,68 +12,16 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.util.*
 import io.ktor.websocket.*
-import it.skrape.selects.html5.form
 import pl.kvgx12.fbchat.session.Session.Companion.baseUrl
 import pl.kvgx12.fbchat.session.Session.Companion.handleStatus
-import pl.kvgx12.fbchat.utils.*
+import pl.kvgx12.fbchat.utils.DelegatedCookieStorage
+import pl.kvgx12.fbchat.utils.SessionUtils
 
-suspend fun Session(
-    email: String,
-    password: String,
-    @Suppress("UNUSED_PARAMETER")
-    secondFactorAuthHandler: suspend () -> Int = default2FAHandler,
-): Session {
-    val (cookies, client) = createClient()
+typealias Cookies = Map<Url, List<Cookie>>
 
-    val loginPage = client.get(Messenger.Login())
-        .handleStatus()
-        .bodyAsText()
-
-    val formData = buildMap {
-        loginPage.html {
-            findAll("form input") {
-                associateTo(this@buildMap) {
-                    it.attribute("name") to it.attribute("value")
-                }
-            }
-        }
-
-        put("timezone", "-60")
-        put("email", email)
-        put("pass", password)
-        put("login", "1")
-        put("persistent", "1") // long cookie expiry
-        remove("default_persistent")
-    }
-    val datr = findDatr(loginPage) ?: error("Could not find datr")
-
-    cookies.addCookie(baseUrl, Cookie("datr", datr))
-    cookies.addCookie(baseUrl, Cookie("locale", "pl_PL"))
-
-    val response = client.post(Messenger.Login.Password()) {
-        bodyForm {
-            formData.forEach {
-                append(it.key, it.value)
-            }
-        }
-    }.handleStatus()
-
-    val url = response.locationHeader
-        ?: error("Invalid credentials: ${getLoginErrorData(response.bodyAsText())}")
-
-    if ("checkpoint" in url) {
-        TODO("Checkpoint login redirection not implemented")
-    }
-
-    if (url != baseUrl.toString()) {
-        error("Invalid login redirect: $url")
-    }
-
-    return Session(client, cookies)
-}
-
-suspend fun Session(cookies: Map<Url, List<Cookie>>): Session {
+suspend fun Session(cookies: Cookies): Session {
     val (storage, client) = createClient()
 
     cookies.forEach { (url, c) ->
@@ -113,9 +61,16 @@ private suspend fun Session(
 
 internal fun createClient(): Pair<DelegatedCookieStorage, HttpClient> {
     val cookies = DelegatedCookieStorage()
-
-    return cookies to HttpClient(CIO) {
+    val client = HttpClient(Java) {
         followRedirects = false
+
+        engine {
+            config {
+                version(java.net.http.HttpClient.Version.HTTP_2)
+            }
+
+            protocolVersion = java.net.http.HttpClient.Version.HTTP_2
+        }
 
         install(ContentNegotiation) {
             json(Session.json)
@@ -141,37 +96,11 @@ internal fun createClient(): Pair<DelegatedCookieStorage, HttpClient> {
 
         defaultRequest {
             accept(ContentType.Any)
-            header("sec-fetch-site", "same-origin")
-            header(HttpHeaders.Referrer, baseUrl)
+            headers.appendIfNameAbsent("sec-fetch-site", "same-origin")
+            headers.appendIfNameAbsent(HttpHeaders.Referrer, baseUrl.toString())
             url.takeFrom(baseUrl)
         }
     }
-}
 
-@Suppress("ReturnCount")
-private fun findDatr(body: String): String? {
-    val definitionIndex = body.indexOfOrNull(DATR_KEY)
-        ?: return null
-    val start = body.indexOfOrNull('"', definitionIndex + DATR_KEY.length + 1)
-        ?: return null
-    val end = body.indexOfOrNull('"', start + 1)
-        ?: return null
-
-    return body.substring(start + 1, end)
-}
-
-private val default2FAHandler: suspend () -> Int = { error("2FA handler was not passed in") }
-
-private const val DATR_KEY = "\"_js_datr\""
-
-private fun getLoginErrorData(body: String) = body.html {
-    relaxed = true
-
-    form {
-        withId = "login_form"
-
-        findFirst {
-            children.getOrNull(2)?.text.orEmpty()
-        }
-    }
+    return cookies to client
 }
