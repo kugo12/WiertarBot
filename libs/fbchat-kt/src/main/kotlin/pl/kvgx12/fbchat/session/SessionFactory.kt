@@ -1,7 +1,7 @@
 package pl.kvgx12.fbchat.session
 
 import io.ktor.client.*
-import io.ktor.client.engine.java.*
+import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.cookies.*
@@ -61,16 +61,8 @@ private suspend fun Session(
 
 internal fun createClient(): Pair<DelegatedCookieStorage, HttpClient> {
     val cookies = DelegatedCookieStorage()
-    val client = HttpClient(Java) {
+    val client = HttpClient(CIO) {
         followRedirects = false
-
-        engine {
-            config {
-                version(java.net.http.HttpClient.Version.HTTP_2)
-            }
-
-            protocolVersion = java.net.http.HttpClient.Version.HTTP_2
-        }
 
         install(ContentNegotiation) {
             json(Session.json)
