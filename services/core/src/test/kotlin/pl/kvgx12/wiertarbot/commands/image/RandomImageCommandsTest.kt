@@ -45,6 +45,9 @@ class RandomImageCommandsTest(context: GenericApplicationContext) : FunSpec(
             "mem",
             "shiba",
             "zolw",
+            "cat",
+            "frog",
+            "jez",
 
             // local media
             "jabol",
@@ -53,11 +56,6 @@ class RandomImageCommandsTest(context: GenericApplicationContext) : FunSpec(
             "bmw",
             "papaj",
             "konon",
-
-            // scraping
-            "frog",
-            "jez",
-            "cat",
         ).forEach { commandName ->
             test("command $commandName should return image") {
                 val uploaded = listOf(

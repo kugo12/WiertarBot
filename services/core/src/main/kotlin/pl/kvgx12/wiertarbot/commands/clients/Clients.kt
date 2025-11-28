@@ -22,6 +22,7 @@ import pl.kvgx12.wiertarbot.commands.clients.internal.WeatherClient
 import pl.kvgx12.wiertarbot.config.properties.DownloadApiProperties
 import pl.kvgx12.wiertarbot.config.properties.TTRSProperties
 import pl.kvgx12.wiertarbot.config.properties.WeatherProperties
+import pl.kvgx12.wiertarbot.utils.KiB
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Duration
@@ -40,14 +41,10 @@ fun BeanDefinitionDsl.clientBeans() {
     }
 
     httpClient<ImgFlipClient>()
-    httpClient<ShibeOnlineApiClient>()
     httpClient<UnsplashApiClient>()
 
-    httpClient<TheForexApiClient>()
-    bean<TheForexApi>()
-
-    httpClient<GeneratorFunClient>()
-    bean<GeneratorFun>()
+    httpClient<CurrencyApiClient>()
+    bean<CurrencyApi>()
 
     httpClient<AliPaczkaClient>()
     bean<AliPaczka>()
@@ -55,7 +52,11 @@ fun BeanDefinitionDsl.clientBeans() {
     httpClient<MojangApiClient>()
     bean<Minecraft>()
 
-    httpClient<SjpPwnClient>()
+    httpClient<SjpPwnClient> {
+        codecs {
+            it.defaultCodecs().maxInMemorySize(512 * KiB)
+        }
+    }
     bean<SjpPwn>()
 
     httpClient<SucharClient>()
