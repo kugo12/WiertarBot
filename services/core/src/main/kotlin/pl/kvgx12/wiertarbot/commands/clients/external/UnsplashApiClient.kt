@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.service.annotation.GetExchange
 import org.springframework.web.service.annotation.HttpExchange
+import kotlin.random.Random
 
 @HttpExchange("https://unsplash.com/napi")
 interface UnsplashApiClient {
@@ -26,5 +27,20 @@ interface UnsplashApiClient {
 
         @Serializable
         data class Urls(val regular: String)
+    }
+}
+
+class UnsplashQuery(
+    private val client: UnsplashApiClient,
+    private val query: String,
+) {
+    private var pages = 10
+
+    suspend fun randomImage(): String {
+        val response = client.searchPhotos(query, Random.nextInt(1, pages), 20)
+
+        pages = response.totalPages
+
+        return response.results.random().urls.regular
     }
 }

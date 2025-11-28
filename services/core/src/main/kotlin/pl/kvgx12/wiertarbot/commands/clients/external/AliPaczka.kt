@@ -30,7 +30,7 @@ interface AliPaczkaClient {
         val isDelivered: Boolean,
     ) {
         @Serializable
-        data class Entry(val time: String, val status: String)
+        data class Entry(val time: Long, val status: String)
     }
 }
 
@@ -52,7 +52,7 @@ class AliPaczka(private val client: AliPaczkaClient) {
             response.entries.forEach {
                 append(
                     "\n",
-                    Instant.fromEpochSeconds(it.time.toLong())
+                    Instant.fromEpochSeconds(it.time)
                         .toLocalDateTime(plZone)
                         .run { "$dayOfMonth/$monthNumber/$year $hour:$minute" },
                     " - ",

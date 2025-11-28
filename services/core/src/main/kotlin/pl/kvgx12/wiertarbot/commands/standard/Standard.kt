@@ -291,25 +291,26 @@ val standardCommands = commands {
     command("kurs") {
         help(
             usage = "<z waluty> <do waluty> (ilosc=1)",
-            returns = "Kurs aktualizowany dziennie z europejskiego banku centralnego",
+            returns = "Kurs aktualizowany dziennie",
         )
 
-        val client = dsl.ref<TheForexApi>()
+        val client = dsl.ref<CurrencyApi>()
 
         text { event ->
             event.text.split(' ', limit = 4)
                 .let { if (it.size > 2) it else null }
                 ?.let { args ->
-                    val from = args[1].uppercase()
-                    val to = args[2].uppercase()
+                    val from = args[1].lowercase()
+                    val to = args[2].lowercase()
                     val amount = args.getOrNull(3)?.toDoubleOrNull() ?: 1.0
 
-                    runCatching {
-                        client.convert(from, to, amount)
-                    }.fold(
-                        onSuccess = { "$amount $from to ${String.format(Locale.ENGLISH, "%.4f", it)} $to" },
-                        onFailure = { "Nieprawidłowa waluta" },
-                    )
+                    try {
+                        val value = client.convert(from, to, amount)
+
+                        "$amount $from to ${String.format(Locale.ENGLISH, "%.4f", value)} $to"
+                    } catch (_: CurrencyApi.InvalidCurrencyException) {
+                        "Nieprawidłowa waluta"
+                    }
                 }
                 ?: help
         }

@@ -180,11 +180,11 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
             }
 
             test("returns correct value") {
-                every { event.text } returns "${prefix}kurs usd usd"
-                handler.process(event) shouldBe Response(event, text = "1.0 USD to 1.0000 USD")
+                every { event.text } returns "${prefix}kurs USD usd"
+                handler.process(event) shouldBe Response(event, text = "1.0 usd to 1.0000 usd")
 
-                every { event.text } returns "${prefix}kurs usd usd 2.137345"
-                handler.process(event) shouldBe Response(event, text = "2.137345 USD to 2.1373 USD")
+                every { event.text } returns "${prefix}kurs usd USd 2.137345"
+                handler.process(event) shouldBe Response(event, text = "2.137345 usd to 2.1373 usd")
 
                 every { event.text } returns "${prefix}kurs usd pln 21.37"
                 handler.process(event) shouldNotBeIn listOf(
@@ -281,14 +281,9 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
                 handler.process(event) shouldBe Response(
                     event,
                     text = """
-                        test testu, teście; testów${" "}
-                         stress test (bank.) stress testu, stress teście; stress testów${" "}
-                         testo (muz.) teście${" "}
-                         test 1. «zestaw punktowanych pytań lub zadań sprawdzających czyjąś wiedzę, inteligencję itp.; też: taki sprawdzian» 2. «próba, której poddaje się urządzenie, produkt, preparat itp. w celu sprawdzenia jego składu, właściwości i działania; też: to, co służy do przeprowadzenia takiej próby»${" "}
-                        • testowy${" "}
-                         test ciążowy zob. próba ciążowa.${" "}
-                         testo «w oratoriach i pasjach: partia wokalna w formie recytatywu narratora objaśniającego tło akcji oraz sytuację dramatyczną»${" "}
-                         test
+                        test:
+                        1.«zestaw punktowanych pytań lub zadań sprawdzających czyjąś wiedzę, inteligencję itp.; też: taki sprawdzian»
+                        2.«próba, której poddaje się urządzenie, produkt, preparat itp. w celu sprawdzenia jego składu, właściwości i działania; też: to, co służy do przeprowadzenia takiej próby»
                     """.trimIndent(),
                 )
             }
@@ -319,19 +314,27 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
             }
 
             test("returns correct value") {
-                every { event.text } returns "${prefix}track 27050468080"
+                every { event.text } returns "${prefix}track 395289328102"
                 handler.process(event) shouldBe Response(
                     event,
                     text = """
-                    Numer paczki: 27050468080
+                    Numer paczki: 395289328102
                     Dostarczono: tak
-                    18/5/2023 15:14 - nadana w DHL POP przesyłka oczekuje na odbiór przez kuriera DHL [Poznań]
-                    19/5/2023 12:18 - przesyłka odebrana przez Kuriera DHL z DHL POP [Poznań]
-                    19/5/2023 17:13 - Przesyłka jest obsługiwana w centrum sortowania [Poznań]
-                    19/5/2023 17:13 - Przesyłka opuściła Polskę [Poznań]
-                    19/5/2023 17:13 - przesyłka jest obsługiwana w centrum sortowania [Poznań]
-                    19/5/2023 17:13 - przesyłka opuściła Polskę [Poznań]
-                    22/5/2023 8:44 - przesyłka doręczona do odbiorcy [Poznań]
+                    13/11/2025 9:3 - Shipment information sent to FedEx [ ]
+                    13/11/2025 17:44 - Picked up [MARCON IT]
+                    13/11/2025 18:10 - Shipment arriving On-Time [MARCON IT]
+                    13/11/2025 18:11 - On the way [MARCON IT]
+                    13/11/2025 19:37 - Left FedEx origin facility [MARCON IT]
+                    13/11/2025 23:31 - Arrived at FedEx hub [SAN PIETRO MOSEZZO IT]
+                    14/11/2025 1:13 - On the way [SAN PIETRO MOSEZZO IT]
+                    14/11/2025 9:42 - Departed FedEx hub [SAN PIETRO MOSEZZO IT]
+                    17/11/2025 19:37 - On the way [BARCELONA ES]
+                    18/11/2025 6:57 - On the way [ELCHE ES]
+                    18/11/2025 6:58 - At local FedEx facility [ELCHE ES]
+                    18/11/2025 6:58 - Shipment arriving On-Time [ELCHE ES]
+                    18/11/2025 8:11 - On FedEx vehicle for delivery [ELCHE ES]
+                    18/11/2025 12:50 - Delivered [MUTXAMEL ES]
+                    1/1/2100 0:0 - [Info] Waga paczki: 3.9kg. Miejsce doręczenia: MUTXAMEL, Spain. Typ przesyłki: FedEx International Economy
                     """.trimIndent(),
                 )
             }

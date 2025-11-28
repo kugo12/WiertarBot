@@ -8,3 +8,5 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 suspend fun Path.contentType(): String? = withContext(Dispatchers.IO) { Files.probeContentType(this@contentType) }
+
+const val KiB = 1024

@@ -8,7 +8,7 @@ import pl.kvgx12.wiertarbot.utils.appendElement
 
 @HttpExchange("https://sjp.pwn.pl")
 interface SjpPwnClient {
-    @GetExchange("/slowniki/{phrase}")
+    @GetExchange("/slowniki/{phrase}.html")
     suspend fun getDefinition(@PathVariable phrase: String): String
 }
 
@@ -20,20 +20,23 @@ class SjpPwn(private val client: SjpPwnClient) {
                 .replace(' ', '-'),
         )
 
-        return buildString {
-            htmlDocument(response) {
-                relaxed = true
-                findAll(".entry-body .ribbon-element") {
-                    if (isEmpty()) {
-                        append("Coś poszlo nie tak, jak nie użyłeś polskich liter, to dobry moment")
-                    } else {
-                        forEach {
-                            appendElement(it)
-                            append('\n')
-                        }
-                    }
-                }
+        val builder = StringBuilder()
+        val doc = htmlDocument(response).apply {
+            relaxed = true
+        }
+
+        val defs = doc.findAll(".znacz")
+        if (defs.isEmpty()) {
+            builder.append("Coś poszlo nie tak, jak nie użyłeś polskich liter, to dobry moment")
+        } else {
+            builder.append(phrase)
+            builder.append(":\n")
+            defs.forEach {
+                builder.appendElement(it)
+                builder.append('\n')
             }
-        }.trim()
+        }
+
+        return builder.toString().trim()
     }
 }

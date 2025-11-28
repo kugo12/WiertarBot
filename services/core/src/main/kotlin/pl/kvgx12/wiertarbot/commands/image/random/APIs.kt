@@ -5,21 +5,25 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.springframework.context.support.BeanDefinitionDsl
 import org.springframework.web.reactive.function.client.WebClient
-import pl.kvgx12.wiertarbot.command.dsl.*
+import pl.kvgx12.wiertarbot.command.dsl.command
+import pl.kvgx12.wiertarbot.command.dsl.commands
+import pl.kvgx12.wiertarbot.command.dsl.file
+import pl.kvgx12.wiertarbot.command.dsl.generic
 import pl.kvgx12.wiertarbot.commands.clients.external.ImgFlipClient
-import pl.kvgx12.wiertarbot.commands.clients.external.ShibeOnlineApiClient
 import pl.kvgx12.wiertarbot.commands.clients.external.UnsplashApiClient
+import pl.kvgx12.wiertarbot.commands.clients.external.UnsplashQuery
 import pl.kvgx12.wiertarbot.utils.proto.Response
-import kotlin.random.Random
 
 val randomImageApiCommands = commands {
-    randomImageCommand<Link>("hug", "z tuleniem", "https://some-random-api.com/animu/hug")
-    randomImageCommand<Link>("wink", "z mrugnięciem", "https://some-random-api.com/animu/wink")
-    randomImageCommand<Link>("pandka", "z pandką", "https://some-random-api.com/img/red_panda", "panda")
-    randomImageCommand<Link>("birb", "z ptaszkiem", "https://some-random-api.com/img/bird")
+    randomImageCommand<Link>("hug", "z tuleniem", "https://api.some-random-api.com/animu/hug")
+    randomImageCommand<Link>("wink", "z mrugnięciem", "https://api.some-random-api.com/animu/wink")
+    randomImageCommand<Link>("pandka", "z pandką", "https://api.some-random-api.com/img/red_panda", "panda")
+    randomImageCommand<Link>("birb", "z ptaszkiem", "https://api.some-random-api.com/img/bird")
+    randomImageCommand<Link>("cat", "z kotem", "https://api.some-random-api.com/img/cat", "catto", "kot")
 
     randomImageCommand<Message>("doggo", "z pieskiem", "https://dog.ceo/api/breeds/image/random", "dog", "pies")
     randomImageCommand<Message>("beagle", "z pieskiem rasy beagle", "https://dog.ceo/api/breed/beagle/images/random")
+    randomImageCommand<Message>("shiba", "z pieskiem rasy shiba", "https://dog.ceo/api/breed/shiba/images/random")
 
     command("mem", "meme") {
         help(returns = "losowy mem")
@@ -38,34 +42,28 @@ val randomImageApiCommands = commands {
         }
     }
 
-    command("shiba") {
-        help(usage = "(ilość<=10)", returns = "zdjęcie/a z pieskami rasy shiba")
-
-        val client = dsl.ref<ShibeOnlineApiClient>()
-
-        files { event ->
-            val count = event.text.split(' ', limit = 2)
-                .getOrNull(1)
-                ?.toIntOrNull()
-                ?: 1
-
-            client.getShibes(count, urls = true, httpsUrls = true)
-        }
-    }
-
     command("zolw", "żółw") {
         help(returns = "zdjęcie z żółwikiem")
 
-        var pages = 1000
-        val client = dsl.ref<UnsplashApiClient>()
+        val query = UnsplashQuery(dsl.ref<UnsplashApiClient>(), "turtle")
 
-        file {
-            val response = client.searchPhotos("turtle", Random.nextInt(1, pages), 1)
+        file { query.randomImage() }
+    }
 
-            pages = response.totalPages
+    command("frog", "zabka", "żabka", "zaba", "żaba") {
+        help(returns = "zdjęcie z żabką")
 
-            response.results.first().urls.regular
-        }
+        val query = UnsplashQuery(dsl.ref<UnsplashApiClient>(), "frog")
+
+        file { query.randomImage() }
+    }
+
+    command("jez", "jeż", "hedgehog") {
+        help(returns = "zdjęcie z jeżykiem")
+
+        val query = UnsplashQuery(dsl.ref<UnsplashApiClient>(), "hedgehog")
+
+        file { query.randomImage() }
     }
 }
 
