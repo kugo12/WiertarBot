@@ -34,7 +34,7 @@ internal val markReadDeserializer = surrogateDeserializer<MarkRead, _> {
     @Suppress("UNREACHABLE_CODE")
     flowOf(
         Event.ThreadsRead(
-            author = TODO(),
+            author = null,
             threads = it.threadKeys.map(ThreadKey::toThreadId),
             timestamp = it.actionTimestamp.toLong(),
         ),

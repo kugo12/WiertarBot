@@ -32,7 +32,7 @@ sealed interface Event {
 
     @Serializable
     data class ThreadsRead(
-        val author: ThreadId,
+        val author: ThreadId?,
         val threads: List<ThreadId>,
         val timestamp: Long,
     ) : Event

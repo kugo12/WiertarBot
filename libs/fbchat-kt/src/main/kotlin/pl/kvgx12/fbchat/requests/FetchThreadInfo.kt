@@ -20,7 +20,7 @@ private data class ThreadResponse(
 )
 
 private suspend fun fetchThreadInfo(session: Session, thread: Thread): ThreadData? {
-    val response: GraphQLResponse<ThreadResponse> = session.graphqlRequest(
+    val responseJson = session.graphqlRequest(
         "2147762685294928",
         buildJsonObject {
             put("id", thread.id)
@@ -29,11 +29,13 @@ private suspend fun fetchThreadInfo(session: Session, thread: Thread): ThreadDat
             put("load_reac_receipts", false)
             put("before", null)
         },
-    ).let(Session.json::decodeFromString)
+    )
+
+    val response: GraphQLResponse<ThreadResponse> = Session.json.decodeFromString(responseJson)
 
     val data = response.data?.thread ?: run {
         // FIXME: error checking
-        Session.log.error("Failed to fetch thread info: $response")
+        Session.log.error("Failed to fetch thread info: json=$responseJson")
         return null
     }
 
