@@ -160,7 +160,7 @@ class Session internal constructor(
     companion object {
         internal val log = LoggerFactory.getLogger(Session::class.java)
         internal val baseUrl = Url("https://www.messenger.com/")
-        internal const val userAgent = "curl/7.61.0"
+        internal const val userAgent = "curl/8.4.0"
 
         internal val json = Json {
             ignoreUnknownKeys = true

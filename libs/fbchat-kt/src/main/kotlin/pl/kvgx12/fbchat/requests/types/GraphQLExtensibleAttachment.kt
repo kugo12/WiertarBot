@@ -61,6 +61,12 @@ internal data class GraphQLExtensibleAttachment(
             @SerialName("video_id")
             val videoId: String,
         ) : Shared()
+
+        @Serializable
+        @SerialName("InstagramMediaAttachmentLink")
+        data class InstagramMediaAttachmentLink(
+            override val id: String,
+        ) : Shared()
     }
 
     fun toAttachment(): Attachment? {

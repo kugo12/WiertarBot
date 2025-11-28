@@ -7,6 +7,7 @@ import dev.inmo.tgbotapi.requests.abstracts.Request
 import dev.inmo.tgbotapi.requests.chat.get.GetChat
 import dev.inmo.tgbotapi.requests.get.GetFile
 import dev.inmo.tgbotapi.requests.send.SendTextMessage
+import dev.inmo.tgbotapi.requests.send.SetMessageReactions
 import dev.inmo.tgbotapi.requests.send.media.*
 import dev.inmo.tgbotapi.types.*
 import dev.inmo.tgbotapi.types.chat.ExtendedChatWithUsername
@@ -17,6 +18,7 @@ import dev.inmo.tgbotapi.types.media.*
 import dev.inmo.tgbotapi.types.message.content.MediaGroupPartContent
 import dev.inmo.tgbotapi.types.message.textsources.mentionTextSource
 import dev.inmo.tgbotapi.types.message.textsources.regularTextSource
+import dev.inmo.tgbotapi.types.reactions.Reaction
 import dev.inmo.tgbotapi.utils.RiskFeature
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -198,8 +200,17 @@ class TelegramContext(
         return Empty.getDefaultInstance()
     }
 
-    // https://bugs.telegram.org/c/12710
-    override suspend fun reactToMessage(request: ReactToMessageRequest): Empty = Empty.getDefaultInstance()
+    override suspend fun reactToMessage(request: ReactToMessageRequest): Empty {
+        execute(
+            SetMessageReactions(
+                chatId = chatId(request.event.threadId),
+                messageId = MessageId(request.event.externalId.toLong()),
+                reactions = listOf(Reaction.Emoji(request.reaction)),
+            ),
+        )
+
+        return Empty.getDefaultInstance()
+    }
 
     override suspend fun fetchRepliedTo(request: FetchRepliedToRequest): FetchRepliedToResponse = fetchRepliedToResponse {
         request.event.replyTo?.let {

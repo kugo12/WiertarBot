@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -16,6 +17,8 @@ import pl.kvgx12.fbchat.data.events.ThreadEvent
 import pl.kvgx12.fbchat.requests.fetch
 import pl.kvgx12.fbchat.requests.sendMessage
 import pl.kvgx12.fbchat.session.Session
+import pl.kvgx12.wiertarbot.connector.utils.error
+import pl.kvgx12.wiertarbot.connector.utils.getLogger
 import pl.kvgx12.wiertarbot.fb.entities.MessageCountMilestone
 import pl.kvgx12.wiertarbot.fb.repositories.MessageCountMilestoneRepository
 
@@ -25,6 +28,7 @@ typealias MilestoneTrackerEvent = Pair<Session, ThreadEvent.WithMessage>
 class FBMilestoneTracker(
     private val repository: MessageCountMilestoneRepository,
 ) {
+    private val log = getLogger()
     private val counts = mutableMapOf<String, MessageCountMilestone>()
     private val channel = Channel<MilestoneTrackerEvent>(Channel.UNLIMITED)
     private val scope = CoroutineScope(Dispatchers.Default)
@@ -43,6 +47,7 @@ class FBMilestoneTracker(
                     }
                 }
             }
+            .catch { log.error(it) }
             .launchIn(scope)
     }
 
