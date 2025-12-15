@@ -18,8 +18,8 @@ allprojects {
     version = ""
 
     extensions.findByType<JavaPluginExtension>()?.apply {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
 
         configurations {
             compileOnly {
@@ -43,14 +43,14 @@ allprojects {
 
         withType<KotlinCompile> {
             compilerOptions {
-                jvmTarget.assign(JvmTarget.JVM_17)
+                jvmTarget.assign(JvmTarget.JVM_24)
                 freeCompilerArgs.add("-Xjsr305=strict")
             }
         }
 
         withType<JavaCompile> {
-            targetCompatibility = "17"
-            sourceCompatibility = "17"
+            targetCompatibility = "25"
+            sourceCompatibility = "25"
         }
 
         withType<Test> {

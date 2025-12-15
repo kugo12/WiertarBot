@@ -3,7 +3,6 @@ package pl.kvgx12.wiertarbot.commands.ai
 import pl.kvgx12.wiertarbot.command.dsl.command
 import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.text
-import pl.kvgx12.wiertarbot.commands.GenAI
 
 val genAICommands = commands {
     if (env.getProperty("wiertarbot.genai.api-key") == null) {

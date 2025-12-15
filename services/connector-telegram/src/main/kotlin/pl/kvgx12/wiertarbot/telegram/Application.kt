@@ -1,24 +1,23 @@
 package pl.kvgx12.wiertarbot.telegram
 
+import org.springframework.beans.factory.BeanRegistrarDsl
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import org.springframework.context.support.beans
-import pl.kvgx12.wiertarbot.connector.connectorBeans
+import org.springframework.context.annotation.Import
+import pl.kvgx12.wiertarbot.connector.ConnectorBeanRegistrar
 
 @SpringBootApplication(proxyBeanMethods = false)
+@Import(ConnectorBeanRegistrar::class, BeansRegistrar::class)
 class Application
 
-fun beans() = beans {
-    bean<TelegramConnector>()
-    bean<TelegramContext>()
-
-    connectorBeans()
-}
+class BeansRegistrar : BeanRegistrarDsl({
+    registerBean<TelegramConnector>()
+    registerBean<TelegramContext>()
+})
 
 fun main(args: Array<String>) {
     runApplication<Application>(*args) {
-        webApplicationType = WebApplicationType.NONE
-        addInitializers(beans())
+        setWebApplicationType(WebApplicationType.NONE)
     }
 }

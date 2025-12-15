@@ -8,7 +8,6 @@ import org.springframework.core.codec.Decoder
 import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.client.reactive.ReactorClientHttpConnector
 import org.springframework.http.codec.json.KotlinSerializationJsonDecoder
-import org.springframework.lang.Nullable
 import org.springframework.util.MimeType
 import org.springframework.util.MimeTypeUtils
 import org.springframework.web.reactive.function.client.WebClient
@@ -108,8 +107,9 @@ inline fun <reified T : Any> BeanDefinitionDsl.httpClient(crossinline builder: W
         ).build().createClient<T>()
     }
 
+// FIXME
 // ugly workaround :c
-private object JsonDecoder : Decoder<Any?> {
+private object JsonDecoder : Decoder<Any> {
     private val delegate = KotlinSerializationJsonDecoder(
         Json {
             ignoreUnknownKeys = true
@@ -127,16 +127,16 @@ private object JsonDecoder : Decoder<Any?> {
     override fun decode(
         inputStream: Publisher<DataBuffer>,
         elementType: ResolvableType,
-        @Nullable mimeType: MimeType?,
-        @Nullable hints: MutableMap<String, Any>?
-    ): Flux<Any?> = delegate.decode(inputStream, elementType, mimeType, hints)
+        mimeType: MimeType?,
+        hints: MutableMap<String, Any>?
+    ): Flux<Any> = delegate.decode(inputStream, elementType, mimeType, hints)
 
     override fun decodeToMono(
         inputStream: Publisher<DataBuffer>,
         elementType: ResolvableType,
-        @Nullable mimeType: MimeType?,
-        @Nullable hints: MutableMap<String, Any>?
-    ): Mono<Any?> = delegate.decodeToMono(inputStream, elementType, mimeType, hints)
+        mimeType: MimeType?,
+        hints: MutableMap<String, Any>?
+    ): Mono<Any> = delegate.decodeToMono(inputStream, elementType, mimeType, hints)
 
     override fun getDecodableMimeTypes() = decodableMimeTypes
 }

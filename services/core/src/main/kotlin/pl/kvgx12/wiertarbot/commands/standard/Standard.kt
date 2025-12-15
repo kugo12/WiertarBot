@@ -1,6 +1,7 @@
 package pl.kvgx12.wiertarbot.commands.standard
 
 import kotlinx.datetime.*
+import kotlinx.datetime.TimeZone
 import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.dsl.command
 import pl.kvgx12.wiertarbot.command.dsl.commands
@@ -329,8 +330,8 @@ val standardCommands = commands {
 }
 
 private val zeroTime = LocalTime(0, 0)
-val plZone = kotlinx.datetime.TimeZone.of("Europe/Warsaw")
-private val dateTimeFormat = DateTimeFormatter.ofPattern("eeee dd MMMM HH:mm ", Locale("pl", "PL"))
+val plZone = TimeZone.of("Europe/Warsaw")
+private val dateTimeFormat = DateTimeFormatter.ofPattern("eeee dd MMMM HH:mm ", Locale.of("pl", "PL"))
 
 private val czasTimers = listOf(
     "Początek wakacji (23 czerwca) za" to LocalDate(2023, 6, 23),

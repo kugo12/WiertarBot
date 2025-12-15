@@ -32,7 +32,3 @@ dependencies {
     testImplementation(libs.bundles.kotest.spring)
     testImplementation(libs.mockk)
 }
-
-tasks.bootJar {
-    launchScript()
-}

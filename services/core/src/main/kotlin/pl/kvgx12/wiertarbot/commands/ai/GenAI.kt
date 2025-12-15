@@ -1,7 +1,9 @@
-package pl.kvgx12.wiertarbot.commands
+package pl.kvgx12.wiertarbot.commands.ai
 
 import com.google.genai.Client
-import com.google.genai.types.*
+import com.google.genai.types.GoogleSearch
+import com.google.genai.types.HarmBlockThreshold
+import com.google.genai.types.HarmCategory
 import kotlinx.coroutines.future.await
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.serialization.XML
@@ -30,53 +32,51 @@ data class UserPrompt(@XmlElement val prompt: String)
 class GenAI(
     private val props: GenAIProperties,
 ) {
-    private val client: Client.Async = Client.builder()
-        .vertexAI(false)
-        .apiKey(props.apiKey)
-        .build()
-        .async
+    private val client: Client.Async = Client(props.apiKey).async
 
-    private val contentConfig = GenerateContentConfig.builder().run {
+    private val contentConfig = generateContentConfig {
         responseMimeType("text/plain")
         maxOutputTokens(props.maxOutputTokens)
         temperature(props.temperature)
 
-        systemInstruction(
-            Content.builder().run {
-                parts(
-                    Part.fromText(
-                        XML.encodeToString(SystemPrompt(props.systemPrompt)),
-                    ),
-                )
-                build()
-            },
-        )
-        thinkingConfig(
-            ThinkingConfig.builder().run {
-                includeThoughts(false)
-                thinkingBudget(props.thinkingBudget)
-                build()
-            },
-        )
-        tools(
-            buildList {
-                if (props.grounding) {
-                    add(
-                        Tool.builder()
-                            .googleSearch(GoogleSearch.builder().build())
-                            .build(),
-                    )
+        systemInstruction {
+            text(XML.encodeToString(SystemPrompt(props.systemPrompt)).also { println(it) })
+        }
+
+        thinkingConfig {
+            includeThoughts(true)
+            thinkingBudget(props.thinkingBudget)
+        }
+
+        tools {
+            if (props.grounding) {
+                tool {
+                    googleSearch(GoogleSearch.builder().build())
                 }
-            },
-        )
-        build()
+            }
+        }
+
+        // probably by default they're off, so just to be sure
+        safetySettings {
+            for (category in HarmCategory.Known.entries) {
+                add {
+                    category(category)
+                    threshold(HarmBlockThreshold.Known.OFF)
+                }
+            }
+        }
     }
 
     suspend fun generate(prompt: String): String {
-        return client.models.generateContent(
-            props.model,
-            XML.encodeToString(UserPrompt(prompt)),
-            contentConfig,
-        ).await().text() ?: TODO()
+        val content = content {
+            text(XML.encodeToString(UserPrompt(prompt)))
+        }
+
+        val result = client.models.generateContent(props.model, content, contentConfig)
+            .await()
+
+        val text = result.text() ?: TODO()
+
+        return text
     }
 }

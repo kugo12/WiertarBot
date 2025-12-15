@@ -8,7 +8,7 @@ kotlinx-datetime = "0.7.1"
 kotlinter = "5.3.0"
 detekt = "1.23.8"
 
-spring = "3.4.4"
+spring = "4.0.0"
 spring-dependency-management = "1.1.7"
 
 protobuf-plugin = "0.9.4"

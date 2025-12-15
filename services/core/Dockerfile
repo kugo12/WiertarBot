@@ -1,4 +1,4 @@
-FROM ibm-semeru-runtimes:open-17-jdk-jammy as jdk
+FROM ibm-semeru-runtimes:open-25-jre-jammy as jdk
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ COPY build/libs/*.jar app.jar
 
 RUN useradd -U user && \
     chown -R user:user /app && \
-    chmod +x ./init.sh ./app.jar
+    chmod +x ./init.sh
 
 USER user
 

@@ -2,7 +2,7 @@ package pl.kvgx12.wiertarbot.fb.commands
 
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import org.springframework.context.support.BeanDefinitionDsl
+import org.springframework.beans.factory.BeanRegistrarDsl
 import pl.kvgx12.wiertarbot.connector.DelegatedCommand
 import pl.kvgx12.wiertarbot.fb.Constants
 import pl.kvgx12.wiertarbot.fb.connector.FBContext
@@ -13,10 +13,10 @@ import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.proto.response
 import kotlin.io.path.div
 
-fun BeanDefinitionDsl.delegatedCommandsBeans() {
-    bean(DelegatedCommand.name("see")) {
-        val fbMessageService = ref<FBMessageService>()
-        val contextProvider = provider<FBContext>()
+class DelegatedCommandsRegistrar : BeanRegistrarDsl({
+    registerBean(DelegatedCommand.name("see")) {
+        val fbMessageService = bean<FBMessageService>()
+        val contextProvider = beanProvider<FBContext>()
 
         DelegatedCommand { event ->
             val context = contextProvider.first()
@@ -86,4 +86,4 @@ fun BeanDefinitionDsl.delegatedCommandsBeans() {
             }
         }
     }
-}
+})
