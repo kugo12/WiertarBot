@@ -2,7 +2,7 @@ package pl.kvgx12.wiertarbot.commands.clients
 
 import kotlinx.serialization.json.Json
 import org.reactivestreams.Publisher
-import org.springframework.context.support.BeanDefinitionDsl
+import org.springframework.beans.factory.BeanRegistrarDsl
 import org.springframework.core.ResolvableType
 import org.springframework.core.codec.Decoder
 import org.springframework.core.io.buffer.DataBuffer
@@ -26,16 +26,16 @@ import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
 import java.time.Duration
 
-fun BeanDefinitionDsl.clientBeans() {
-    bean(isPrimary = true) {
+class ClientBeansRegistrar : BeanRegistrarDsl({
+    registerBean(primary = true) {
         WebClient.builder()
             .codecs { it.defaultCodecs().kotlinSerializationJsonDecoder(JsonDecoder) }
             .build()
     }
 
-    bean(isPrimary = true) {
+    registerBean(primary = true) {
         HttpServiceProxyFactory.builderFor(
-            WebClientAdapter.create(ref()),
+            WebClientAdapter.create(bean()),
         ).build()
     }
 
@@ -43,61 +43,81 @@ fun BeanDefinitionDsl.clientBeans() {
     httpClient<UnsplashApiClient>()
 
     httpClient<CurrencyApiClient>()
-    bean<CurrencyApi>()
+    registerBean<CurrencyApi>()
 
     httpClient<AliPaczkaClient>()
-    bean<AliPaczka>()
+    registerBean<AliPaczka>()
 
     httpClient<MojangApiClient>()
-    bean<Minecraft>()
+    registerBean<Minecraft>()
 
     httpClient<SjpPwnClient> {
         codecs {
             it.defaultCodecs().maxInMemorySize(512 * KiB)
         }
     }
-    bean<SjpPwn>()
+    registerBean<SjpPwn>()
 
     httpClient<SucharClient>()
-    bean<Suchar>()
+    registerBean<Suchar>()
 
     httpClient<PLCovidStatsClient>()
-    bean<PLCovidStats>()
+    registerBean<PLCovidStats>()
 
     httpClient<MiejskiClient>()
-    bean<Miejski>()
+    registerBean<Miejski>()
 
     httpClient<FantanoClient>()
-    bean<Fantano>()
+    registerBean<Fantano>()
 
-    bean {
-        provider<DownloadApiProperties>().ifAvailable {
+    if (env.getProperty("wiertarbot.download-api.url") != null) {
+        registerBean {
             val connector = ReactorClientHttpConnector(
                 reactor.netty.http.client.HttpClient.create()
                     .responseTimeout(Duration.ofMinutes(10)),
             )
 
-            httpClient<DownloadClient> {
-                baseUrl(it.url)
-                clientConnector(connector)
-            }
-        }
-
-        provider<TTRSProperties>().ifAvailable {
-            httpClient<TTRSClient> { baseUrl(it.url) }
-        }
-
-        provider<WeatherProperties>().ifAvailable {
-            httpClient<WeatherClient> { baseUrl(it.url) }
+            HttpServiceProxyFactory.builderFor(
+                WebClientAdapter.create(
+                    WebClient.builder()
+                        .baseUrl(bean<DownloadApiProperties>().url)
+                        .clientConnector(connector)
+                        .build(),
+                ),
+            ).build().createClient<DownloadClient>()
         }
     }
-}
 
-inline fun <reified T : Any> BeanDefinitionDsl.httpClient() =
-    bean { ref<HttpServiceProxyFactory>().createClient<T>() }
+    if (env.getProperty("wiertarbot.ttrs.url") != null) {
+        registerBean {
+            HttpServiceProxyFactory.builderFor(
+                WebClientAdapter.create(
+                    WebClient.builder()
+                        .baseUrl(bean<TTRSProperties>().url)
+                        .build(),
+                ),
+            ).build().createClient<TTRSClient>()
+        }
+    }
 
-inline fun <reified T : Any> BeanDefinitionDsl.httpClient(crossinline builder: WebClient.Builder.() -> Unit) =
-    bean {
+    if (env.getProperty("wiertarbot.weather.url") != null) {
+        registerBean {
+            HttpServiceProxyFactory.builderFor(
+                WebClientAdapter.create(
+                    WebClient.builder()
+                        .baseUrl(bean<WeatherProperties>().url)
+                        .build(),
+                ),
+            ).build().createClient<WeatherClient>()
+        }
+    }
+})
+
+inline fun <reified T : Any> BeanRegistrarDsl.httpClient() =
+    registerBean { bean<HttpServiceProxyFactory>().createClient<T>() }
+
+inline fun <reified T : Any> BeanRegistrarDsl.httpClient(crossinline builder: WebClient.Builder.() -> Unit) =
+    registerBean {
         HttpServiceProxyFactory.builderFor(
             WebClientAdapter.create(
                 WebClient.builder()

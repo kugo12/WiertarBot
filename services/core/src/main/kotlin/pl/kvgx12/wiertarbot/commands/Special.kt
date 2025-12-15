@@ -2,6 +2,7 @@ package pl.kvgx12.wiertarbot.commands
 
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import org.springframework.beans.factory.BeanRegistrarDsl
 import pl.kvgx12.wiertarbot.command.dsl.*
 import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.proto.mention
@@ -14,9 +15,9 @@ const val ANGRY_EMOJI = "\uD83D\uDE20"
 
 private val String.special get() = specialCommandName(this)
 
-val specialCommands = commands {
+class SpecialCommandsRegistrar : BeanRegistrarDsl({
     command("everyone".special) {
-        val permissionService = dsl.ref<PermissionService>()
+        val permissionService = dsl.bean<PermissionService>()
 
         special { event ->
             if ("@everyone" in event.text &&
@@ -62,7 +63,7 @@ val specialCommands = commands {
     }
 
     command("1337".special) {
-        val permissionService = dsl.ref<PermissionService>()
+        val permissionService = dsl.bean<PermissionService>()
 
         special {
             if ("1337" in it.text) {
@@ -98,7 +99,7 @@ val specialCommands = commands {
             sam(it, "wypierdalaj")
         }
     }
-}
+})
 
 private suspend fun CommandDsl.sam(event: MessageEvent, word: String) = coroutineScope {
     val text = event.text.lowercase()

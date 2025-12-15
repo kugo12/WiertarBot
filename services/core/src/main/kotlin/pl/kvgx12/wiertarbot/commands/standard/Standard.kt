@@ -2,9 +2,9 @@ package pl.kvgx12.wiertarbot.commands.standard
 
 import kotlinx.datetime.*
 import kotlinx.datetime.TimeZone
+import org.springframework.beans.factory.BeanRegistrarDsl
 import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.dsl.command
-import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.generic
 import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.commands.clients.external.*
@@ -21,7 +21,7 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
-val standardCommands = commands {
+class StandardCommandsRegistrar : BeanRegistrarDsl({
     command("wybierz") {
         help(usage = "<opcje do wyboru po przecinku>", returns = "losowo wybraną opcję")
 
@@ -80,7 +80,7 @@ val standardCommands = commands {
     command("Xd", "xd") {
         help(returns = "copypaste o Xd")
 
-        val prefixLength = dsl.ref<WiertarbotProperties>().prefix.length
+        val prefixLength = dsl.bean<WiertarbotProperties>().prefix.length
 
         text { if (it.text.drop(prefixLength) == "Xd") pastaXd else null }
     }
@@ -88,7 +88,7 @@ val standardCommands = commands {
     command("miejski") {
         help(usage = "<wyraz>", returns = "definicję podanego wyrazu z www.miejski.pl")
 
-        val miejski = dsl.ref<Miejski>()
+        val miejski = dsl.bean<Miejski>()
 
         text { event ->
             event.text.split(' ', limit = 2)
@@ -126,7 +126,7 @@ val standardCommands = commands {
     command("covid") {
         help(returns = "aktualne informacje o covid w Polsce")
 
-        val stats = dsl.ref<PLCovidStats>()
+        val stats = dsl.bean<PLCovidStats>()
 
         text { stats.get() }
     }
@@ -134,7 +134,7 @@ val standardCommands = commands {
     command("slownik", "słownik") {
         help(usage = "<wyraz>", returns = "definicje podanego wyrazu z sjp.pwn.pl")
 
-        val sjpPwn = dsl.ref<SjpPwn>()
+        val sjpPwn = dsl.bean<SjpPwn>()
 
         text { event ->
             event.text.split(' ', limit = 2)
@@ -147,7 +147,7 @@ val standardCommands = commands {
     command("track", "tracking") {
         help(usage = "<numer śledzenia>", returns = "status paczki")
 
-        val aliPaczka = dsl.ref<AliPaczka>()
+        val aliPaczka = dsl.bean<AliPaczka>()
 
         text { event ->
             event.text.split(' ', limit = 2)
@@ -160,7 +160,7 @@ val standardCommands = commands {
     command("mc") {
         help(usage = "<skin> <nick>", returns = "skin dla podanego nicku")
 
-        val minecraft = dsl.ref<Minecraft>()
+        val minecraft = dsl.bean<Minecraft>()
 
         generic { event ->
             val args = event.text.split(' ', limit = 3)
@@ -274,7 +274,7 @@ val standardCommands = commands {
     command("fantano") {
         help(usage = "<nazwa albumu>", returns = "ocene albumu fantano")
 
-        val fantano = dsl.ref<Fantano>()
+        val fantano = dsl.bean<Fantano>()
 
         text { event ->
             event.text.split(' ', limit = 2)
@@ -298,7 +298,7 @@ val standardCommands = commands {
             returns = "Kurs aktualizowany dziennie",
         )
 
-        val client = dsl.ref<CurrencyApi>()
+        val client = dsl.bean<CurrencyApi>()
 
         text { event ->
             event.text.split(' ', limit = 4)
@@ -323,11 +323,11 @@ val standardCommands = commands {
     command("suchar") {
         help(returns = "losowy suchar")
 
-        val suchar = dsl.ref<Suchar>()
+        val suchar = dsl.bean<Suchar>()
 
         text { suchar.random() }
     }
-}
+})
 
 private val zeroTime = LocalTime(0, 0)
 val plZone = TimeZone.of("Europe/Warsaw")

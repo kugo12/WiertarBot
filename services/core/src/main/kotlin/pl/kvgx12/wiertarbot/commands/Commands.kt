@@ -1,39 +1,28 @@
 package pl.kvgx12.wiertarbot.commands
 
-import pl.kvgx12.wiertarbot.command.dsl.commands
-import pl.kvgx12.wiertarbot.commands.ai.genAICommands
-import pl.kvgx12.wiertarbot.commands.clients.clientBeans
-import pl.kvgx12.wiertarbot.commands.image.edit.imageEditCommands
-import pl.kvgx12.wiertarbot.commands.image.random.localMediaCommands
-import pl.kvgx12.wiertarbot.commands.image.random.randomImageApiCommands
-import pl.kvgx12.wiertarbot.commands.image.random.randomImageScrapingCommands
-import pl.kvgx12.wiertarbot.commands.standard.standardCommands
+import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Import
+import pl.kvgx12.wiertarbot.commands.ai.GenAICommandsRegistrar
+import pl.kvgx12.wiertarbot.commands.clients.ClientBeansRegistrar
+import pl.kvgx12.wiertarbot.commands.image.edit.ImageEditCommandsRegistrar
+import pl.kvgx12.wiertarbot.commands.image.random.LocalMediaCommandsRegistrar
+import pl.kvgx12.wiertarbot.commands.image.random.RandomImageApiCommandsRegistrar
+import pl.kvgx12.wiertarbot.commands.image.random.RandomImageScrapingCommandsRegistrar
+import pl.kvgx12.wiertarbot.commands.standard.StandardCommandsRegistrar
 
-val commandBeans = commands {
-    clientBeans()
-
-    specialCommands()
-
-    imageEditCommands()
-
-    standardCommands()
-    utilityCommands()
-
-    genAICommands()
-
-    localMediaCommands()
-    randomImageApiCommands()
-    randomImageScrapingCommands()
-
-    if (env.getProperty("wiertarbot.ttrs.url") != null) {
-        ttrsCommands()
-    }
-
-    if (env.getProperty("wiertarbot.download-api.url") != null) {
-        downloadCommand()
-    }
-
-    if (env.getProperty("wiertarbot.weather.url") != null) {
-        weatherCommand()
-    }
-}
+@Configuration
+@Import(
+    ClientBeansRegistrar::class,
+    SpecialCommandsRegistrar::class,
+    ImageEditCommandsRegistrar::class,
+    StandardCommandsRegistrar::class,
+    UtilityCommandsRegistrar::class,
+    GenAICommandsRegistrar::class,
+    LocalMediaCommandsRegistrar::class,
+    RandomImageApiCommandsRegistrar::class,
+    RandomImageScrapingCommandsRegistrar::class,
+    TTRSCommandsRegistrar::class,
+    DownloadCommandRegistrar::class,
+    WeatherCommandRegistrar::class,
+)
+class CommandBeans

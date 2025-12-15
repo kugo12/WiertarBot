@@ -1,24 +1,23 @@
 package pl.kvgx12.wiertarbot.command.dsl
 
-import org.springframework.context.support.BeanDefinitionDsl
+import org.springframework.beans.factory.BeanRegistrarDsl
 import pl.kvgx12.wiertarbot.command.CommandMetadata
-import pl.kvgx12.wiertarbot.command.SpecialCommand
 
-fun commands(func: BeanDefinitionDsl.() -> Unit) = func
+fun commands(func: BeanRegistrarDsl.() -> Unit) = func
 
 inline fun command(
     name: String,
     vararg aliases: String,
     crossinline func: CommandDsl.() -> CommandMetadata,
-): BeanDefinitionDsl.() -> Unit = {
+): BeanRegistrarDsl.() -> Unit = {
     command(name, *aliases, func = func)
 }
 
-inline fun BeanDefinitionDsl.command(
+inline fun BeanRegistrarDsl.command(
     name: String,
     vararg aliases: String,
     crossinline func: CommandDsl.() -> CommandMetadata,
-) = bean(name) {
+) = registerBean(name) {
     CommandDsl(this, name = name, aliases = aliases.toList())
         .let(func)
 }

@@ -1,9 +1,9 @@
 package pl.kvgx12.wiertarbot.commands.image.edit
 
 import com.sksamuel.scrimage.ImmutableImage
+import org.springframework.beans.factory.BeanRegistrarDsl
 import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.dsl.command
-import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.immutableImageEdit
 import pl.kvgx12.wiertarbot.utils.ImageUtils
 import pl.kvgx12.wiertarbot.utils.getTextDimensions
@@ -26,7 +26,7 @@ val font: Font by lazy {
         .deriveFont(44f)
 }
 
-val imageEditCommands = commands {
+class ImageEditCommandsRegistrar : BeanRegistrarDsl({
     deepfryCommand()
 
     command("2021") {
@@ -75,4 +75,4 @@ val imageEditCommands = commands {
             )
         }
     }
-}
+})

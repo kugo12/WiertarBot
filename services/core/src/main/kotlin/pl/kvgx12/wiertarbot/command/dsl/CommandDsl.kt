@@ -1,6 +1,6 @@
 package pl.kvgx12.wiertarbot.command.dsl
 
-import org.springframework.context.support.BeanDefinitionDsl
+import org.springframework.beans.factory.BeanRegistrarDsl.SupplierContextDsl
 import pl.kvgx12.wiertarbot.config.ContextHolder
 import pl.kvgx12.wiertarbot.proto.ConnectorType
 import pl.kvgx12.wiertarbot.proto.MessageEvent
@@ -8,11 +8,11 @@ import pl.kvgx12.wiertarbot.proto.Response
 import java.util.*
 
 class CommandDsl(
-    val dsl: BeanDefinitionDsl.BeanSupplierContext,
+    val dsl: SupplierContextDsl<*>,
     val name: String,
     val aliases: List<String> = emptyList(),
 ) {
-    private val contextHolder = dsl.ref<ContextHolder>()
+    private val contextHolder = dsl.bean<ContextHolder>()
     var help: String? = null
     var availableIn: EnumSet<ConnectorType> = EnumSet.allOf(ConnectorType::class.java)
 

@@ -42,7 +42,7 @@ fun router(downloadService: DownloadService) = coRouter {
         val url = Url(it.queryParam("url").get())
 
         when (val presignedUrl = downloadService.download(url)) {
-            null -> unprocessableEntity().buildAndAwait()
+            null -> unprocessableContent().buildAndAwait()
             else -> ok().bodyValueAndAwait(presignedUrl)
         }
     }
