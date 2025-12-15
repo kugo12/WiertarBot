@@ -23,6 +23,7 @@ benchmark {
             warmups = 3
             iterations = 3
             iterationTime = 5
+            iterationTimeUnit = "m"
         }
     }
 }
@@ -41,6 +42,10 @@ dependencies {
     implementation(libs.spring.kotlinx.coroutines.reactor)
     implementation(libs.kotlinx.datetime)
     implementation(libs.bundles.kotlinx.serialization)
+    implementation(libs.advrieze.serialization.xml) {
+        exclude("org.jetbrains.kotlinx", "kotlinx-serialization-json")
+        exclude("org.jetbrains.kotlinx", "kotlinx-serialization-core")
+    }
 
     implementation(libs.caffeine)
     implementation(libs.scrimage.core)

@@ -1,6 +1,7 @@
 package pl.kvgx12.wiertarbot.commands
 
 import pl.kvgx12.wiertarbot.command.dsl.commands
+import pl.kvgx12.wiertarbot.commands.ai.genAICommands
 import pl.kvgx12.wiertarbot.commands.clients.clientBeans
 import pl.kvgx12.wiertarbot.commands.image.edit.imageEditCommands
 import pl.kvgx12.wiertarbot.commands.image.random.localMediaCommands
@@ -18,7 +19,7 @@ val commandBeans = commands {
     standardCommands()
     utilityCommands()
 
-    genAICommand()
+    genAICommands()
 
     localMediaCommands()
     randomImageApiCommands()

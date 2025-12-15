@@ -3,41 +3,11 @@ package pl.kvgx12.wiertarbot.commands
 import com.google.genai.Client
 import com.google.genai.types.*
 import kotlinx.coroutines.future.await
+import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XmlElement
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import pl.kvgx12.wiertarbot.command.dsl.command
-import pl.kvgx12.wiertarbot.command.dsl.commands
-import pl.kvgx12.wiertarbot.command.dsl.text
-
-
-val genAICommand = commands {
-    if (env.getProperty("wiertarbot.genai.api-key") == null) {
-        return@commands
-    }
-
-    bean<GenAI>()
-
-    command("ai") {
-        help(usage = "<prompt>", returns = "tekst")
-
-        val client = dsl.ref<GenAI>()
-
-        text {
-            val text = it.text.split(' ', limit = 2)
-
-            if (text.size == 2) {
-                val prompt = text.last()
-
-                if (prompt.isNotBlank()) {
-                    return@text client.generate(text.last())
-                }
-            }
-
-            help!!
-        }
-    }
-}
-
 
 @ConfigurationProperties("wiertarbot.genai")
 data class GenAIProperties(
@@ -49,6 +19,12 @@ data class GenAIProperties(
     val temperature: Float = 1f,
     val grounding: Boolean = true,
 )
+
+@Serializable
+data class SystemPrompt(@XmlElement val instruction: String)
+
+@Serializable
+data class UserPrompt(@XmlElement val prompt: String)
 
 @EnableConfigurationProperties(GenAIProperties::class)
 class GenAI(
@@ -67,13 +43,17 @@ class GenAI(
 
         systemInstruction(
             Content.builder().run {
-                parts(listOf(Part.fromText(props.systemPrompt)))
+                parts(
+                    Part.fromText(
+                        XML.encodeToString(SystemPrompt(props.systemPrompt)),
+                    ),
+                )
                 build()
             },
         )
         thinkingConfig(
             ThinkingConfig.builder().run {
-                includeThoughts(props.thinkingBudget != null)
+                includeThoughts(false)
                 thinkingBudget(props.thinkingBudget)
                 build()
             },
@@ -92,9 +72,11 @@ class GenAI(
         build()
     }
 
-    suspend fun generate(prompt: String): String = client.models.generateContent(
-        props.model,
-        prompt,
-        contentConfig,
-    ).await().text() ?: TODO()
+    suspend fun generate(prompt: String): String {
+        return client.models.generateContent(
+            props.model,
+            XML.encodeToString(UserPrompt(prompt)),
+            contentConfig,
+        ).await().text() ?: TODO()
+    }
 }

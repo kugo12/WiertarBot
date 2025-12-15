@@ -1,6 +1,5 @@
 package pl.kvgx12.wiertarbot.commands.clients.external
 
-import kotlinx.datetime.Instant
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -11,6 +10,8 @@ import org.springframework.web.service.annotation.HttpExchange
 import org.springframework.web.service.annotation.PostExchange
 import pl.kvgx12.wiertarbot.commands.clients.external.AliPaczkaClient.TrackRequest
 import pl.kvgx12.wiertarbot.commands.standard.plZone
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 @HttpExchange("https://api.alipaczka.pl")
 interface AliPaczkaClient {
@@ -35,6 +36,7 @@ interface AliPaczkaClient {
 }
 
 class AliPaczka(private val client: AliPaczkaClient) {
+    @OptIn(ExperimentalTime::class)
     suspend fun track(id: String): String {
         val response = try {
             client.track(id, TrackRequest("2222", "22"))
@@ -54,7 +56,7 @@ class AliPaczka(private val client: AliPaczkaClient) {
                     "\n",
                     Instant.fromEpochSeconds(it.time)
                         .toLocalDateTime(plZone)
-                        .run { "$dayOfMonth/$monthNumber/$year $hour:$minute" },
+                        .run { "$day/$month/$year $hour:$minute" },
                     " - ",
                     it.status,
                 )

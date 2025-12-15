@@ -16,7 +16,10 @@ import java.util.*
 import kotlin.io.path.div
 import kotlin.io.path.readLines
 import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 val standardCommands = commands {
     command("wybierz") {
         help(usage = "<opcje do wyboru po przecinku>", returns = "losowo wybraną opcję")

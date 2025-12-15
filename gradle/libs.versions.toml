@@ -1,11 +1,11 @@
 [versions]
-kotlin = "2.1.20"
-kotlinx-benchmark = "0.4.13"
-kotlinx-serialization = "1.8.1"
+kotlin = "2.2.20"
+kotlinx-benchmark = "0.4.15"
+kotlinx-serialization = "1.9.0"
 kotlinx-coroutines = "1.10.2"
-kotlinx-datetime = "0.6.2"
+kotlinx-datetime = "0.7.1"
 
-kotlinter = "5.0.1"
+kotlinter = "5.3.0"
 detekt = "1.23.8"
 
 spring = "3.4.4"
@@ -22,7 +22,7 @@ kotest = "5.9.1"
 kotest-extension = "1.3.0"
 mockk = "1.14.0"
 
-google-genai = "0.4.0"
+google-genai = "1.28.0"
 imageio = "3.12.0"
 caffeine = "3.2.0"
 scrimage = "4.3.0"
@@ -33,6 +33,7 @@ kotlin-aws-sdk = "1.4.64"
 okhttp = "5.0.0-alpha.14"
 jaffree = "2024.08.29"
 logback = "1.5.18"
+advrieze-xmlutil = "0.91.3"
 
 commons-codec = "1.18.0"
 
@@ -110,6 +111,8 @@ spring-kotlin-reactor-extensions = { module = "io.projectreactor.kotlin:reactor-
 spring-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core" }
 spring-kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor" }
 spring-reactor-test = { module = "io.projectreactor:reactor-test" }
+
+advrieze-serialization-xml = { module = "io.github.pdvrieze.xmlutil:serialization-jvm", version.ref = "advrieze-xmlutil" }
 
 aws-s3 = { module = "aws.sdk.kotlin:s3", version.ref = "kotlin-aws-sdk" }
 okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
