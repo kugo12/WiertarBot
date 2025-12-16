@@ -1,11 +1,10 @@
 package pl.kvgx12.wiertarbot.commands
 
+import com.ninjasquad.springmockk.MockkBean
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.*
-import org.springframework.beans.factory.getBean
-import org.springframework.beans.factory.getBeansOfType
+import org.springframework.context.annotation.Import
 import org.springframework.context.support.GenericApplicationContext
-import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.command.CommandMetadata
 import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.command.dsl.specialCommandName
@@ -15,18 +14,22 @@ import pl.kvgx12.wiertarbot.services.PermissionService
 import pl.kvgx12.wiertarbot.utils.proto.isGroup
 import pl.kvgx12.wiertarbot.utils.responseTextMatcher
 
-@ContextConfiguration(initializers = [CommandTestInitializer::class])
-class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
-    {
-        val commands = context.getBeansOfType<CommandMetadata>()
-            .filterValues { it.handler is SpecialCommand }
-        val permissionService = context.getBean<PermissionService>()
-        val connectorContext = context.getBean<ConnectorContextClient>()
-        val event = mockk<MessageEvent>()
+@Import(CommandTestConfiguration::class)
+class SpecialCommandsTest(
+    context: GenericApplicationContext,
+    permissionService: PermissionService,
+    commands: Map<String, CommandMetadata>
+) : FunSpec() {
+    @MockkBean
+    lateinit var connectorContext: ConnectorContextClient
 
+    lateinit var event: MessageEvent
+
+    init {
         fun command(name: String) = checkNotNull(commands[specialCommandName(name)]).handler as SpecialCommand
 
         beforeTest {
+            event = mockk()
             mockkStatic(MessageEvent::isGroup)
             coEvery { permissionService.isAuthorized(any(), any(), any()) } returns true
             every { event.connectorInfo } returns connectorInfo {
@@ -175,7 +178,13 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
                 )
 
                 command.testWithSend(connectorContext, event, "@everyone", matcher, verify = verifyAll)
-                command.testWithSend(connectorContext, event, "dasdasdasd@everyonedasdasdasd", matcher, verify = verifyAll)
+                command.testWithSend(
+                    connectorContext,
+                    event,
+                    "dasdasdasd@everyonedasdasdasd",
+                    matcher,
+                    verify = verifyAll
+                )
             }
         }
 
@@ -209,8 +218,8 @@ class SpecialCommandsTest(context: GenericApplicationContext) : FunSpec(
                 )
             }
         }
-    },
-)
+    }
+}
 
 private suspend inline fun SpecialCommand.test(
     event: MessageEvent,

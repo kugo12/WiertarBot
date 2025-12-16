@@ -1,5 +1,6 @@
 import io.gitlab.arturbosch.detekt.Detekt
 import io.gitlab.arturbosch.detekt.DetektPlugin
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.jmailen.gradle.kotlinter.KotlinterPlugin
@@ -55,6 +56,17 @@ allprojects {
 
         withType<Test> {
             useJUnitPlatform()
+
+            outputs.upToDateWhen { false }
+
+            testLogging {
+                showStandardStreams = true
+                exceptionFormat = TestExceptionFormat.FULL
+            }
+
+            System.getProperties().asIterable()
+                .filter { it.key != "user.dir" }
+                .associateTo(systemProperties) { it.key.toString() to it.value }
         }
 
         withType<Detekt> {

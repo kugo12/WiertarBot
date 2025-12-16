@@ -28,6 +28,12 @@ benchmark {
     }
 }
 
+tasks {
+    withType<Test> {
+        systemProperty("kotest.framework.config.fqn", "pl.kvgx12.wiertarbot.ProjectConfig")
+    }
+}
+
 dependencies {
     implementation(project(":libs:core-proto"))
 
@@ -64,4 +70,5 @@ dependencies {
     testImplementation(libs.kotlinx.benchmark.runtime)
     testImplementation(libs.bundles.kotest.spring)
     testImplementation(libs.mockk)
+    testImplementation(libs.mockk.spring)
 }

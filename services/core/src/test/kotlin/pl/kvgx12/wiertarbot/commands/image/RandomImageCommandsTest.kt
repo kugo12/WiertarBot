@@ -1,6 +1,7 @@
 package pl.kvgx12.wiertarbot.commands.image
 
 import com.google.protobuf.ByteString
+import com.ninjasquad.springmockk.MockkBean
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -9,26 +10,30 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import org.springframework.beans.factory.getBean
+import org.springframework.context.annotation.Import
 import org.springframework.context.support.GenericApplicationContext
-import org.springframework.test.context.ContextConfiguration
-import pl.kvgx12.wiertarbot.commands.CommandTestInitializer
+import pl.kvgx12.wiertarbot.commands.CommandTestConfiguration
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.connector.ConnectorContextClient
 import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.utils.getCommand
 
-@ContextConfiguration(initializers = [CommandTestInitializer::class])
-class RandomImageCommandsTest(context: GenericApplicationContext) : FunSpec(
-    {
-        val event = mockk<MessageEvent>()
+@Import(CommandTestConfiguration::class)
+class RandomImageCommandsTest(context: GenericApplicationContext) : FunSpec() {
+    @MockkBean
+    lateinit var connectorContext: ConnectorContextClient
+
+    lateinit var event: MessageEvent
+
+    init {
         val prefix = context.getBean<WiertarbotProperties>().prefix
-        val connectorContext = context.getBean<ConnectorContextClient>()
 
         afterTest {
             clearMocks(event, connectorContext)
         }
 
         beforeTest {
+            event = mockk()
             every { event.connectorInfo } returns connectorInfo {
                 connectorType = ConnectorType.TELEGRAM
             }
@@ -87,5 +92,5 @@ class RandomImageCommandsTest(context: GenericApplicationContext) : FunSpec(
                 response.filesList shouldBe uploaded
             }
         }
-    },
-)
+    }
+}

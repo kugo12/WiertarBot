@@ -1,6 +1,7 @@
 package pl.kvgx12.wiertarbot.commands.image
 
 import com.google.protobuf.ByteString
+import com.ninjasquad.springmockk.MockkBean
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.equality.shouldBeEqualToComparingFields
 import io.kotest.matchers.nulls.shouldBeNull
@@ -8,54 +9,58 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.*
 import org.springframework.beans.factory.getBean
+import org.springframework.context.annotation.Import
 import org.springframework.context.support.GenericApplicationContext
-import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.command.CommandMetadata
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
-import pl.kvgx12.wiertarbot.commands.CommandTestInitializer
+import pl.kvgx12.wiertarbot.commands.CommandTestConfiguration
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.connector.ConnectorContextClient
 import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.utils.proto.Response
 
-@ContextConfiguration(initializers = [CommandTestInitializer::class])
-class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
-    {
-        val event = mockk<MessageEvent>()
-        val prefix = context.getBean<WiertarbotProperties>().prefix
-        val connectorContext = context.getBean<ConnectorContextClient>()
-        val testImage = javaClass.classLoader.getResourceAsStream("test.jpg")!!.use {
-            it.readBytes()
-        }
-        val uploaded = listOf(
-            uploadedFile {
-                id = "test-id"
-                mimeType = "test/mimetype"
-                content = ByteString.EMPTY
-            },
-        )
-        val dummyImageAttachments = listOf(
-            attachment {
-                id = "test-id1"
-                image = imageAttachment {
-                    width = 100
-                    height = 200
-                    originalExtension = "jpg"
-                    isAnimated = false
-                }
-            },
-            attachment {
-                id = "test-id2"
-                image = imageAttachment {
-                    width = 100
-                    height = 200
-                    originalExtension = "jpg"
-                    isAnimated = false
-                }
-            },
-        )
+@Import(CommandTestConfiguration::class)
+class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec() {
+    @MockkBean
+    lateinit var connectorContext: ConnectorContextClient
+
+    lateinit var event: MessageEvent
+
+    val prefix = context.getBean<WiertarbotProperties>().prefix
+
+    val uploaded = listOf(
+        uploadedFile {
+            id = "test-id"
+            mimeType = "test/mimetype"
+            content = ByteString.EMPTY
+        },
+    )
+    val dummyImageAttachments = listOf(
+        attachment {
+            id = "test-id1"
+            image = imageAttachment {
+                width = 100
+                height = 200
+                originalExtension = "jpg"
+                isAnimated = false
+            }
+        },
+        attachment {
+            id = "test-id2"
+            image = imageAttachment {
+                width = 100
+                height = 200
+                originalExtension = "jpg"
+                isAnimated = false
+            }
+        },
+    )
+
+    init {
+        println(System.getProperty("user.dir"))
 
         beforeTest {
+            event = mockk()
             every { event.connectorInfo } returns connectorInfo {
                 connectorType = ConnectorType.TELEGRAM
             }
@@ -124,5 +129,11 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec(
                 }
             }
         }
-    },
-)
+    }
+
+    companion object {
+        private val testImage = this::class.java.classLoader.getResourceAsStream("test.jpg")!!.use {
+            it.readBytes()
+        }
+    }
+}

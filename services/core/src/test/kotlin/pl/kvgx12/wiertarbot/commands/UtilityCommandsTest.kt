@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.commands
 
+import com.ninjasquad.springmockk.MockkBean
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -9,10 +10,9 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import org.springframework.beans.factory.getBean
 import org.springframework.beans.factory.getBeanProvider
+import org.springframework.context.annotation.Import
 import org.springframework.context.support.GenericApplicationContext
-import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.command.CommandMetadata
 import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
@@ -22,19 +22,26 @@ import pl.kvgx12.wiertarbot.utils.getCommand
 import pl.kvgx12.wiertarbot.utils.proto.Response
 import pl.kvgx12.wiertarbot.utils.scopedCommandName
 
-@ContextConfiguration(initializers = [CommandTestInitializer::class])
-class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
-    {
-        val event = mockk<MessageEvent>()
-        val props = context.getBean<WiertarbotProperties>()
+@Import(CommandTestConfiguration::class)
+class UtilityCommandsTest(
+    context: GenericApplicationContext,
+    props: WiertarbotProperties,
+) : FunSpec() {
+    @MockkBean
+    lateinit var connectorContext: ConnectorContextClient
+
+    lateinit var event: MessageEvent
+
+
+    init {
         val prefix = props.prefix
-        val connectorContext = context.getBean<ConnectorContextClient>()
 
         afterTest {
             clearMocks(event, connectorContext)
         }
 
         beforeTest {
+            event = mockk()
             every { event.connectorInfo } returns connectorInfo {
                 connectorType = ConnectorType.TELEGRAM
             }
@@ -158,5 +165,5 @@ class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
                 }
             }
         }
-    },
-)
+    }
+}

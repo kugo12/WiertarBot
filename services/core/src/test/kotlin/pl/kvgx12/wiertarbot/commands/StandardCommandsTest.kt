@@ -1,6 +1,7 @@
 package pl.kvgx12.wiertarbot.commands
 
 import com.google.protobuf.ByteString
+import com.ninjasquad.springmockk.MockkBean
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
@@ -12,8 +13,8 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import org.springframework.beans.factory.getBean
+import org.springframework.context.annotation.Import
 import org.springframework.context.support.GenericApplicationContext
-import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.commands.standard.barka
 import pl.kvgx12.wiertarbot.commands.standard.pastaXd
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
@@ -23,18 +24,22 @@ import pl.kvgx12.wiertarbot.utils.getCommand
 import pl.kvgx12.wiertarbot.utils.proto.Response
 import java.util.*
 
-@ContextConfiguration(initializers = [CommandTestInitializer::class])
-class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
-    {
-        val event = mockk<MessageEvent>(relaxed = true)
+@Import(CommandTestConfiguration::class)
+class StandardCommandsTest(context: GenericApplicationContext) : FunSpec() {
+    @MockkBean
+    lateinit var connectorContext: ConnectorContextClient
+
+    lateinit var event: MessageEvent
+
+    init {
         val prefix = context.getBean<WiertarbotProperties>().prefix
-        val connectorContext = context.getBean<ConnectorContextClient>()
 
         afterTest {
             clearMocks(event, connectorContext)
         }
 
         beforeTest {
+            event = mockk<MessageEvent>(relaxed = true)
             every { event.connectorInfo } returns connectorInfo {
                 connectorType = ConnectorType.TELEGRAM
             }
@@ -360,5 +365,5 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
         }
 
         // TODO: szkaluj
-    },
-)
+    }
+}
