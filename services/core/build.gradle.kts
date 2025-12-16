@@ -35,6 +35,8 @@ tasks {
 }
 
 dependencies {
+    implementation(platform(libs.spring.ai.bom))
+
     implementation(project(":libs:core-proto"))
 
     implementation(libs.bundles.spring)
@@ -43,6 +45,7 @@ dependencies {
     implementation(libs.spring.starter.data.r2dbc)
     implementation(libs.spring.starter.amqp)
     implementation(libs.spring.starter.cache)
+    implementation(libs.spring.ai.starter.google.genai)
 
     implementation(libs.spring.kotlinx.coroutines.core)
     implementation(libs.spring.kotlinx.coroutines.reactor)
@@ -57,7 +60,6 @@ dependencies {
     implementation(libs.scrimage.core)
     implementation(libs.bundles.imageio)
     implementation(libs.skrape.html)
-    implementation(libs.google.genai)
 
     runtimeOnly(libs.spring.postgresql)
     runtimeOnly(libs.spring.postgresql.r2dbc)

@@ -1,82 +1,56 @@
 package pl.kvgx12.wiertarbot.commands.ai
 
-import com.google.genai.Client
-import com.google.genai.types.GoogleSearch
-import com.google.genai.types.HarmBlockThreshold
-import com.google.genai.types.HarmCategory
-import kotlinx.coroutines.future.await
-import kotlinx.serialization.Serializable
-import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.serialization.XmlElement
+import kotlinx.coroutines.reactive.asFlow
+import org.springframework.ai.chat.messages.SystemMessage
+import org.springframework.ai.chat.messages.UserMessage
+import org.springframework.ai.chat.prompt.Prompt
+import org.springframework.ai.google.genai.GoogleGenAiChatModel
+import org.springframework.ai.google.genai.GoogleGenAiChatOptions
+import org.springframework.ai.google.genai.common.GoogleGenAiSafetySetting
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 
 @ConfigurationProperties("wiertarbot.genai")
 data class GenAIProperties(
-    val apiKey: String,
-    val model: String,
     val systemPrompt: String,
-    val thinkingBudget: Int? = 1024,
-    val maxOutputTokens: Int = 2048,
-    val temperature: Float = 1f,
-    val grounding: Boolean = true,
 )
-
-@Serializable
-data class SystemPrompt(@XmlElement val instruction: String)
-
-@Serializable
-data class UserPrompt(@XmlElement val prompt: String)
 
 @EnableConfigurationProperties(GenAIProperties::class)
 class GenAI(
     private val props: GenAIProperties,
+    private val chat: GoogleGenAiChatModel,
 ) {
-    private val client: Client.Async = Client(props.apiKey).async
-
-    private val contentConfig = generateContentConfig {
-        responseMimeType("text/plain")
-        maxOutputTokens(props.maxOutputTokens)
-        temperature(props.temperature)
-
-        systemInstruction {
-            text(XML.encodeToString(SystemPrompt(props.systemPrompt)).also { println(it) })
-        }
-
-        thinkingConfig {
-            includeThoughts(true)
-            thinkingBudget(props.thinkingBudget)
-        }
-
-        tools {
-            if (props.grounding) {
-                tool {
-                    googleSearch(GoogleSearch.builder().build())
-                }
-            }
-        }
-
+    private val systemMessage = SystemMessage(props.systemPrompt)
+    private val chatOptions = GoogleGenAiChatOptions.builder()
         // probably by default they're off, so just to be sure
-        safetySettings {
-            for (category in HarmCategory.Known.entries) {
-                add {
-                    category(category)
-                    threshold(HarmBlockThreshold.Known.OFF)
-                }
-            }
-        }
-    }
+        .safetySettings(
+            GoogleGenAiSafetySetting.HarmCategory.entries
+                .drop(1)
+                .map {
+                    GoogleGenAiSafetySetting(
+                        it,
+                        GoogleGenAiSafetySetting.HarmBlockThreshold.OFF,
+                        GoogleGenAiSafetySetting.HarmBlockMethod.HARM_BLOCK_METHOD_UNSPECIFIED,
+                    )
+                },
+        )
+        .build()
 
     suspend fun generate(prompt: String): String {
-        val content = content {
-            text(XML.encodeToString(UserPrompt(prompt)))
+        val sb = StringBuilder()
+
+        chat.stream(
+            Prompt.builder()
+                .chatOptions(chatOptions)
+                .messages(
+                    systemMessage,
+                    UserMessage(prompt),
+                )
+                .build(),
+        ).asFlow().collect {
+            sb.append(it.result.output.text)
         }
 
-        val result = client.models.generateContent(props.model, content, contentConfig)
-            .await()
-
-        val text = result.text() ?: TODO()
-
-        return text
+        return sb.toString()
     }
 }

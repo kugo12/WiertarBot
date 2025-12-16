@@ -9,6 +9,7 @@ kotlinter = "5.3.0"
 detekt = "1.23.8"
 
 spring = "4.0.0"
+spring-ai = "2.0.0-M1"
 spring-dependency-management = "1.1.7"
 
 protobuf-plugin = "0.9.5"
@@ -22,7 +23,6 @@ kotest = "6.0.7"
 mockk = "1.14.7"
 springmockk = "5.0.1"
 
-google-genai = "1.31.0"
 imageio = "3.12.0"
 caffeine = "3.2.3"
 scrimage = "4.3.5"
@@ -84,7 +84,7 @@ imageio-core = { module = "com.twelvemonkeys.imageio:imageio-core", version.ref 
 imageio = { module = "com.twelvemonkeys.imageio:imageio", version.ref = "imageio" }
 imageio-jpeg = { module = "com.twelvemonkeys.imageio:imageio-jpeg", version.ref = "imageio" }
 
-sentry-spring = { module = "io.sentry:sentry-spring-boot-starter-jakarta", version.ref = "sentry" }
+sentry-spring = { module = "io.sentry:sentry-spring-boot-4", version.ref = "sentry" }
 sentry-logback = { module = "io.sentry:sentry-logback", version.ref = "sentry" }
 
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
@@ -93,6 +93,8 @@ skrape-html = { module = "it.skrape:skrapeit-html-parser", version.ref = "skrape
 inmo-telegram-core = { module = "dev.inmo:tgbotapi.core", version.ref = "inmo-telegram" }
 inmo-telegram-utils = { module = "dev.inmo:tgbotapi.utils", version.ref = "inmo-telegram" }
 
+spring-ai-bom = { module = "org.springframework.ai:spring-ai-bom", version.ref = "spring-ai" }
+
 spring-starter = { module = "org.springframework.boot:spring-boot-starter" }
 spring-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
 spring-starter-webflux = { module = "org.springframework.boot:spring-boot-starter-webflux" }
@@ -100,6 +102,7 @@ spring-starter-test = { module = "org.springframework.boot:spring-boot-starter-t
 spring-starter-data-r2dbc = { module = "org.springframework.boot:spring-boot-starter-data-r2dbc" }
 spring-starter-amqp = { module = "org.springframework.boot:spring-boot-starter-amqp" }
 spring-starter-cache = { module = "org.springframework.boot:spring-boot-starter-cache" }
+spring-ai-starter-google-genai = { module = "org.springframework.ai:spring-ai-starter-model-google-genai" }
 
 spring-configuration-processor = { module = "org.springframework.boot:spring-boot-configuration-processor" }
 spring-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
@@ -141,8 +144,6 @@ grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
 grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
 grpc-protoc-java = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
 grpc-protoc-kotlin = { module = "io.grpc:protoc-gen-grpc-kotlin", version.ref = "grpc-kotlin" }
-
-google-genai = { module = "com.google.genai:google-genai", version.ref = "google-genai" }
 
 [bundles]
 ktor-client = [

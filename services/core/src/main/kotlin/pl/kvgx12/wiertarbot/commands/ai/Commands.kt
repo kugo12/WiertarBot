@@ -5,7 +5,7 @@ import pl.kvgx12.wiertarbot.command.dsl.command
 import pl.kvgx12.wiertarbot.command.dsl.text
 
 class GenAICommandsRegistrar : BeanRegistrarDsl({
-    if (env.getProperty("wiertarbot.genai.api-key") != null) {
+    if (env.getProperty("spring.ai.google.genai.api-key") != null) {
         registerBean<GenAI>()
 
         command("ai") {
