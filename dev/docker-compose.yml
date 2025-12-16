@@ -4,21 +4,36 @@ services:
   download-api:
     image: kugo12/wiertarbot-download-api
     env_file: ../.env
-    volumes: [./download-api.yml:/app/application.yml]
+    volumes: [ ./download-api.yml:/app/application.yml ]
   ttrs-api:
     image: kugo12/wiertarbot-ttrs-api
     platform: linux/amd64
     env_file: ../.env
+
   connector-telegram:
     image: kugo12/wiertarbot-connector-telegram
     env_file: ../.env
-    volumes: [./connector-telegram.yml:/app/application.yml]
-#  connector-fb:
-#    image: kugo12/wiertarbot-connector-fb
+    volumes: [ ./connector-telegram.yml:/app/application.yml ]
+    links:
+      - db
+      - rabbitmq
+  connector-fb:
+    image: kugo12/wiertarbot-connector-fb
+    links:
+      - db
+      - rabbitmq
+
   core:
     image: kugo12/wiertarbot
     env_file: ../.env
-    volumes: [./core.yml:/app/application.yml]
+    volumes: [ ./core.yml:/app/application.yml ]
+    links:
+      - db
+      - rabbitmq
+  migration:
+    image: kugo12/wiertarbot-migration
+    volumes: [ ./flyway.user.toml:/flyway/conf/flyway.user.toml ]
+    links: [ db ]
 
   db:
     image: postgres:14-alpine
@@ -26,17 +41,16 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: wiertarbot
-    ports: ["5433:5432"]
-    volumes: [./schema.sql:/docker-entrypoint-initdb.d/schema.sql]
+    ports: [ "5433:5432" ]
   rabbitmq:
     image: rabbitmq:3-management-alpine
     environment:
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management load_definitions "/etc/rabbitmq/rabbitmq.json"
-    ports: ["15671:15672"]
-    volumes: [./rabbitmq.json:/etc/rabbitmq/rabbitmq.json]
+    ports: [ "15671:15672" ]
+    volumes: [ ./rabbitmq.json:/etc/rabbitmq/rabbitmq.json ]
   minio:
     image: minio/minio
-    entrypoint: [sh, -c]
+    entrypoint: [ sh, -c ]
     command: >
       set -eux &&
       mkdir -p /data/download-api &&
@@ -44,4 +58,4 @@ services:
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
-    ports: ["9001:9001"]
+    ports: [ "9001:9001" ]

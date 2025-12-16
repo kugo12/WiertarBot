@@ -89,6 +89,11 @@ val wbServices = listOf(
         "wiertarbot-ttrs-api",
         setOf("services/ttrs-api/**"),
     ),
+    Service(
+        "migration",
+        "wiertarbot-migration",
+        setOf("services/migration/**"),
+    ),
 )
 
 workflow(
