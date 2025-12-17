@@ -17,6 +17,7 @@ import pl.kvgx12.wiertarbot.commands.CommandTestConfiguration
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.connector.ConnectorContextClient
 import pl.kvgx12.wiertarbot.proto.*
+import pl.kvgx12.wiertarbot.proto.connector.sendResponse
 import pl.kvgx12.wiertarbot.utils.proto.Response
 
 @Import(CommandTestConfiguration::class)
@@ -87,7 +88,9 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec() {
 
                 test("should return image - normal flow") {
                     coEvery { connectorContext.fetchRepliedTo(event) } returns null
-                    coEvery { connectorContext.sendResponse(Response(event, text = "Wyślij zdjęcie")) } returns Unit
+                    coEvery { connectorContext.send(Response(event, text = "Wyślij zdjęcie")) } returns sendResponse {
+                        messageId = "test-message-id"
+                    }
 
                     val checked = handler.check(event)
 
@@ -101,8 +104,10 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec() {
                         }
                     }
                     coEvery {
-                        connectorContext.sendResponse(Response(eventWithImage, files = uploaded))
-                    } returns Unit
+                        connectorContext.send(Response(eventWithImage, files = uploaded))
+                    } returns sendResponse {
+                        messageId = "test-message-id"
+                    }
                     coEvery { connectorContext.uploadRaw(any<FileData>(), false) } returns uploaded
                     mockkObject(handler)
                     coEvery { handler["getImageFromAttachments"](eventWithImage) } returns testImage
@@ -116,7 +121,9 @@ class ImageEditCommandsTest(context: GenericApplicationContext) : FunSpec() {
                         every { attachmentsList } returns dummyImageAttachments
                     }
 
-                    coEvery { connectorContext.sendResponse(Response(event, files = uploaded)) } returns Unit
+                    coEvery { connectorContext.send(Response(event, files = uploaded)) } returns sendResponse {
+                        messageId = "test-message-id"
+                    }
                     coEvery { connectorContext.uploadRaw(any<FileData>(), false) } returns uploaded
                     coEvery { connectorContext.fetchRepliedTo(event) } returns eventWithImage
 

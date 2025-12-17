@@ -56,7 +56,7 @@ class FBConnector(
             threadId = message.thread.id
             at = message.createdAt ?: 0
             mentions.addAll(message.mentions.map { it.toGeneric() })
-            externalId = message.id
+            messageId = message.id
             val rId = if (this@toGeneric is ThreadEvent.MessageReply) repliedTo.id else message.repliedTo?.id
             rId?.let { replyToId = it }
             attachments.addAll(message.attachments.map { it.toGeneric() })

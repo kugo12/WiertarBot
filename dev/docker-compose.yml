@@ -46,7 +46,7 @@ services:
     image: rabbitmq:3-management-alpine
     environment:
       RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: -rabbitmq_management load_definitions "/etc/rabbitmq/rabbitmq.json"
-    ports: [ "15671:15672" ]
+    ports: [ "15671:15672", "5673:5672" ]
     volumes: [ ./rabbitmq.json:/etc/rabbitmq/rabbitmq.json ]
   minio:
     image: minio/minio

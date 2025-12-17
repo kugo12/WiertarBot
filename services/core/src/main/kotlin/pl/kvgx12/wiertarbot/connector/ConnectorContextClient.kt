@@ -46,9 +46,7 @@ class ConnectorContextClient(private val channel: ManagedChannel) : Closeable {
         },
     ).filesList
 
-    suspend fun sendResponse(response: Response) {
-        stub.sendResponse(response)
-    }
+    suspend fun send(response: Response): SendResponse = stub.send(response)
 
     suspend fun fetchThread(threadId: String) = stub.fetchThread(
         fetchThreadRequest {

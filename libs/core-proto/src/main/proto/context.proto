@@ -62,8 +62,12 @@ message DelegatedCommandRequest {
     string command = 2;
 }
 
+message SendResponse {
+    string messageId = 1;
+}
+
 service ConnectorContext {
-    rpc SendResponse(Response) returns (Empty);
+    rpc Send(Response) returns (SendResponse);
     rpc UploadRaw(UploadRawRequest) returns (UploadResponse);
     rpc FetchThread(FetchThreadRequest) returns (FetchThreadResponse);
     rpc FetchImageUrl(FetchImageUrlRequest) returns (FetchImageUrlResponse);

@@ -19,7 +19,7 @@ message MessageEvent {
     string threadId = 4;
     int64 at = 5;
     repeated Mention mentions = 6;
-    string externalId = 7;
+    string messageId = 7;
     optional string replyToId = 8;
     repeated Attachment attachments = 9;
     optional MessageEvent replyTo = 10;

@@ -63,7 +63,7 @@ class DelegatedCommandsRegistrar : BeanRegistrarDsl({
                             else -> emptyList()
                         }
 
-                        context.sendResponse(
+                        context.send(
                             response {
                                 this.event = event
                                 message.text?.let { text = it }

@@ -10,6 +10,7 @@ import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.command.dsl.specialCommandName
 import pl.kvgx12.wiertarbot.connector.ConnectorContextClient
 import pl.kvgx12.wiertarbot.proto.*
+import pl.kvgx12.wiertarbot.proto.connector.sendResponse
 import pl.kvgx12.wiertarbot.services.PermissionService
 import pl.kvgx12.wiertarbot.utils.proto.isGroup
 import pl.kvgx12.wiertarbot.utils.responseTextMatcher
@@ -243,12 +244,14 @@ private suspend inline fun SpecialCommand.testWithSend(
     matcher: Matcher<Response>,
     verify: () -> Unit = {},
 ) {
-    coEvery { connectorContext.sendResponse(match(matcher)) } returns Unit
+    coEvery { connectorContext.send(match(matcher)) } returns sendResponse {
+        messageId = "test-message-id"
+    }
     test(
         event,
         text,
         verify = {
-            coVerify { connectorContext.sendResponse(match(matcher)) }
+            coVerify { connectorContext.send(match(matcher)) }
             verify()
         },
     )

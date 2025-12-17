@@ -5,6 +5,7 @@ PROFILES = {
     "telegram": ["connector-telegram", "build-connector-telegram"],
     "fb": ["connector-fb", "build-connector-fb"],
     "api": ["ttrs-api", "download-api", "build-download-api"],
+    "core": ["core", "build-core"]
 }
 COMPOSE_LABELS = {
     "WiertarBot": ["core", "connector-telegram", "connector-fb"],
@@ -12,7 +13,7 @@ COMPOSE_LABELS = {
     "Infrastructure": ["minio", "rabbitmq", "db"],
 }
 
-resources = ["core", "build-core", "migration", "minio", "rabbitmq", "db"]
+resources = ["migration", "minio", "rabbitmq", "db"]
 for profile in cfg.get("profiles"):
     resources += PROFILES[profile]
 

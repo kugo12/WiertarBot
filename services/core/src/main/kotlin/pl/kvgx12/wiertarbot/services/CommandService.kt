@@ -12,7 +12,6 @@ import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.proto.MessageEvent
 import java.time.Instant
 import java.util.*
-import kotlin.collections.set
 
 class CommandService(
     private val permissionService: PermissionService,
@@ -65,7 +64,7 @@ class CommandService(
 
                             if (response != null) {
                                 contextHolder[event.connectorInfo.connectorType]
-                                    .sendResponse(response)
+                                    .send(response)
                             }
                         }
 
