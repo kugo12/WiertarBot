@@ -2,7 +2,7 @@ package pl.kvgx12.wiertarbot.commands
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Import
-import pl.kvgx12.wiertarbot.commands.ai.GenAICommandsRegistrar
+import pl.kvgx12.wiertarbot.commands.ai.GenAIRegistrar
 import pl.kvgx12.wiertarbot.commands.clients.ClientBeansRegistrar
 import pl.kvgx12.wiertarbot.commands.image.edit.ImageEditCommandsRegistrar
 import pl.kvgx12.wiertarbot.commands.image.random.LocalMediaCommandsRegistrar
@@ -17,7 +17,7 @@ import pl.kvgx12.wiertarbot.commands.standard.StandardCommandsRegistrar
     ImageEditCommandsRegistrar::class,
     StandardCommandsRegistrar::class,
     UtilityCommandsRegistrar::class,
-    GenAICommandsRegistrar::class,
+    GenAIRegistrar::class,
     LocalMediaCommandsRegistrar::class,
     RandomImageApiCommandsRegistrar::class,
     RandomImageScrapingCommandsRegistrar::class,

@@ -1,56 +1,77 @@
 package pl.kvgx12.wiertarbot.commands.ai
 
+import kotlinx.coroutines.flow.fold
 import kotlinx.coroutines.reactive.asFlow
-import org.springframework.ai.chat.messages.SystemMessage
-import org.springframework.ai.chat.messages.UserMessage
-import org.springframework.ai.chat.prompt.Prompt
-import org.springframework.ai.google.genai.GoogleGenAiChatModel
-import org.springframework.ai.google.genai.GoogleGenAiChatOptions
-import org.springframework.ai.google.genai.common.GoogleGenAiSafetySetting
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.EnableConfigurationProperties
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import org.springframework.ai.chat.client.ChatClient
+import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.ThreadData
 
-@ConfigurationProperties("wiertarbot.genai")
-data class GenAIProperties(
-    val systemPrompt: String,
-)
 
-@EnableConfigurationProperties(GenAIProperties::class)
-class GenAI(
-    private val props: GenAIProperties,
-    private val chat: GoogleGenAiChatModel,
+@Serializable
+data class ResponseData(
+    val text: String,
+    val mentions: List<Mention>
 ) {
-    private val systemMessage = SystemMessage(props.systemPrompt)
-    private val chatOptions = GoogleGenAiChatOptions.builder()
-        // probably by default they're off, so just to be sure
-        .safetySettings(
-            GoogleGenAiSafetySetting.HarmCategory.entries
-                .drop(1)
-                .map {
-                    GoogleGenAiSafetySetting(
-                        it,
-                        GoogleGenAiSafetySetting.HarmBlockThreshold.OFF,
-                        GoogleGenAiSafetySetting.HarmBlockMethod.HARM_BLOCK_METHOD_UNSPECIFIED,
-                    )
-                },
+    @Serializable
+    data class Mention(
+        val userId: String,
+        val offset: Int,
+        val length: Int,
+    )
+
+    companion object {
+        val converter = kotlinxOutputConverter<ResponseData>()
+    }
+}
+
+@Serializable
+data class UserMessage(
+    val message: String,
+    val metadata: Metadata,
+) {
+
+    @Serializable
+    data class Metadata(
+        val authorId: String,
+        val authorName: String,
+        val threadId: String,
+        val messageId: String,
+        val botId: String,
+        val mentions: List<ResponseData.Mention>,
+        val hasAttachments: Boolean,
+    )
+}
+
+
+class GenAI(private val chatClient: ChatClient) {
+    suspend fun generate(
+        author: ThreadData,
+        event: MessageEvent,
+        message: String
+    ): ResponseData? {
+        val metadata = UserMessage.Metadata(
+            authorId = event.authorId,
+            authorName = author.name,
+            threadId = event.threadId,
+            messageId = event.externalId,
+            botId = event.connectorInfo.botId,
+            mentions = event.mentionsList.map {
+                ResponseData.Mention(it.threadId, it.offset, it.length)
+            },
+            hasAttachments = event.attachmentsList.isNotEmpty(),
         )
-        .build()
 
-    suspend fun generate(prompt: String): String {
-        val sb = StringBuilder()
+        val response = chatClient.prompt()
+            .user(Json.encodeToString(UserMessage(message, metadata)))
+            .stream()
+            .content()
+            .asFlow()
+            .fold(StringBuilder()) { acc, chunk ->
+                acc.append(chunk)
+            }.toString()
 
-        chat.stream(
-            Prompt.builder()
-                .chatOptions(chatOptions)
-                .messages(
-                    systemMessage,
-                    UserMessage(prompt),
-                )
-                .build(),
-        ).asFlow().collect {
-            sb.append(it.result.output.text)
-        }
-
-        return sb.toString()
+        return if (response.isBlank()) null else ResponseData.converter.convert(response)
     }
 }
