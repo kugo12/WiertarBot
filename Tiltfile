@@ -55,7 +55,7 @@ build_service(
 build_service(
     name="wiertarbot-connector-telegram",
     service_name="connector-telegram",
-    deps=deps("services/onnector-telegram", CONNECTOR_DEPS),
+    deps=deps("services/connector-telegram", CONNECTOR_DEPS),
     label="WiertarBot",
 )
 
