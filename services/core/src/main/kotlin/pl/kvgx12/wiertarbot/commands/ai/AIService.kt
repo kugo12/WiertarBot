@@ -72,19 +72,21 @@ class AIService(
     }
 
     // FIXME: handle invalid response + invalid mentions
-    // TODO: don't require !ai if replyToId is in conversation
     // TODO: fetch replyToId message if it is not in conversation
+    // TODO: thread name cache
+    // TODO: handle long messages "safely"?
     // TODO: tool calls
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun generate(
         event: MessageEvent,
-        message: String
+        message: String,
+        conversationId: String? = null,
     ): GenerationResult {
         val author = contextHolder[event.connectorInfo.connectorType]
             .fetchThread(event.authorId)!!
 
-        val conversationId = getConversationId(event)
+        val conversationId = conversationId ?: getConversationId(event)
 
         val metadata = UserMessage.Metadata(
             authorId = event.authorId,
@@ -130,15 +132,14 @@ class AIService(
         )
     }
 
-    private suspend fun getConversationId(event: MessageEvent): String {
-        val replyToId = if (event.hasReplyToId() && event.replyToId.isNotBlank()) {
-            event.replyToId
-        } else {
-            null
-        }
-
-        return replyToId
-            ?.let { chatMemory.findConversationIdByMessageId(it) }
+    private suspend fun getConversationId(event: MessageEvent): String =
+        findConversationId(event)
             ?: "${event.connectorInfo.connectorType}-${event.threadId}-${UUID.randomUUID()}"
+
+    suspend fun findConversationId(event: MessageEvent): String? = when {
+        event.hasReplyToId() && event.replyToId.isNotBlank() ->
+            chatMemory.findConversationIdByMessageId(event.replyToId)
+
+        else -> null
     }
 }

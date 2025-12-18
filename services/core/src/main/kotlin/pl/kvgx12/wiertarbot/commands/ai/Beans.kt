@@ -46,6 +46,7 @@ class GenAIRegistrar : BeanRegistrarDsl({
         registerBean<AIMessageService>()
 
         aiCommand()
+        aiSpecialCommand()
 
         registerBean<ChatClient> {
             val props = bean<GenAIProperties>()
