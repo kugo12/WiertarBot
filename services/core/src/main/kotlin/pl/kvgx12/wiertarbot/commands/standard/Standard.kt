@@ -334,18 +334,22 @@ val plZone = TimeZone.of("Europe/Warsaw")
 private val dateTimeFormat = DateTimeFormatter.ofPattern("eeee dd MMMM HH:mm ", Locale.of("pl", "PL"))
 
 private val czasTimers = listOf(
-    "Początek wakacji (23 czerwca) za" to LocalDate(2023, 6, 23),
-    "Początek \"wakacji\" dla maturzystów (28 kwietnia) za" to LocalDate(2023, 4, 28),
+    "Sesja zimowa (3 lutego) za" to LocalDate(2026, 2, 3),
+    "Początek \"wakacji\" dla maturzystów (24 kwietnia) za" to LocalDate(2026, 4, 24),
+    "Sesja letnia (29 czerwca) za" to LocalDate(2026, 6, 29),
+    "Początek wakacji (26 czerwca) za" to LocalDate(2026, 6, 26),
 )
 
 val sundays = listOf(
-    LocalDate(2023, 1, 29),
-    LocalDate(2023, 4, 2),
-    LocalDate(2023, 4, 30),
-    LocalDate(2023, 6, 25),
-    LocalDate(2023, 8, 27),
-    LocalDate(2023, 12, 17),
-    LocalDate(2023, 12, 24),
+    LocalDate(2025, 12, 14),
+    LocalDate(2025, 12, 21),
+    LocalDate(2026, 1, 25),
+    LocalDate(2026, 3, 29),
+    LocalDate(2026, 4, 26),
+    LocalDate(2026, 6, 28),
+    LocalDate(2026, 8, 30),
+    LocalDate(2026, 12, 13),
+    LocalDate(2026, 12, 20),
 )
 
 val pastaXd = """
