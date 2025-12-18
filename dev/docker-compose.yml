@@ -17,6 +17,7 @@ services:
     links:
       - db
       - rabbitmq
+    ports: [ "8088:8080" ]
   connector-fb:
     image: kugo12/wiertarbot-connector-fb
     links:

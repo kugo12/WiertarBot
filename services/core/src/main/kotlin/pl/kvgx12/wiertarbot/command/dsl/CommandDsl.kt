@@ -34,5 +34,5 @@ class CommandDsl(
     }
 
     val MessageEvent.context get() = contextHolder[connectorInfo]
-    suspend fun Response.send() = contextHolder[event.connectorInfo].sendResponse(this)
+    suspend fun Response.send() = contextHolder[event.connectorInfo].send(this)
 }
