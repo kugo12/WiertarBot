@@ -24,7 +24,3 @@ dependencies {
 
     testImplementation(libs.spring.starter.test)
 }
-
-tasks.bootJar {
-    launchScript()
-}

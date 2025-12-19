@@ -20,7 +20,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
@@ -68,7 +67,7 @@ class TelegramConnector(
         authorId = (message as? FromUser ?: return null).user.id.chatId.toString()
         threadId = Json.encodeToString(message.chat.id)
         at = message.date.unixMillisLong / 1000
-        externalId = message.messageId.toString()
+        messageId = message.messageId.toString()
         attachments.addAll(getAttachments(message))
 
         (message as? PossiblyReplyMessage)?.replyTo?.messageId?.toString()

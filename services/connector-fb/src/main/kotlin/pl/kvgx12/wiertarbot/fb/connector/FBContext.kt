@@ -18,6 +18,7 @@ import pl.kvgx12.wiertarbot.fb.connector.FBConnector.Companion.toGeneric
 import pl.kvgx12.wiertarbot.proto.*
 import pl.kvgx12.wiertarbot.proto.FileData
 import pl.kvgx12.wiertarbot.proto.connector.*
+import pl.kvgx12.wiertarbot.proto.connector.Empty
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 import pl.kvgx12.fbchat.requests.FileData as FBFileData
@@ -28,9 +29,9 @@ class FBContext(
 ) : ConnectorContextServer(ConnectorType.FB, delegatedCommandInvoker) {
     private inline val MessageEvent.thread get() = if (isGroup) GroupId(threadId) else UserId(threadId)
 
-    override suspend fun sendResponse(request: Response): Empty {
+    override suspend fun send(request: Response): SendResponse {
         val thread = request.event.thread
-        session.sendMessage(
+        val messageId = session.sendMessage(
             thread = thread,
             text = request.text,
             files = request.filesList
@@ -41,7 +42,9 @@ class FBContext(
             },
         )
 
-        return Empty.getDefaultInstance()
+        return sendResponse {
+            this.messageId = messageId.id
+        }
     }
 
     override suspend fun uploadRaw(request: UploadRawRequest): UploadResponse {
@@ -109,7 +112,7 @@ class FBContext(
     }
 
     override suspend fun reactToMessage(request: ReactToMessageRequest): Empty {
-        MessageId(request.event.thread, request.event.externalId)
+        MessageId(request.event.thread, request.event.messageId)
             .react(session, request.reaction)
 
         return Empty.getDefaultInstance()
@@ -131,7 +134,7 @@ class FBContext(
                 threadId = message.thread.id
                 at = message.createdAt!!
                 mentions.addAll(message.mentions.map { it.toGeneric() })
-                externalId = message.id
+                messageId = message.id
                 message.repliedTo?.id?.let { replyToId = it }
                 attachments.addAll(message.attachments.map { it.toGeneric() })
             }

@@ -22,7 +22,7 @@ typealias ImageEdit<T> = suspend ImageEditCommand.ImageEditState.(T) -> T
 abstract class ImageEditCommand(
     private val dsl: CommandDsl
 ) : CommandHandler {
-    private val client = dsl.dsl.ref<WebClient>()
+    private val client = dsl.dsl.bean<WebClient>()
 
     inner class ImageEditState(
         private val initialMessage: MessageEvent,

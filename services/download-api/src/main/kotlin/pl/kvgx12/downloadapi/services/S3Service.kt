@@ -1,10 +1,15 @@
+@file:OptIn(ExperimentalTime::class)
+
 package pl.kvgx12.downloadapi.services
 
 import aws.sdk.kotlin.runtime.auth.credentials.StaticCredentialsProvider
-import aws.sdk.kotlin.services.s3.*
+import aws.sdk.kotlin.services.s3.S3Client
+import aws.sdk.kotlin.services.s3.copyObject
+import aws.sdk.kotlin.services.s3.headObject
 import aws.sdk.kotlin.services.s3.model.MetadataDirective
 import aws.sdk.kotlin.services.s3.model.NotFound
 import aws.sdk.kotlin.services.s3.model.S3Exception
+import aws.sdk.kotlin.services.s3.putObject
 import aws.smithy.kotlin.runtime.auth.awssigning.AwsSigningAttributes
 import aws.smithy.kotlin.runtime.auth.awssigning.HashSpecification
 import aws.smithy.kotlin.runtime.client.ProtocolRequestInterceptorContext
@@ -13,12 +18,13 @@ import aws.smithy.kotlin.runtime.content.FileContent
 import aws.smithy.kotlin.runtime.http.interceptors.HttpInterceptor
 import aws.smithy.kotlin.runtime.http.request.HttpRequest
 import aws.smithy.kotlin.runtime.net.url.Url
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
-import kotlinx.datetime.toJavaInstant
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import java.io.File
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlin.time.toJavaInstant
 
 @ConfigurationProperties("storage.s3")
 data class S3Properties(

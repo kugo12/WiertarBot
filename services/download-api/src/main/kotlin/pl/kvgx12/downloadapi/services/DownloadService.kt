@@ -1,11 +1,14 @@
+@file:OptIn(ExperimentalTime::class)
+
 package pl.kvgx12.downloadapi.services
 
 import io.ktor.http.*
-import kotlinx.datetime.Clock
 import org.slf4j.LoggerFactory
 import pl.kvgx12.downloadapi.platform.*
 import pl.kvgx12.downloadapi.utils.*
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.days
+import kotlin.time.ExperimentalTime
 
 class DownloadService(
     private val platforms: List<Platform>,

@@ -1,4 +1,4 @@
-FROM ibm-semeru-runtimes:open-17-jdk-jammy as jdk
+FROM ibm-semeru-runtimes:open-25-jre-jammy as jdk
 
 WORKDIR /app
 
@@ -9,8 +9,6 @@ RUN apt update \
 
 COPY build/libs/*.jar app.jar
 
-RUN chmod +x ./app.jar
-
 USER user
 
-CMD [ "/app/app.jar" ]
+CMD [ "java", "-jar", "/app/app.jar" ]

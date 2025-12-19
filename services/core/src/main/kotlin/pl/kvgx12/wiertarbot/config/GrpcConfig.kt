@@ -31,8 +31,8 @@ class GrpcConfig(private val props: GrpcProperties) {
 
 class ContextHolder(private val clients: Map<ConnectorType, ConnectorContextClient>) {
     operator fun get(key: ConnectorType): ConnectorContextClient =
-        clients[key] ?: throw IllegalStateException("No context for $key")
+        checkNotNull(clients[key]) { "No context for $key" }
 
     operator fun get(key: ConnectorInfo): ConnectorContextClient =
-        clients[key.connectorType] ?: throw IllegalStateException("No context for $key")
+        checkNotNull(clients[key.connectorType]) { "No context for $key" }
 }

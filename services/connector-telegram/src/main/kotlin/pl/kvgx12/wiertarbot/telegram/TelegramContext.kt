@@ -141,23 +141,31 @@ class TelegramContext(
         }
     }
 
-    override suspend fun sendResponse(request: Response): Empty {
+    override suspend fun send(request: Response): SendResponse {
         if (!request.filesList.isNullOrEmpty() && sendFiles(request, request.filesList)) {
-            return Empty.getDefaultInstance()
+            return sendResponse {
+                messageId = "" // TODO
+            }
         }
 
         if (!request.text.isNullOrEmpty()) {
             val chatId = chatId(request.event.threadId)
-            execute(
+            val result = execute(
                 SendTextMessage(
                     chatId,
                     replyParameters = request.replyParameters(chatId),
                     entities = request.buildEntities(),
                 ),
             )
+
+            return sendResponse {
+                messageId = result.messageId.long.toString()
+            }
         }
 
-        return Empty.getDefaultInstance()
+        return sendResponse {
+            messageId = "" // TODO
+        }
     }
 
     override suspend fun uploadRaw(request: UploadRawRequest): UploadResponse = uploadResponse {
@@ -204,7 +212,7 @@ class TelegramContext(
         execute(
             SetMessageReactions(
                 chatId = chatId(request.event.threadId),
-                messageId = MessageId(request.event.externalId.toLong()),
+                messageId = MessageId(request.event.messageId.toLong()),
                 reactions = listOf(Reaction.Emoji(request.reaction)),
             ),
         )

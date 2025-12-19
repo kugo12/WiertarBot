@@ -89,6 +89,11 @@ val wbServices = listOf(
         "wiertarbot-ttrs-api",
         setOf("services/ttrs-api/**"),
     ),
+    Service(
+        "migration",
+        "wiertarbot-migration",
+        setOf("services/migration/**"),
+    ),
 )
 
 workflow(
@@ -289,7 +294,7 @@ fun JB.checkout() = uses(
 fun JB.setupJava() = uses(
     name = "Set up jdk",
     action = SetupJava(
-        javaVersion = "17",
+        javaVersion = "21",
         distribution = SetupJava.Distribution.Temurin,
     ),
 )

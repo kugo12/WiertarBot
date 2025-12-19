@@ -1,38 +1,25 @@
 package pl.kvgx12.wiertarbot.commands
 
-import pl.kvgx12.wiertarbot.command.dsl.commands
-import pl.kvgx12.wiertarbot.commands.clients.clientBeans
-import pl.kvgx12.wiertarbot.commands.image.edit.imageEditCommands
-import pl.kvgx12.wiertarbot.commands.image.random.localMediaCommands
-import pl.kvgx12.wiertarbot.commands.image.random.randomImageApiCommands
-import pl.kvgx12.wiertarbot.commands.image.random.randomImageScrapingCommands
-import pl.kvgx12.wiertarbot.commands.standard.standardCommands
+import org.springframework.beans.factory.BeanRegistrarDsl
+import pl.kvgx12.wiertarbot.commands.ai.GenAIRegistrar
+import pl.kvgx12.wiertarbot.commands.clients.ClientBeansRegistrar
+import pl.kvgx12.wiertarbot.commands.image.edit.ImageEditCommandsRegistrar
+import pl.kvgx12.wiertarbot.commands.image.random.LocalMediaCommandsRegistrar
+import pl.kvgx12.wiertarbot.commands.image.random.RandomImageApiCommandsRegistrar
+import pl.kvgx12.wiertarbot.commands.image.random.RandomImageScrapingCommandsRegistrar
+import pl.kvgx12.wiertarbot.commands.standard.StandardCommandsRegistrar
 
-val commandBeans = commands {
-    clientBeans()
-
-    specialCommands()
-
-    imageEditCommands()
-
-    standardCommands()
-    utilityCommands()
-
-    genAICommand()
-
-    localMediaCommands()
-    randomImageApiCommands()
-    randomImageScrapingCommands()
-
-    if (env.getProperty("wiertarbot.ttrs.url") != null) {
-        ttrsCommands()
-    }
-
-    if (env.getProperty("wiertarbot.download-api.url") != null) {
-        downloadCommand()
-    }
-
-    if (env.getProperty("wiertarbot.weather.url") != null) {
-        weatherCommand()
-    }
-}
+class CommandBeans : BeanRegistrarDsl({
+    register(ClientBeansRegistrar())
+    register(SpecialCommandsRegistrar())
+    register(ImageEditCommandsRegistrar())
+    register(StandardCommandsRegistrar())
+    register(UtilityCommandsRegistrar())
+    register(GenAIRegistrar())
+    register(LocalMediaCommandsRegistrar())
+    register(RandomImageApiCommandsRegistrar())
+    register(RandomImageScrapingCommandsRegistrar())
+    register(TTRSCommandsRegistrar())
+    register(DownloadCommandRegistrar())
+    register(WeatherCommandRegistrar())
+})

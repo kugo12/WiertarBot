@@ -1,0 +1,10 @@
+[flyway]
+baselineOnMigrate = true
+baselineVersion = "0"
+locations = ["filesystem:/flyway/migrations"]
+
+sqlMigrationPrefix = "V"
+repeatableSqlMigrationPrefix = "R"
+sqlMigrationSeparator = "_"
+sqlMigrationSuffixes = [".sql"]
+encoding = "UTF-8"

@@ -1,6 +1,7 @@
 package pl.kvgx12.wiertarbot.commands
 
 import com.google.protobuf.ByteString
+import com.ninjasquad.springmockk.MockkBean
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeIn
 import io.kotest.matchers.collections.shouldNotBeIn
@@ -12,8 +13,8 @@ import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import org.springframework.beans.factory.getBean
+import org.springframework.context.annotation.Import
 import org.springframework.context.support.GenericApplicationContext
-import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.commands.standard.barka
 import pl.kvgx12.wiertarbot.commands.standard.pastaXd
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
@@ -23,18 +24,22 @@ import pl.kvgx12.wiertarbot.utils.getCommand
 import pl.kvgx12.wiertarbot.utils.proto.Response
 import java.util.*
 
-@ContextConfiguration(initializers = [CommandTestInitializer::class])
-class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
-    {
-        val event = mockk<MessageEvent>(relaxed = true)
+@Import(CommandTestConfiguration::class)
+class StandardCommandsTest(context: GenericApplicationContext) : FunSpec() {
+    @MockkBean
+    lateinit var connectorContext: ConnectorContextClient
+
+    lateinit var event: MessageEvent
+
+    init {
         val prefix = context.getBean<WiertarbotProperties>().prefix
-        val connectorContext = context.getBean<ConnectorContextClient>()
 
         afterTest {
             clearMocks(event, connectorContext)
         }
 
         beforeTest {
+            event = mockk<MessageEvent>(relaxed = true)
             every { event.connectorInfo } returns connectorInfo {
                 connectorType = ConnectorType.TELEGRAM
             }
@@ -160,23 +165,23 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
 
         context("kurs") {
             val (metadata, handler) = context.getCommand("kurs")
-            val invalidCurrencyResponse = Response(event, text = "Nieprawidłowa waluta")
-            val helpResponse = Response(event, text = metadata.help)
+            fun invalidCurrencyResponse() = Response(event, text = "Nieprawidłowa waluta")
+            fun helpResponse() = Response(event, text = metadata.help)
 
             test("invalid currency") {
                 every { event.text } returns "${prefix}kurs abc123 pln"
-                handler.process(event) shouldBe invalidCurrencyResponse
+                handler.process(event) shouldBe invalidCurrencyResponse()
 
                 every { event.text } returns "${prefix}kurs pln abc123"
-                handler.process(event) shouldBe invalidCurrencyResponse
+                handler.process(event) shouldBe invalidCurrencyResponse()
             }
 
             test("returns help on invalid arguments") {
                 every { event.text } returns "${prefix}kurs"
-                handler.process(event) shouldBe helpResponse
+                handler.process(event) shouldBe helpResponse()
 
                 every { event.text } returns "${prefix}kurs abc"
-                handler.process(event) shouldBe helpResponse
+                handler.process(event) shouldBe helpResponse()
             }
 
             test("returns correct value") {
@@ -188,8 +193,8 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
 
                 every { event.text } returns "${prefix}kurs usd pln 21.37"
                 handler.process(event) shouldNotBeIn listOf(
-                    invalidCurrencyResponse,
-                    helpResponse,
+                    invalidCurrencyResponse(),
+                    helpResponse(),
                 )
             }
         }
@@ -360,5 +365,5 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec(
         }
 
         // TODO: szkaluj
-    },
-)
+    }
+}

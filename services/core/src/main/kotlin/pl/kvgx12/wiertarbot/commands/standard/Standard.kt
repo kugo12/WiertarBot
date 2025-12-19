@@ -1,9 +1,10 @@
 package pl.kvgx12.wiertarbot.commands.standard
 
 import kotlinx.datetime.*
+import kotlinx.datetime.TimeZone
+import org.springframework.beans.factory.BeanRegistrarDsl
 import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.dsl.command
-import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.generic
 import pl.kvgx12.wiertarbot.command.dsl.text
 import pl.kvgx12.wiertarbot.commands.clients.external.*
@@ -16,8 +17,11 @@ import java.util.*
 import kotlin.io.path.div
 import kotlin.io.path.readLines
 import kotlin.random.Random
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
-val standardCommands = commands {
+@OptIn(ExperimentalTime::class)
+class StandardCommandsRegistrar : BeanRegistrarDsl({
     command("wybierz") {
         help(usage = "<opcje do wyboru po przecinku>", returns = "losowo wybraną opcję")
 
@@ -76,7 +80,7 @@ val standardCommands = commands {
     command("Xd", "xd") {
         help(returns = "copypaste o Xd")
 
-        val prefixLength = dsl.ref<WiertarbotProperties>().prefix.length
+        val prefixLength = dsl.bean<WiertarbotProperties>().prefix.length
 
         text { if (it.text.drop(prefixLength) == "Xd") pastaXd else null }
     }
@@ -84,7 +88,7 @@ val standardCommands = commands {
     command("miejski") {
         help(usage = "<wyraz>", returns = "definicję podanego wyrazu z www.miejski.pl")
 
-        val miejski = dsl.ref<Miejski>()
+        val miejski = dsl.bean<Miejski>()
 
         text { event ->
             event.text.split(' ', limit = 2)
@@ -122,7 +126,7 @@ val standardCommands = commands {
     command("covid") {
         help(returns = "aktualne informacje o covid w Polsce")
 
-        val stats = dsl.ref<PLCovidStats>()
+        val stats = dsl.bean<PLCovidStats>()
 
         text { stats.get() }
     }
@@ -130,7 +134,7 @@ val standardCommands = commands {
     command("slownik", "słownik") {
         help(usage = "<wyraz>", returns = "definicje podanego wyrazu z sjp.pwn.pl")
 
-        val sjpPwn = dsl.ref<SjpPwn>()
+        val sjpPwn = dsl.bean<SjpPwn>()
 
         text { event ->
             event.text.split(' ', limit = 2)
@@ -143,7 +147,7 @@ val standardCommands = commands {
     command("track", "tracking") {
         help(usage = "<numer śledzenia>", returns = "status paczki")
 
-        val aliPaczka = dsl.ref<AliPaczka>()
+        val aliPaczka = dsl.bean<AliPaczka>()
 
         text { event ->
             event.text.split(' ', limit = 2)
@@ -156,7 +160,7 @@ val standardCommands = commands {
     command("mc") {
         help(usage = "<skin> <nick>", returns = "skin dla podanego nicku")
 
-        val minecraft = dsl.ref<Minecraft>()
+        val minecraft = dsl.bean<Minecraft>()
 
         generic { event ->
             val args = event.text.split(' ', limit = 3)
@@ -270,7 +274,7 @@ val standardCommands = commands {
     command("fantano") {
         help(usage = "<nazwa albumu>", returns = "ocene albumu fantano")
 
-        val fantano = dsl.ref<Fantano>()
+        val fantano = dsl.bean<Fantano>()
 
         text { event ->
             event.text.split(' ', limit = 2)
@@ -294,7 +298,7 @@ val standardCommands = commands {
             returns = "Kurs aktualizowany dziennie",
         )
 
-        val client = dsl.ref<CurrencyApi>()
+        val client = dsl.bean<CurrencyApi>()
 
         text { event ->
             event.text.split(' ', limit = 4)
@@ -319,29 +323,33 @@ val standardCommands = commands {
     command("suchar") {
         help(returns = "losowy suchar")
 
-        val suchar = dsl.ref<Suchar>()
+        val suchar = dsl.bean<Suchar>()
 
         text { suchar.random() }
     }
-}
+})
 
 private val zeroTime = LocalTime(0, 0)
-val plZone = kotlinx.datetime.TimeZone.of("Europe/Warsaw")
-private val dateTimeFormat = DateTimeFormatter.ofPattern("eeee dd MMMM HH:mm ", Locale("pl", "PL"))
+val plZone = TimeZone.of("Europe/Warsaw")
+private val dateTimeFormat = DateTimeFormatter.ofPattern("eeee dd MMMM HH:mm ", Locale.of("pl", "PL"))
 
 private val czasTimers = listOf(
-    "Początek wakacji (23 czerwca) za" to LocalDate(2023, 6, 23),
-    "Początek \"wakacji\" dla maturzystów (28 kwietnia) za" to LocalDate(2023, 4, 28),
+    "Sesja zimowa (3 lutego) za" to LocalDate(2026, 2, 3),
+    "Początek \"wakacji\" dla maturzystów (24 kwietnia) za" to LocalDate(2026, 4, 24),
+    "Sesja letnia (29 czerwca) za" to LocalDate(2026, 6, 29),
+    "Początek wakacji (26 czerwca) za" to LocalDate(2026, 6, 26),
 )
 
 val sundays = listOf(
-    LocalDate(2023, 1, 29),
-    LocalDate(2023, 4, 2),
-    LocalDate(2023, 4, 30),
-    LocalDate(2023, 6, 25),
-    LocalDate(2023, 8, 27),
-    LocalDate(2023, 12, 17),
-    LocalDate(2023, 12, 24),
+    LocalDate(2025, 12, 14),
+    LocalDate(2025, 12, 21),
+    LocalDate(2026, 1, 25),
+    LocalDate(2026, 3, 29),
+    LocalDate(2026, 4, 26),
+    LocalDate(2026, 6, 28),
+    LocalDate(2026, 8, 30),
+    LocalDate(2026, 12, 13),
+    LocalDate(2026, 12, 20),
 )
 
 val pastaXd = """

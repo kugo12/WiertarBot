@@ -1,0 +1,8 @@
+[environments.default]
+url = "jdbc:postgresql://db:5432/wiertarbot"
+user = "postgres"
+password = "postgres"
+schemas = ["public"]
+
+[flyway]
+environment = "default"

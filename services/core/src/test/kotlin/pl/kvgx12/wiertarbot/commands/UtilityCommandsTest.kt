@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.commands
 
+import com.ninjasquad.springmockk.MockkBean
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -9,10 +10,9 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
-import org.springframework.beans.factory.getBean
 import org.springframework.beans.factory.getBeanProvider
+import org.springframework.context.annotation.Import
 import org.springframework.context.support.GenericApplicationContext
-import org.springframework.test.context.ContextConfiguration
 import pl.kvgx12.wiertarbot.command.CommandMetadata
 import pl.kvgx12.wiertarbot.command.SpecialCommand
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
@@ -22,19 +22,26 @@ import pl.kvgx12.wiertarbot.utils.getCommand
 import pl.kvgx12.wiertarbot.utils.proto.Response
 import pl.kvgx12.wiertarbot.utils.scopedCommandName
 
-@ContextConfiguration(initializers = [CommandTestInitializer::class])
-class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
-    {
-        val event = mockk<MessageEvent>()
-        val props = context.getBean<WiertarbotProperties>()
+@Import(CommandTestConfiguration::class)
+class UtilityCommandsTest(
+    context: GenericApplicationContext,
+    props: WiertarbotProperties,
+) : FunSpec() {
+    @MockkBean
+    lateinit var connectorContext: ConnectorContextClient
+
+    lateinit var event: MessageEvent
+
+
+    init {
         val prefix = props.prefix
-        val connectorContext = context.getBean<ConnectorContextClient>()
 
         afterTest {
             clearMocks(event, connectorContext)
         }
 
         beforeTest {
+            event = mockk(relaxed = true)
             every { event.connectorInfo } returns connectorInfo {
                 connectorType = ConnectorType.TELEGRAM
             }
@@ -92,7 +99,7 @@ class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
                 .filter { it.handler !is SpecialCommand }
                 .toList()
 
-            val unknownCommandResponse = Response(event, text = "Nie znaleziono podanej komendy")
+            fun unknownCommandResponse() = Response(event, text = "Nie znaleziono podanej komendy")
 
             suspend fun shouldReturnAllCommands(connectorType: ConnectorType) {
                 val response = handler.process(event)
@@ -103,10 +110,14 @@ class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
                     .forEach { response.text shouldContainOnlyOnce it.name }
             }
 
-            ConnectorType.entries.forEach { connectorType ->
+            ConnectorType.entries
+                .filter { it != ConnectorType.UNRECOGNIZED }
+                .forEach { connectorType ->
                 context("${connectorType.name} connector") {
                     beforeTest {
-                        every { event.connectorInfo.connectorType } returns connectorType
+                        every { event.connectorInfo } returns connectorInfo {
+                            this.connectorType = connectorType
+                        }
                     }
 
                     test("returns prefix and list of all commands for $connectorType") {
@@ -126,15 +137,15 @@ class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
 
                     test("returns unknown command text") {
                         every { event.text } returns "${prefix}help asd-test-asddd"
-                        handler.process(event) shouldBe unknownCommandResponse
+                        handler.process(event) shouldBe unknownCommandResponse()
 
                         every { event.text } returns "${prefix}help asd rerf ads a sd"
-                        handler.process(event) shouldBe unknownCommandResponse
+                        handler.process(event) shouldBe unknownCommandResponse()
                     }
 
                     test("scopes correctly commands to connector type") {
                         val scopedCommands = ConnectorType.entries
-                            .filter { it != connectorType }
+                            .filter { it != connectorType && it != ConnectorType.UNRECOGNIZED }
                             .map { context.getCommand(it.scopedCommandName()).first }
                         val connectorCommand = context.getCommand(connectorType.scopedCommandName()).first
 
@@ -152,11 +163,11 @@ class UtilityCommandsTest(context: GenericApplicationContext) : FunSpec(
 
                         scopedCommands.forEach {
                             every { event.text } returns "${prefix}help ${it.name}"
-                            handler.process(event) shouldBe unknownCommandResponse
+                            handler.process(event) shouldBe unknownCommandResponse()
                         }
                     }
                 }
             }
         }
-    },
-)
+    }
+}

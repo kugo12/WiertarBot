@@ -23,11 +23,20 @@ benchmark {
             warmups = 3
             iterations = 3
             iterationTime = 5
+            iterationTimeUnit = "m"
         }
     }
 }
 
+tasks {
+    withType<Test> {
+        systemProperty("kotest.framework.config.fqn", "pl.kvgx12.wiertarbot.ProjectConfig")
+    }
+}
+
 dependencies {
+    implementation(platform(libs.spring.ai.bom))
+
     implementation(project(":libs:core-proto"))
 
     implementation(libs.bundles.spring)
@@ -36,17 +45,24 @@ dependencies {
     implementation(libs.spring.starter.data.r2dbc)
     implementation(libs.spring.starter.amqp)
     implementation(libs.spring.starter.cache)
+    implementation(libs.spring.ai.starter.google.genai)
 
     implementation(libs.spring.kotlinx.coroutines.core)
     implementation(libs.spring.kotlinx.coroutines.reactor)
+
     implementation(libs.kotlinx.datetime)
     implementation(libs.bundles.kotlinx.serialization)
+    implementation(libs.kotlinx.serialization.cbor)
+
+    implementation(libs.advrieze.serialization.xml) {
+        exclude("org.jetbrains.kotlinx", "kotlinx-serialization-json")
+        exclude("org.jetbrains.kotlinx", "kotlinx-serialization-core")
+    }
 
     implementation(libs.caffeine)
     implementation(libs.scrimage.core)
     implementation(libs.bundles.imageio)
     implementation(libs.skrape.html)
-    implementation(libs.google.genai)
 
     runtimeOnly(libs.spring.postgresql)
     runtimeOnly(libs.spring.postgresql.r2dbc)
@@ -59,8 +75,5 @@ dependencies {
     testImplementation(libs.kotlinx.benchmark.runtime)
     testImplementation(libs.bundles.kotest.spring)
     testImplementation(libs.mockk)
-}
-
-tasks.bootJar {
-    launchScript()
+    testImplementation(libs.mockk.spring)
 }

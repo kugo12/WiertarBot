@@ -1,6 +1,6 @@
 package pl.kvgx12.wiertarbot.commands.image.random
 
-import pl.kvgx12.wiertarbot.command.dsl.commands
+import org.springframework.beans.factory.BeanRegistrarDsl
 
-val randomImageScrapingCommands = commands {
-}
+class RandomImageScrapingCommandsRegistrar : BeanRegistrarDsl({
+})

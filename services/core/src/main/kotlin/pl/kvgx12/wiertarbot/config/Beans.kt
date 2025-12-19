@@ -1,30 +1,36 @@
 package pl.kvgx12.wiertarbot.config
 
+import org.springframework.amqp.core.AcknowledgeMode
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory
+import org.springframework.beans.factory.BeanRegistrarDsl
 import org.springframework.cache.caffeine.CaffeineCacheManager
-import org.springframework.context.support.beans
-import org.springframework.core.env.ConfigurableEnvironment
 import pl.kvgx12.wiertarbot.QueueConsumer
-import pl.kvgx12.wiertarbot.commands.commandBeans
 import pl.kvgx12.wiertarbot.services.*
 
-fun beans() = beans {
-    bean { CaffeineCacheManager("permissions") }
 
-    rabbitBeans()
+class BeanRegistrar : BeanRegistrarDsl({
+    registerBean { CaffeineCacheManager("permissions") }
 
-    bean<RabbitMQ>()
-    bean<PermissionDecoderService>()
-    bean<PermissionService>()
 
-    commandBeans()
-    bean<CommandRegistrationService>()
-    bean<CommandService>()
-    bean<GrpcConfig>()
+    registerBean("rabbitListenerContainerFactory") {
+        SimpleRabbitListenerContainerFactory().apply<SimpleRabbitListenerContainerFactory> {
+            setConnectionFactory(bean())
+            setAcknowledgeMode(AcknowledgeMode.AUTO)
+        }
+    }
+
+    registerBean<RabbitMQ>()
+    registerBean<PermissionDecoderService>()
+    registerBean<PermissionService>()
+
+    registerBean<CommandRegistrationService>()
+    registerBean<CommandService>()
+    registerBean<GrpcConfig>()
+
+    registerBean<CacheService>()
+    registerBean<CachedContextService>()
 
     if ("test" !in env.activeProfiles) {
-        bean<QueueConsumer>()
+        registerBean<QueueConsumer>()
     }
-}
-
-inline fun <reified T : Any> ConfigurableEnvironment.get(key: String, default: T): T =
-    getProperty(key, T::class.java, default)
+})

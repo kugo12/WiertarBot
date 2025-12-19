@@ -3,10 +3,9 @@ package pl.kvgx12.wiertarbot.commands.image.random
 import kotlinx.coroutines.reactor.awaitSingle
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import org.springframework.context.support.BeanDefinitionDsl
+import org.springframework.beans.factory.BeanRegistrarDsl
 import org.springframework.web.reactive.function.client.WebClient
 import pl.kvgx12.wiertarbot.command.dsl.command
-import pl.kvgx12.wiertarbot.command.dsl.commands
 import pl.kvgx12.wiertarbot.command.dsl.file
 import pl.kvgx12.wiertarbot.command.dsl.generic
 import pl.kvgx12.wiertarbot.commands.clients.external.ImgFlipClient
@@ -14,7 +13,7 @@ import pl.kvgx12.wiertarbot.commands.clients.external.UnsplashApiClient
 import pl.kvgx12.wiertarbot.commands.clients.external.UnsplashQuery
 import pl.kvgx12.wiertarbot.utils.proto.Response
 
-val randomImageApiCommands = commands {
+class RandomImageApiCommandsRegistrar : BeanRegistrarDsl({
     randomImageCommand<Link>("hug", "z tuleniem", "https://api.some-random-api.com/animu/hug")
     randomImageCommand<Link>("wink", "z mrugnięciem", "https://api.some-random-api.com/animu/wink")
     randomImageCommand<Link>("pandka", "z pandką", "https://api.some-random-api.com/img/red_panda", "panda")
@@ -28,7 +27,7 @@ val randomImageApiCommands = commands {
     command("mem", "meme") {
         help(returns = "losowy mem")
 
-        val client = dsl.ref<ImgFlipClient>()
+        val client = dsl.bean<ImgFlipClient>()
 
         generic { event ->
             val meme = client.getMemes()
@@ -45,7 +44,7 @@ val randomImageApiCommands = commands {
     command("zolw", "żółw") {
         help(returns = "zdjęcie z żółwikiem")
 
-        val query = UnsplashQuery(dsl.ref<UnsplashApiClient>(), "turtle")
+        val query = UnsplashQuery(dsl.bean<UnsplashApiClient>(), "turtle")
 
         file { query.randomImage() }
     }
@@ -53,7 +52,7 @@ val randomImageApiCommands = commands {
     command("frog", "zabka", "żabka", "zaba", "żaba") {
         help(returns = "zdjęcie z żabką")
 
-        val query = UnsplashQuery(dsl.ref<UnsplashApiClient>(), "frog")
+        val query = UnsplashQuery(dsl.bean<UnsplashApiClient>(), "frog")
 
         file { query.randomImage() }
     }
@@ -61,13 +60,13 @@ val randomImageApiCommands = commands {
     command("jez", "jeż", "hedgehog") {
         help(returns = "zdjęcie z jeżykiem")
 
-        val query = UnsplashQuery(dsl.ref<UnsplashApiClient>(), "hedgehog")
+        val query = UnsplashQuery(dsl.bean<UnsplashApiClient>(), "hedgehog")
 
         file { query.randomImage() }
     }
-}
+})
 
-private inline fun <reified T : WithFileAndMessage> BeanDefinitionDsl.randomImageCommand(
+private inline fun <reified T : WithFileAndMessage> BeanRegistrarDsl.randomImageCommand(
     name: String,
     returns: String,
     apiUrl: String,
@@ -75,7 +74,7 @@ private inline fun <reified T : WithFileAndMessage> BeanDefinitionDsl.randomImag
 ) = command(name, *aliases) {
     help(returns = "losowe zdjęcie $returns")
 
-    val client = dsl.ref<WebClient>()
+    val client = dsl.bean<WebClient>()
 
     generic { event ->
         val response = client.get()

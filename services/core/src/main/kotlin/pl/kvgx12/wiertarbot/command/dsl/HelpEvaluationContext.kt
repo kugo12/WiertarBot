@@ -30,7 +30,7 @@ data class HelpEvaluationContext(
 
     companion object {
         fun from(dsl: CommandDsl) = HelpEvaluationContext(
-            dsl.dsl.ref<WiertarbotProperties>().prefix,
+            dsl.dsl.bean<WiertarbotProperties>().prefix,
             dsl.name,
             dsl.aliases.joinToString(", "),
         )

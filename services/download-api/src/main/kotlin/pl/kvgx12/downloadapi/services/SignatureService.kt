@@ -1,14 +1,16 @@
+@file:OptIn(ExperimentalTime::class)
+
 package pl.kvgx12.downloadapi.services
 
-import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.datetime.Clock
 import org.apache.commons.codec.digest.HmacAlgorithms
 import org.apache.commons.codec.digest.HmacUtils
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import pl.kvgx12.downloadapi.utils.Url
+import kotlin.time.Clock
 import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
 
 @ConfigurationProperties("signature")
 data class SignatureProperties(

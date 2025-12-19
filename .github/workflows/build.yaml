@@ -16,7 +16,7 @@ on:
         description: 'Services to build'
         type: 'string'
         required: true
-        default: 'core,connector-fb,connector-telegram,download-api,ttrs-api'
+        default: 'core,connector-fb,connector-telegram,download-api,ttrs-api,migration'
 concurrency:
   group: '${{ github.ref }}'
   cancel-in-progress: true
@@ -44,6 +44,7 @@ jobs:
       connector-telegram: '${{ steps.step-1.outputs.connector-telegram }}'
       download-api: '${{ steps.step-1.outputs.download-api }}'
       ttrs-api: '${{ steps.step-1.outputs.ttrs-api }}'
+      migration: '${{ steps.step-1.outputs.migration }}'
     steps:
     - id: 'step-0'
       name: 'Check out'
@@ -81,6 +82,8 @@ jobs:
             - 'services/download-api/**'
           ttrs-api:
             - 'services/ttrs-api/**'
+          migration:
+            - 'services/migration/**'
   gradle-build:
     runs-on: 'ubuntu-latest'
     needs:
@@ -93,7 +96,7 @@ jobs:
       name: 'Set up jdk'
       uses: 'actions/setup-java@v5'
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
     - id: 'step-2'
       name: 'Setup gradle'
@@ -138,7 +141,7 @@ jobs:
       name: 'Set up jdk'
       uses: 'actions/setup-java@v5'
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
     - id: 'step-2'
       name: 'Setup gradle'
@@ -343,6 +346,43 @@ jobs:
           ${{ secrets.DOCKERHUB_USER }}/wiertarbot-ttrs-api:latest
           ${{ secrets.DOCKERHUB_USER }}/wiertarbot-ttrs-api:ci-${{ github.run_id }}
         push: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
+  docker-migration:
+    runs-on: 'ubuntu-latest'
+    needs:
+    - 'gradle-build'
+    - 'detect-changes'
+    - 'check_yaml_consistency'
+    if: '${{ needs.detect-changes.outputs.migration == ''true'' || contains(github.event.inputs.services, ''migration'') }}'
+    steps:
+    - id: 'step-0'
+      name: 'Check out'
+      uses: 'actions/checkout@v6'
+    - id: 'step-1'
+      name: 'Setup docker buildx'
+      uses: 'docker/setup-buildx-action@v3'
+    - id: 'step-2'
+      name: 'Login to docker registry'
+      uses: 'docker/login-action@v3'
+      with:
+        username: '${{ secrets.DOCKER_USERNAME }}'
+        password: '${{ secrets.DOCKER_PASSWORD }}'
+      if: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
+    - id: 'step-3'
+      name: 'Download build artifacts'
+      uses: 'actions/download-artifact@v6'
+      with:
+        name: 'jars'
+    - id: 'step-4'
+      name: 'Build docker image'
+      uses: 'docker/build-push-action@v6'
+      with:
+        context: 'services/migration'
+        file: 'services/migration/Dockerfile'
+        platforms: 'linux/amd64'
+        tags: |-
+          ${{ secrets.DOCKERHUB_USER }}/wiertarbot-migration:latest
+          ${{ secrets.DOCKERHUB_USER }}/wiertarbot-migration:ci-${{ github.run_id }}
+        push: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
   trigger-deployment:
     runs-on: 'ubuntu-latest'
     needs:
@@ -351,6 +391,7 @@ jobs:
     - 'docker-connector-telegram'
     - 'docker-download-api'
     - 'docker-ttrs-api'
+    - 'docker-migration'
     - 'check_yaml_consistency'
     if: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
     environment: 'production'
