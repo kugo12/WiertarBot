@@ -41,7 +41,7 @@ class UtilityCommandsTest(
         }
 
         beforeTest {
-            event = mockk()
+            event = mockk(relaxed = true)
             every { event.connectorInfo } returns connectorInfo {
                 connectorType = ConnectorType.TELEGRAM
             }
@@ -99,7 +99,7 @@ class UtilityCommandsTest(
                 .filter { it.handler !is SpecialCommand }
                 .toList()
 
-            val unknownCommandResponse = Response(event, text = "Nie znaleziono podanej komendy")
+            fun unknownCommandResponse() = Response(event, text = "Nie znaleziono podanej komendy")
 
             suspend fun shouldReturnAllCommands(connectorType: ConnectorType) {
                 val response = handler.process(event)
@@ -110,10 +110,14 @@ class UtilityCommandsTest(
                     .forEach { response.text shouldContainOnlyOnce it.name }
             }
 
-            ConnectorType.entries.forEach { connectorType ->
+            ConnectorType.entries
+                .filter { it != ConnectorType.UNRECOGNIZED }
+                .forEach { connectorType ->
                 context("${connectorType.name} connector") {
                     beforeTest {
-                        every { event.connectorInfo.connectorType } returns connectorType
+                        every { event.connectorInfo } returns connectorInfo {
+                            this.connectorType = connectorType
+                        }
                     }
 
                     test("returns prefix and list of all commands for $connectorType") {
@@ -133,15 +137,15 @@ class UtilityCommandsTest(
 
                     test("returns unknown command text") {
                         every { event.text } returns "${prefix}help asd-test-asddd"
-                        handler.process(event) shouldBe unknownCommandResponse
+                        handler.process(event) shouldBe unknownCommandResponse()
 
                         every { event.text } returns "${prefix}help asd rerf ads a sd"
-                        handler.process(event) shouldBe unknownCommandResponse
+                        handler.process(event) shouldBe unknownCommandResponse()
                     }
 
                     test("scopes correctly commands to connector type") {
                         val scopedCommands = ConnectorType.entries
-                            .filter { it != connectorType }
+                            .filter { it != connectorType && it != ConnectorType.UNRECOGNIZED }
                             .map { context.getCommand(it.scopedCommandName()).first }
                         val connectorCommand = context.getCommand(connectorType.scopedCommandName()).first
 
@@ -159,7 +163,7 @@ class UtilityCommandsTest(
 
                         scopedCommands.forEach {
                             every { event.text } returns "${prefix}help ${it.name}"
-                            handler.process(event) shouldBe unknownCommandResponse
+                            handler.process(event) shouldBe unknownCommandResponse()
                         }
                     }
                 }

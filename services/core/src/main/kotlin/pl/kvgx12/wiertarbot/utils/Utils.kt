@@ -2,11 +2,8 @@
 
 package pl.kvgx12.wiertarbot.utils
 
-import it.skrape.selects.DocElement
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.jsoup.nodes.Element
-import org.jsoup.nodes.TextNode
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
@@ -24,13 +21,3 @@ inline fun <reified T> T.getLogger(): Logger = when {
 fun Logger.error(throwable: Throwable) = error(throwable.message, throwable)
 
 suspend fun Path.contentType(): String? = withContext(Dispatchers.IO) { Files.probeContentType(this@contentType) }
-
-fun StringBuilder.appendElement(element: DocElement) = apply {
-    element.element.childNodes().forEach {
-        when {
-            it.nodeName() == "br" -> append('\n')
-            it is Element -> append(it.text())
-            it is TextNode -> append(it.text())
-        }
-    }
-}

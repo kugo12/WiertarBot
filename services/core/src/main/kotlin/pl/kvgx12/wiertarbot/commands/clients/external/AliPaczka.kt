@@ -1,5 +1,6 @@
 package pl.kvgx12.wiertarbot.commands.clients.external
 
+import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -56,7 +57,7 @@ class AliPaczka(private val client: AliPaczkaClient) {
                     "\n",
                     Instant.fromEpochSeconds(it.time)
                         .toLocalDateTime(plZone)
-                        .run { "$day/$month/$year $hour:$minute" },
+                        .run { "$day/${month.number}/$year $hour:$minute" },
                     " - ",
                     it.status,
                 )

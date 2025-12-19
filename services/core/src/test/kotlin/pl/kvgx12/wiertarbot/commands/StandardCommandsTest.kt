@@ -165,23 +165,23 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec() {
 
         context("kurs") {
             val (metadata, handler) = context.getCommand("kurs")
-            val invalidCurrencyResponse = Response(event, text = "Nieprawidłowa waluta")
-            val helpResponse = Response(event, text = metadata.help)
+            fun invalidCurrencyResponse() = Response(event, text = "Nieprawidłowa waluta")
+            fun helpResponse() = Response(event, text = metadata.help)
 
             test("invalid currency") {
                 every { event.text } returns "${prefix}kurs abc123 pln"
-                handler.process(event) shouldBe invalidCurrencyResponse
+                handler.process(event) shouldBe invalidCurrencyResponse()
 
                 every { event.text } returns "${prefix}kurs pln abc123"
-                handler.process(event) shouldBe invalidCurrencyResponse
+                handler.process(event) shouldBe invalidCurrencyResponse()
             }
 
             test("returns help on invalid arguments") {
                 every { event.text } returns "${prefix}kurs"
-                handler.process(event) shouldBe helpResponse
+                handler.process(event) shouldBe helpResponse()
 
                 every { event.text } returns "${prefix}kurs abc"
-                handler.process(event) shouldBe helpResponse
+                handler.process(event) shouldBe helpResponse()
             }
 
             test("returns correct value") {
@@ -193,8 +193,8 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec() {
 
                 every { event.text } returns "${prefix}kurs usd pln 21.37"
                 handler.process(event) shouldNotBeIn listOf(
-                    invalidCurrencyResponse,
-                    helpResponse,
+                    invalidCurrencyResponse(),
+                    helpResponse(),
                 )
             }
         }
