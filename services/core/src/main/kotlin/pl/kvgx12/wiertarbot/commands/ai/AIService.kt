@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
+import pl.kvgx12.wiertarbot.config.ContextHolder
 import pl.kvgx12.wiertarbot.entities.AIMessage.Companion.METADATA_MESSAGE_ID
 import pl.kvgx12.wiertarbot.proto.ConnectorType
 import pl.kvgx12.wiertarbot.proto.MessageEvent
@@ -66,6 +67,7 @@ data class GenerationResult(
 class AIService(
     private val chatClient: ChatClient,
     private val chatMemory: ChatMemory,
+    private val contextHolder: ContextHolder,
     private val cachedContextService: CachedContextService,
 ) {
     private val log = getLogger()
@@ -77,9 +79,9 @@ class AIService(
     }
 
     // FIXME: handle invalid response
-    // TODO: fetch replyToId message if it is not in conversation
     // TODO: configurable retries?
     // TODO: tool calls
+    // TODO: maybe cache messages with small TTL?
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun generate(
@@ -87,33 +89,12 @@ class AIService(
         message: String,
         conversationId: String? = null,
     ): GenerationResult {
-        val connectorType = event.connectorInfo.connectorType
-        val authorName = cachedContextService.getThreadName(connectorType, event.authorId)
-            ?: "Unknown User"
-
-        val conversationId = conversationId
+        val existingConversationId = conversationId
             ?: findConversationId(event)
-            ?: generateConversationId(event)
 
-        val metadata = UserMessage.Metadata(
-            authorId = event.authorId,
-            authorName = authorName,
-            threadId = event.threadId,
-            messageId = event.messageId,
-            replyToMessageId = event.replyToId,
-            botId = event.connectorInfo.botId,
-            mentions = event.mentionsList.map {
-                ResponseData.Mention(it.threadId, it.offset, it.length)
-            },
-            hasAttachments = event.attachmentsList.isNotEmpty(),
-        )
+        val conversationId = existingConversationId ?: generateConversationId(event)
 
-        val message = SpringUserMessage.builder()
-            .text(Json.encodeToString(UserMessage(message, metadata)))
-            .metadata(mapOf(METADATA_MESSAGE_ID to "${connectorType.name}-${event.messageId}"))
-            .build()
-
-        chatMemory.add(conversationId, message)
+        chatMemory.add(conversationId, event.toUserMessage(message, existingConversationId == null))
 
         val textSb = StringBuilder()
         chatClient.prompt()
@@ -140,7 +121,7 @@ class AIService(
             conversationId,
             data,
             AssistantMessage(text),
-            connectorType,
+            event.connectorInfo.connectorType,
         )
     }
 
@@ -165,4 +146,39 @@ class AIService(
                 }
             }
     )
+
+    private suspend fun MessageEvent.toUserMessage(message: String, addReplyToToContext: Boolean): List<SpringUserMessage> {
+        val authorName = cachedContextService.getThreadName(connectorInfo.connectorType, authorId)
+            ?: "Unknown User"
+
+        val repliedTo = when {
+            addReplyToToContext && hasReplyTo() -> replyTo.toUserMessage(replyTo.text, false)
+            addReplyToToContext && hasReplyToId() && replyToId.isNotBlank() -> {
+                val repliedMessage = contextHolder[connectorInfo.connectorType].fetchRepliedTo(this)
+
+                repliedMessage?.toUserMessage(repliedMessage.text, false) ?: emptyList()
+            }
+
+            else -> emptyList()
+        }
+
+        val metadata = UserMessage.Metadata(
+            authorId = authorId,
+            authorName = authorName,
+            threadId = threadId,
+            messageId = messageId,
+            replyToMessageId = replyToId,
+            botId = connectorInfo.botId,
+            mentions = mentionsList.map {
+                ResponseData.Mention(it.threadId, it.offset, it.length)
+            },
+            hasAttachments = attachmentsList.isNotEmpty(),
+        )
+
+        return repliedTo + SpringUserMessage.builder()
+            .text(Json.encodeToString(UserMessage(message, metadata)))
+            .metadata(mapOf(METADATA_MESSAGE_ID to "${connectorInfo.connectorType.name}-$messageId"))
+            .build()
+
+    }
 }
