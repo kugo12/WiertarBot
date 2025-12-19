@@ -10,6 +10,7 @@ import kotlinx.serialization.json.Json
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
 import pl.kvgx12.wiertarbot.entities.AIMessage.Companion.METADATA_MESSAGE_ID
+import pl.kvgx12.wiertarbot.proto.ConnectorType
 import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.proto.connector.SendResponse
 import pl.kvgx12.wiertarbot.services.CachedContextService
@@ -57,6 +58,7 @@ data class GenerationResult(
     val conversationId: String,
     val data: ResponseData,
     val assMessage: AssistantMessage,
+    val connectorType: ConnectorType,
 )
 
 
@@ -66,7 +68,7 @@ class AIService(
     private val cachedContextService: CachedContextService,
 ) {
     suspend fun afterSuccessfulSend(result: GenerationResult, sendResponse: SendResponse) {
-        result.assMessage.metadata[METADATA_MESSAGE_ID] = sendResponse.messageId
+        result.assMessage.metadata[METADATA_MESSAGE_ID] = "${result.connectorType.name}-${sendResponse.messageId}"
         chatMemory.add(result.conversationId, result.assMessage)
         chatMemory.applyRetention(result.conversationId)
     }
@@ -75,7 +77,6 @@ class AIService(
     // TODO: fetch replyToId message if it is not in conversation
     // TODO: handle long messages "safely"?
     // TODO: tool calls
-    // FIXME: MESSAGE_ID IS NOT PER CONNECTOR
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun generate(
@@ -83,9 +84,10 @@ class AIService(
         message: String,
         conversationId: String? = null,
     ): GenerationResult {
-        val authorName = cachedContextService.getThreadName(event.connectorInfo.connectorType, event.authorId)
+        val connectorType = event.connectorInfo.connectorType
+        val authorName = cachedContextService.getThreadName(connectorType, event.authorId)
             ?: "Unknown User"
-        
+
         val conversationId = conversationId
             ?: findConversationId(event)
             ?: generateConversationId(event)
@@ -105,7 +107,7 @@ class AIService(
 
         val message = SpringUserMessage.builder()
             .text(Json.encodeToString(UserMessage(message, metadata)))
-            .metadata(mapOf(METADATA_MESSAGE_ID to event.messageId))
+            .metadata(mapOf(METADATA_MESSAGE_ID to "${connectorType.name}-${event.messageId}"))
             .build()
 
         chatMemory.add(conversationId, message)
@@ -131,6 +133,7 @@ class AIService(
             conversationId,
             data,
             AssistantMessage(text),
+            connectorType,
         )
     }
 
@@ -139,7 +142,7 @@ class AIService(
 
     suspend fun findConversationId(event: MessageEvent): String? = when {
         event.hasReplyToId() && event.replyToId.isNotBlank() ->
-            chatMemory.findConversationIdByMessageId(event.replyToId)
+            chatMemory.findConversationIdByMessageId("${event.connectorInfo.connectorType.name}-${event.replyToId}")
 
         else -> null
     }
