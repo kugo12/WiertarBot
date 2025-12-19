@@ -14,6 +14,7 @@ import pl.kvgx12.wiertarbot.proto.ConnectorType
 import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.proto.connector.SendResponse
 import pl.kvgx12.wiertarbot.services.CachedContextService
+import pl.kvgx12.wiertarbot.utils.getLogger
 import java.util.*
 import org.springframework.ai.chat.messages.UserMessage as SpringUserMessage
 
@@ -21,7 +22,7 @@ import org.springframework.ai.chat.messages.UserMessage as SpringUserMessage
 @Serializable
 data class ResponseData(
     val text: String,
-    val mentions: List<Mention>
+    val mentions: List<Mention> = listOf()
 ) {
     @Serializable
     data class Mention(
@@ -67,6 +68,8 @@ class AIService(
     private val chatMemory: ChatMemory,
     private val cachedContextService: CachedContextService,
 ) {
+    private val log = getLogger()
+
     suspend fun afterSuccessfulSend(result: GenerationResult, sendResponse: SendResponse) {
         result.assMessage.metadata[METADATA_MESSAGE_ID] = "${result.connectorType.name}-${sendResponse.messageId}"
         chatMemory.add(result.conversationId, result.assMessage)
@@ -75,7 +78,7 @@ class AIService(
 
     // FIXME: handle invalid response + invalid mentions
     // TODO: fetch replyToId message if it is not in conversation
-    // TODO: handle long messages "safely"?
+    // TODO: configurable retries?
     // TODO: tool calls
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -126,9 +129,12 @@ class AIService(
                 }
             }
 
-        val text = textSb.toString()
+        val text = ResponseData.converter.clean(textSb.toString())
+
+        log.debug("AI Response: {}", text)
 
         val data = ResponseData.converter.convert(text)
+
         return GenerationResult(
             conversationId,
             data,

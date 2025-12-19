@@ -74,7 +74,7 @@ class GenAIRegistrar : BeanRegistrarDsl({
                 .build()
 
             bean<ChatClient.Builder>()
-                .defaultSystem(props.systemPrompt)
+                .defaultSystem("${props.systemPrompt}\n${ResponseData.converter.instruction}")
                 .defaultAdvisors(AdvisorParams.ENABLE_NATIVE_STRUCTURED_OUTPUT)
                 .defaultAdvisors(SimpleLoggerAdvisor())
                 .defaultOptions(options)
