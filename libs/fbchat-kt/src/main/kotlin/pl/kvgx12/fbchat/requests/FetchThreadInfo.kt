@@ -21,7 +21,7 @@ private data class ThreadResponse(
 
 private suspend fun fetchThreadInfo(session: Session, thread: Thread): ThreadData? {
     val responseJson = session.graphqlRequest(
-        "2147762685294928",
+        "3449967031715030",
         buildJsonObject {
             put("id", thread.id)
             put("message_limit", "0")
@@ -30,6 +30,7 @@ private suspend fun fetchThreadInfo(session: Session, thread: Thread): ThreadDat
             put("before", null)
         },
     )
+    Session.log.debug("Fetch thread info: {}", responseJson)
 
     val response: GraphQLResponse<ThreadResponse> = Session.json.decodeFromString(responseJson)
 
