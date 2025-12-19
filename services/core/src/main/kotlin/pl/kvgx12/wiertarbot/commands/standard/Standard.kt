@@ -11,7 +11,6 @@ import pl.kvgx12.wiertarbot.commands.clients.external.*
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.utils.proto.Response
-import pl.kvgx12.wiertarbot.utils.proto.isGroup
 import java.time.format.DateTimeFormatter
 import java.util.*
 import kotlin.io.path.div
@@ -205,17 +204,22 @@ class StandardCommandsRegistrar : BeanRegistrarDsl({
         generic { event ->
             val args = event.text.lowercase().split(' ', limit = 2)
 
+            val thread = event.context.fetchThread(event.threadId)!!
+
+
             val uid = when {
-                event.isGroup && args.getOrNull(1) == "random" -> {
-                    event.context.fetchThread(event.threadId)!!
-                        .participantsList.random()
+                args.getOrNull(1) == "random" -> {
+                    thread.participantsList.random().id
                 }
 
                 event.mentionsList.isNotEmpty() -> event.mentionsList.first().threadId
                 else -> event.authorId
             }
 
-            val name = event.context.fetchThread(uid)?.name.orEmpty()
+            val name = thread.participantsList
+                .find { it.id == uid }
+                ?.name
+                ?: "Nieznajomy"
 
             val text: String
             val mentions = buildList {

@@ -3,7 +3,10 @@ package pl.kvgx12.wiertarbot.commands
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.springframework.beans.factory.BeanRegistrarDsl
-import pl.kvgx12.wiertarbot.command.dsl.*
+import pl.kvgx12.wiertarbot.command.dsl.CommandDsl
+import pl.kvgx12.wiertarbot.command.dsl.command
+import pl.kvgx12.wiertarbot.command.dsl.special
+import pl.kvgx12.wiertarbot.command.dsl.specialCommandName
 import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.services.PermissionService
@@ -27,7 +30,7 @@ class SpecialCommandsRegistrar : BeanRegistrarDsl({
                 val mentions = event.context.fetchThread(event.threadId)!!
                     .participantsList.map {
                         mention {
-                            threadId = it
+                            threadId = it.id
                             offset = 0
                             length = 9
                         }
