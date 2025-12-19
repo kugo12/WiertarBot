@@ -76,7 +76,7 @@ class AIService(
         chatMemory.applyRetention(result.conversationId)
     }
 
-    // FIXME: handle invalid response + invalid mentions
+    // FIXME: handle invalid response
     // TODO: fetch replyToId message if it is not in conversation
     // TODO: configurable retries?
     // TODO: tool calls
@@ -134,6 +134,7 @@ class AIService(
         log.debug("AI Response: {}", text)
 
         val data = ResponseData.converter.convert(text)
+            .fixMentions()
 
         return GenerationResult(
             conversationId,
@@ -152,4 +153,16 @@ class AIService(
 
         else -> null
     }
+
+    private fun ResponseData.fixMentions(): ResponseData = copy(
+        mentions = mentions
+            .filter { it.userId.isNotBlank() && it.offset >= 0 && it.offset + 1 < text.length }
+            .map {
+                if (it.offset + it.length > text.length) {
+                    it.copy(length = text.length - it.offset)
+                } else {
+                    it
+                }
+            }
+    )
 }
