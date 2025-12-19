@@ -2,6 +2,7 @@ package pl.kvgx12.wiertarbot.entities
 
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
+import java.io.Serializable
 
 @Table
 data class Permission(
@@ -10,4 +11,4 @@ data class Permission(
     val command: String,
     var whitelist: String,
     var blacklist: String,
-)
+) : Serializable

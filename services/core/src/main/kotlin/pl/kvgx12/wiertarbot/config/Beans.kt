@@ -11,6 +11,7 @@ import pl.kvgx12.wiertarbot.services.*
 class BeanRegistrar : BeanRegistrarDsl({
     registerBean { CaffeineCacheManager("permissions") }
 
+
     registerBean("rabbitListenerContainerFactory") {
         SimpleRabbitListenerContainerFactory().apply<SimpleRabbitListenerContainerFactory> {
             setConnectionFactory(bean())
@@ -25,6 +26,9 @@ class BeanRegistrar : BeanRegistrarDsl({
     registerBean<CommandRegistrationService>()
     registerBean<CommandService>()
     registerBean<GrpcConfig>()
+
+    registerBean<CacheService>()
+    registerBean<CachedContextService>()
 
     if ("test" !in env.activeProfiles) {
         registerBean<QueueConsumer>()

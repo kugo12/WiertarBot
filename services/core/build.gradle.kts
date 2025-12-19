@@ -49,8 +49,11 @@ dependencies {
 
     implementation(libs.spring.kotlinx.coroutines.core)
     implementation(libs.spring.kotlinx.coroutines.reactor)
+
     implementation(libs.kotlinx.datetime)
     implementation(libs.bundles.kotlinx.serialization)
+    implementation(libs.kotlinx.serialization.cbor)
+
     implementation(libs.advrieze.serialization.xml) {
         exclude("org.jetbrains.kotlinx", "kotlinx-serialization-json")
         exclude("org.jetbrains.kotlinx", "kotlinx-serialization-core")

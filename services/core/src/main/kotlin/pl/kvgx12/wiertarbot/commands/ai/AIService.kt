@@ -9,10 +9,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
-import pl.kvgx12.wiertarbot.config.ContextHolder
 import pl.kvgx12.wiertarbot.entities.AIMessage.Companion.METADATA_MESSAGE_ID
 import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.proto.connector.SendResponse
+import pl.kvgx12.wiertarbot.services.CachedContextService
 import java.util.*
 import org.springframework.ai.chat.messages.UserMessage as SpringUserMessage
 
@@ -63,7 +63,7 @@ data class GenerationResult(
 class AIService(
     private val chatClient: ChatClient,
     private val chatMemory: ChatMemory,
-    private val contextHolder: ContextHolder,
+    private val cachedContextService: CachedContextService,
 ) {
     suspend fun afterSuccessfulSend(result: GenerationResult, sendResponse: SendResponse) {
         result.assMessage.metadata[METADATA_MESSAGE_ID] = sendResponse.messageId
@@ -73,9 +73,9 @@ class AIService(
 
     // FIXME: handle invalid response + invalid mentions
     // TODO: fetch replyToId message if it is not in conversation
-    // TODO: thread name cache
     // TODO: handle long messages "safely"?
     // TODO: tool calls
+    // FIXME: MESSAGE_ID IS NOT PER CONNECTOR
 
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun generate(
@@ -83,14 +83,16 @@ class AIService(
         message: String,
         conversationId: String? = null,
     ): GenerationResult {
-        val author = contextHolder[event.connectorInfo.connectorType]
-            .fetchThread(event.authorId)!!
-
-        val conversationId = conversationId ?: getConversationId(event)
+        val authorName = cachedContextService.getThreadName(event.connectorInfo.connectorType, event.authorId)
+            ?: "Unknown User"
+        
+        val conversationId = conversationId
+            ?: findConversationId(event)
+            ?: generateConversationId(event)
 
         val metadata = UserMessage.Metadata(
             authorId = event.authorId,
-            authorName = author.name,
+            authorName = authorName,
             threadId = event.threadId,
             messageId = event.messageId,
             replyToMessageId = event.replyToId,
@@ -132,9 +134,8 @@ class AIService(
         )
     }
 
-    private suspend fun getConversationId(event: MessageEvent): String =
-        findConversationId(event)
-            ?: "${event.connectorInfo.connectorType}-${event.threadId}-${UUID.randomUUID()}"
+    private fun generateConversationId(event: MessageEvent): String =
+        "${event.connectorInfo.connectorType}-${event.threadId}-${UUID.randomUUID()}"
 
     suspend fun findConversationId(event: MessageEvent): String? = when {
         event.hasReplyToId() && event.replyToId.isNotBlank() ->
