@@ -96,7 +96,7 @@ jobs:
       name: 'Set up jdk'
       uses: 'actions/setup-java@v5'
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
     - id: 'step-2'
       name: 'Setup gradle'
@@ -141,7 +141,7 @@ jobs:
       name: 'Set up jdk'
       uses: 'actions/setup-java@v5'
       with:
-        java-version: '17'
+        java-version: '21'
         distribution: 'temurin'
     - id: 'step-2'
       name: 'Setup gradle'
