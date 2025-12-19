@@ -89,13 +89,23 @@ data class UserId(override val id: String) : User, ThreadId
 data class PageId(override val id: String) : Page, ThreadId
 
 @Serializable
+data class ThreadParticipant(
+    override val id: String,
+    val name: String,
+    val gender: String,
+    val imageUri: String,
+    val shortName: String,
+    val username: String,
+) : User, ThreadId
+
+@Serializable
 data class GroupData(
     override val id: String,
     val photo: Image?,
     val name: String?,
     val lastActive: Long?,
     val messageCount: Int?,
-    val participants: List<ThreadId>,
+    val participants: List<ThreadParticipant>,
     val nicknames: Map<String, String>,
     val color: String?,
     val emoji: String?,
@@ -122,6 +132,7 @@ data class UserData(
     val ownNickname: String?,
     val color: String?,
     val emoji: String?,
+    val participants: List<ThreadParticipant>,
 ) : User, ThreadData
 
 @Serializable
@@ -136,4 +147,5 @@ data class PageData(
     val likes: String?,
     val subtitle: String?,
     val category: String?,
+    val participants: List<ThreadParticipant>,
 ) : Page, ThreadData

@@ -40,5 +40,14 @@ message ThreadData {
     string id = 1;
     string name = 2;
     optional int64 messageCount = 3;
-    repeated string participants = 4;
+    repeated ThreadParticipant participants = 5;
+}
+
+message ThreadParticipant {
+    string id = 1;
+    string username = 2;
+    string name = 3;
+    string customizedName = 4;
+    string profilePictureUri = 5;
+    string gender = 6;
 }

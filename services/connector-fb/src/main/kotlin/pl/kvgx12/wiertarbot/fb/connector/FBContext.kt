@@ -7,7 +7,6 @@ import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import pl.kvgx12.fbchat.data.*
-import pl.kvgx12.fbchat.data.Mention
 import pl.kvgx12.fbchat.requests.*
 import pl.kvgx12.fbchat.session.Session
 import pl.kvgx12.wiertarbot.connector.ConnectorContextServer
@@ -21,6 +20,8 @@ import pl.kvgx12.wiertarbot.proto.connector.*
 import pl.kvgx12.wiertarbot.proto.connector.Empty
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
+import pl.kvgx12.fbchat.data.Mention as FBMention
+import pl.kvgx12.fbchat.data.ThreadParticipant as FBThreadParticipant
 import pl.kvgx12.fbchat.requests.FileData as FBFileData
 
 class FBContext(
@@ -38,7 +39,7 @@ class FBContext(
                 .map { it.id to it.mimeType },
             replyTo = request.replyToId?.let { MessageId(thread, it) },
             mentions = request.mentionsList.map {
-                Mention(UserId(it.threadId), offset = it.offset, length = it.length)
+                FBMention(UserId(it.threadId), offset = it.offset, length = it.length)
             },
         )
 
@@ -79,21 +80,28 @@ class FBContext(
                     id = thread.id
                     name = thread.name.orEmpty()
                     thread.messageCount?.toLong()?.let { messageCount = it }
-                    participants += thread.participants.map { it.id }
+                    participants += thread.participants.map { it.toProto(thread.nicknames) }
                 }
 
                 is PageData -> threadData {
                     id = thread.id
                     name = thread.name
                     thread.messageCount?.toLong()?.let { messageCount = it }
-                    participants += listOf(thread.id, session.userId)
+                    participants += thread.participants.map { it.toProto(mapOf(thread.id to thread.name)) }
                 }
 
                 is UserData -> threadData {
                     id = thread.id
                     name = thread.name
                     thread.messageCount?.toLong()?.let { messageCount = it }
-                    participants += listOf(thread.id, session.userId)
+                    participants += thread.participants.map {
+                        it.toProto(
+                            mapOf(
+                                thread.id to thread.name,
+                                session.userId to thread.ownNickname.orEmpty()
+                            )
+                        )
+                    }
                 }
             }
         }
@@ -179,5 +187,14 @@ class FBContext(
             mimeType = contentType
             this.content = content.toByteString()
         }
+    }
+
+    fun FBThreadParticipant.toProto(customNames: Map<String, String>) = threadParticipant {
+        id = this@toProto.id
+        name = this@toProto.name
+        username = this@toProto.username
+        profilePictureUri = this@toProto.imageUri
+        gender = this@toProto.gender
+        customizedName = customNames[this@toProto.id] ?: this@toProto.name
     }
 }

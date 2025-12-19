@@ -148,7 +148,8 @@ class AIService(
     )
 
     private suspend fun MessageEvent.toUserMessage(message: String, addReplyToToContext: Boolean): List<SpringUserMessage> {
-        val authorName = cachedContextService.getThreadName(connectorInfo.connectorType, authorId)
+        val authorName = cachedContextService.getThreadParticipant(connectorInfo.connectorType, threadId, authorId)
+            ?.name
             ?: "Unknown User"
 
         val repliedTo = when {

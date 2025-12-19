@@ -190,7 +190,17 @@ class TelegramContext(
                     else -> ""
                 }
                 participants += when (chat) {
-                    is ExtendedChatWithUsername -> chat.activeUsernames.mapNotNull { it.threadId?.toString() }
+                    is ExtendedChatWithUsername -> chat.activeUsernames.mapNotNull {
+                        threadParticipant {
+                            id = it.threadId!!.long.toString()  // FIXME: fuck this api, migrate to something simpler
+                            username = it.username
+                            name = ""
+                            customizedName = ""
+                            profilePictureUri = ""
+                            gender = ""
+                        }
+                    }
+
                     else -> emptyList()
                 }
             }

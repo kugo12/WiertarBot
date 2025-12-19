@@ -7,6 +7,4 @@ spring:
 wiertarbot:
   caches:
     - name: threads
-      ttl: 8h
-    - name: threadNames
       ttl: 24h

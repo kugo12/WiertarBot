@@ -33,6 +33,7 @@ internal suspend fun fetchAdditionalInfo(session: Session, ids: List<String>): A
             }
         },
     )
+    Session.log.debug("Fetch additional info: {}", response)
 
     return Session.json.decodeFromJsonElement<AdditionalInfoResponse>(response)
         .profiles
