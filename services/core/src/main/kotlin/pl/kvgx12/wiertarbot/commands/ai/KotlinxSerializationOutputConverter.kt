@@ -20,12 +20,18 @@ private val cleaner = CompositeResponseTextCleaner.builder()
     .addCleaner(WhitespaceCleaner())
     .addCleaner(ThinkingTagCleaner())
     .addCleaner(MarkdownCodeBlockCleaner())
-    .addCleaner(WhitespaceCleaner())
-    .addCleaner { raw ->
+    .addCleaner {
         when {
-            raw.endsWith('}') -> raw
-            raw.endsWith('"') -> "$raw}"
-            else -> "$raw\"}"
+            it.startsWith('{') -> it
+            '{' in it -> '{' + it.substringAfter('{')
+            else -> "{\"text\":\"$it"
+        }
+    }
+    .addCleaner {
+        when {
+            it.endsWith('}') -> it
+            it.endsWith('"') -> "$it}"
+            else -> "$it\"}"
         }
     }
     .build()
