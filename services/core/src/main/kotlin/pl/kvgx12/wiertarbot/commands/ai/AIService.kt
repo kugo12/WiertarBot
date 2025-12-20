@@ -17,6 +17,7 @@ import pl.kvgx12.wiertarbot.proto.connector.SendResponse
 import pl.kvgx12.wiertarbot.services.CachedContextService
 import pl.kvgx12.wiertarbot.utils.getLogger
 import java.util.*
+import kotlin.math.abs
 import org.springframework.ai.chat.messages.UserMessage as SpringUserMessage
 
 
@@ -110,9 +111,11 @@ class AIService(
                 }
             }
 
-        val text = ResponseData.converter.clean(textSb.toString())
+        val raw = textSb.toString()
+        log.debug("AI raw response: {}", raw)
 
-        log.debug("AI Response: {}", text)
+        val text = ResponseData.converter.clean(raw)
+        log.debug("AI cleaned response: {}", text)
 
         val data = ResponseData.converter.convert(text)
             .fixMentions()
@@ -135,17 +138,61 @@ class AIService(
         else -> null
     }
 
-    private fun ResponseData.fixMentions(): ResponseData = copy(
-        mentions = mentions
-            .filter { it.userId.isNotBlank() && it.offset >= 0 && it.offset + 1 < text.length }
-            .map {
-                if (it.offset + it.length > text.length) {
-                    it.copy(length = text.length - it.offset)
-                } else {
-                    it
-                }
+    private fun ResponseData.fixMentions(): ResponseData {
+        if (mentions.isEmpty()) {
+            return this
+        }
+
+        log.debug("fixMentions - og: {}", mentions)
+
+        val atPositions = text.mapIndexedNotNull { index, char ->
+            if (char == '@') index else null
+        }.toMutableList()
+
+        if (atPositions.isEmpty()) {
+            log.debug("No @ found in text, removing all mentions")
+            return copy(mentions = emptyList())
+        }
+
+        val sortedMentions = mentions
+            .filter { it.userId.isNotBlank() }
+            .sortedBy { it.offset }
+
+        val fixedMentions = sortedMentions.mapNotNull { mention ->
+            if (atPositions.isEmpty()) {
+                return@mapNotNull null
             }
-    )
+
+            val nearestAtIndex = atPositions.indices.minByOrNull {
+                abs(atPositions[it] - mention.offset)
+            } ?: return@mapNotNull null
+
+            val atPosition = atPositions.removeAt(nearestAtIndex)
+
+            val maxLength = text.length - atPosition
+            val length = when {
+                mention.length <= 0 -> {
+                    val endIndex = text
+                        .indexOfAny(charArrayOf(' ', '\n', '\t', ',', '.', '!', '?', ')'), atPosition + 1)
+                        .takeIf { it > atPosition } ?: text.length
+                    endIndex - atPosition
+                }
+
+                mention.length > maxLength -> maxLength
+                else -> mention.length
+            }
+
+            if (length <= 1) {
+                null
+            } else {
+                mention.copy(offset = atPosition, length = length)
+            }
+        }
+
+        log.debug("fixMentions - fixed: {}", fixedMentions)
+
+        return copy(mentions = fixedMentions)
+    }
 
     private suspend fun MessageEvent.toUserMessage(message: String, addReplyToToContext: Boolean): List<SpringUserMessage> {
         val authorName = cachedContextService.getThreadParticipant(connectorInfo.connectorType, threadId, authorId)
