@@ -21,5 +21,6 @@ class CommandBeans : BeanRegistrarDsl({
     register(RandomImageScrapingCommandsRegistrar())
     register(TTRSCommandsRegistrar())
     register(DownloadCommandRegistrar())
-    register(WeatherCommandRegistrar())
+
+    weatherCommand()
 })

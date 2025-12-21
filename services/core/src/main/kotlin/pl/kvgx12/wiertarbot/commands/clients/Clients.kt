@@ -17,10 +17,8 @@ import org.springframework.web.service.invoker.createClient
 import pl.kvgx12.wiertarbot.commands.clients.external.*
 import pl.kvgx12.wiertarbot.commands.clients.internal.DownloadClient
 import pl.kvgx12.wiertarbot.commands.clients.internal.TTRSClient
-import pl.kvgx12.wiertarbot.commands.clients.internal.WeatherClient
 import pl.kvgx12.wiertarbot.config.properties.DownloadApiProperties
 import pl.kvgx12.wiertarbot.config.properties.TTRSProperties
-import pl.kvgx12.wiertarbot.config.properties.WeatherProperties
 import pl.kvgx12.wiertarbot.utils.KiB
 import reactor.core.publisher.Flux
 import reactor.core.publisher.Mono
@@ -47,6 +45,9 @@ class ClientBeansRegistrar : BeanRegistrarDsl({
 
     httpClient<AliPaczkaClient>()
     registerBean<AliPaczka>()
+
+    httpClient<WeatherComApi>()
+    registerBean<WeatherComClient>()
 
     httpClient<MojangApiClient>()
     registerBean<Minecraft>()
@@ -97,18 +98,6 @@ class ClientBeansRegistrar : BeanRegistrarDsl({
                         .build(),
                 ),
             ).build().createClient<TTRSClient>()
-        }
-    }
-
-    if (env.getProperty("wiertarbot.weather.url") != null) {
-        registerBean {
-            HttpServiceProxyFactory.builderFor(
-                WebClientAdapter.create(
-                    WebClient.builder()
-                        .baseUrl(bean<WeatherProperties>().url)
-                        .build(),
-                ),
-            ).build().createClient<WeatherClient>()
         }
     }
 })
