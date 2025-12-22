@@ -11,6 +11,7 @@ import dev.inmo.tgbotapi.requests.send.SetMessageReactions
 import dev.inmo.tgbotapi.requests.send.media.*
 import dev.inmo.tgbotapi.types.*
 import dev.inmo.tgbotapi.types.chat.ExtendedChatWithUsername
+import dev.inmo.tgbotapi.types.chat.PrivateChat
 import dev.inmo.tgbotapi.types.chat.PublicChat
 import dev.inmo.tgbotapi.types.chat.UsernameChat
 import dev.inmo.tgbotapi.types.files.fullUrl
@@ -190,15 +191,32 @@ class TelegramContext(
                     else -> ""
                 }
                 participants += when (chat) {
-                    is ExtendedChatWithUsername -> chat.activeUsernames.mapNotNull {
+                    is ExtendedChatWithUsername -> chat.activeUsernames.map {
                         threadParticipant {
-                            id = it.threadId!!.long.toString()  // FIXME: fuck this api, migrate to something simpler
+                            // FIXME: fuck this api, migrate to something simpler
+                            id = it.threadId?.long?.toString().orEmpty()
                             username = it.username
-                            name = ""
-                            customizedName = ""
-                            profilePictureUri = ""
-                            gender = ""
+                            name = username
+                            customizedName = username
                         }
+                    }
+
+                    is PrivateChat -> {
+                        listOf(
+                            threadParticipant {
+                                // FIXME: fuck this api, migrate to something simpler
+                                id = chat.id.threadId?.long?.toString().orEmpty()
+                                username = chat.username!!.username
+                                name = username
+                                customizedName = username
+                            },
+                            threadParticipant {
+                                id = connector.me.id.threadId?.long?.toString().orEmpty()
+                                username = connector.me.username?.username.orEmpty()
+                                name = username
+                                customizedName = username
+                            }
+                        )
                     }
 
                     else -> emptyList()

@@ -66,7 +66,7 @@ dependencies {
 
     runtimeOnly(libs.spring.postgresql)
     runtimeOnly(libs.spring.postgresql.r2dbc)
-    if ("Mac" in System.getProperty("os")) {
+    if ("Mac" in System.getProperty("os.name")) {
         runtimeOnly(libs.netty.all)
     }
 

@@ -9,6 +9,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
+import org.springframework.ai.content.Media
+import org.springframework.core.io.UrlResource
 import pl.kvgx12.wiertarbot.config.ContextHolder
 import pl.kvgx12.wiertarbot.entities.AIMessage.Companion.METADATA_MESSAGE_ID
 import pl.kvgx12.wiertarbot.proto.ConnectorType
@@ -81,6 +83,7 @@ class AIService(
 
     // FIXME: handle invalid response
     // TODO: configurable retries?
+    // TODO: consider adding more replies to context?
     // TODO: tool calls
     // TODO: maybe cache messages with small TTL?
 
@@ -195,9 +198,15 @@ class AIService(
     }
 
     private suspend fun MessageEvent.toUserMessage(message: String, addReplyToToContext: Boolean): List<SpringUserMessage> {
-        val authorName = cachedContextService.getThreadParticipant(connectorInfo.connectorType, threadId, authorId)
-            ?.name
-            ?: "Unknown User"
+        log.debug("Converting MessageEvent to UserMessage: {}", this)
+        val authorName = when (connectorInfo.connectorType) {  // FIXME
+            ConnectorType.TELEGRAM -> cachedContextService.getUserNameAsThread(connectorInfo.connectorType, authorId)
+                ?: "Unknown User"
+
+            else -> cachedContextService.getThreadParticipant(connectorInfo.connectorType, threadId, authorId)
+                ?.name
+                ?: "Unknown User"
+        }
 
         val repliedTo = when {
             addReplyToToContext && hasReplyTo() -> replyTo.toUserMessage(replyTo.text, false)
@@ -208,6 +217,30 @@ class AIService(
             }
 
             else -> emptyList()
+        }
+
+        val media = attachmentsList.firstOrNull()?.let {
+            if (!it.hasImage()) {
+                return@let null
+            }
+
+            val imageUrl = contextHolder[connectorInfo.connectorType].fetchImageUrl(it.id)
+                ?: return@let null
+
+            val mimeType = when (it.image.originalExtension) {
+                "png" -> Media.Format.IMAGE_PNG
+                "jpg", "jpeg" -> Media.Format.IMAGE_JPEG
+                "gif" -> Media.Format.IMAGE_GIF
+                "webp" -> Media.Format.IMAGE_WEBP
+                else -> Media.Format.IMAGE_PNG
+            }
+
+            log.debug("Fetched image URL for attachment {}: {} ({})", it.id, imageUrl, mimeType)
+
+            Media.builder()
+                .data(UrlResource(imageUrl))
+                .mimeType(mimeType)
+                .build()
         }
 
         val metadata = UserMessage.Metadata(
@@ -224,6 +257,7 @@ class AIService(
         )
 
         return repliedTo + SpringUserMessage.builder()
+            .apply { media?.let { media(listOf(it)) } }
             .text(Json.encodeToString(UserMessage(message, metadata)))
             .metadata(mapOf(METADATA_MESSAGE_ID to "${connectorInfo.connectorType.name}-$messageId"))
             .build()
