@@ -7,6 +7,7 @@ plugins {
 
 dependencies {
     implementation(project(":libs:connector"))
+    implementation(project(":libs:telegram-kt"))
 
     implementation(libs.bundles.telegram) {
         exclude(module = "ktor-server")

@@ -7,6 +7,7 @@ include(
     "services:connector-telegram",
 
     "libs:fbchat-kt",
+    "libs:telegram-kt",
     "libs:core-proto",
     "libs:connector",
 )
