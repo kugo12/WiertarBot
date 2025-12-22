@@ -66,6 +66,9 @@ dependencies {
 
     runtimeOnly(libs.spring.postgresql)
     runtimeOnly(libs.spring.postgresql.r2dbc)
+    if ("Mac" in System.getProperty("os.name")) {
+        runtimeOnly(libs.netty.all)
+    }
 
     developmentOnly(libs.spring.devtools)
     annotationProcessor(libs.spring.configuration.processor)

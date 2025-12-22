@@ -3,11 +3,9 @@ package pl.kvgx12.wiertarbot.repositories
 import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.springframework.r2dbc.core.DatabaseClient
 import org.springframework.r2dbc.core.bind
-import org.springframework.stereotype.Repository
 import java.time.Duration
 import java.time.Instant
 
-@Repository
 class PostgresCacheRepository(private val databaseClient: DatabaseClient) {
     suspend fun get(name: String, key: String): ByteArray? {
         return databaseClient.sql("SELECT value FROM cache_entries WHERE name = :name AND key = :key AND (expires_at IS NULL OR expires_at > NOW())")

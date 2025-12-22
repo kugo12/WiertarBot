@@ -5,6 +5,8 @@ import dev.inmo.tgbotapi.abstracts.FromUser
 import dev.inmo.tgbotapi.bot.ktor.telegramBot
 import dev.inmo.tgbotapi.extensions.utils.updates.retrieving.longPolling
 import dev.inmo.tgbotapi.requests.bot.GetMe
+import dev.inmo.tgbotapi.types.files.AnimationFile
+import dev.inmo.tgbotapi.types.files.PhotoFile
 import dev.inmo.tgbotapi.types.files.PhotoSize
 import dev.inmo.tgbotapi.types.files.TelegramMediaFile
 import dev.inmo.tgbotapi.types.message.abstracts.ContentMessage
@@ -81,7 +83,14 @@ class TelegramConnector(
     fun getAttachments(message: Message) = convert((message as? ContentMessage<*>)?.content)
 
     fun convert(content: MessageContent?): List<Attachment> = when (content) {
-        is MediaCollectionContent<*> -> content.mediaCollection.map(::convert)
+        is MediaCollectionContent<*> -> content.mediaCollection.let {
+            if (it.firstOrNull() is PhotoSize) {
+                listOf(convert(it.last()))  // FIXME
+            } else {
+                it.map(::convert)
+            }
+        }
+
         is MediaContent -> listOf(convert(content.media))
         else -> emptyList()
     }
@@ -90,11 +99,30 @@ class TelegramConnector(
         id = file.fileId.fileId
 
         when (file) {
+            is PhotoFile -> {
+                image = imageAttachment {
+                    width = file.biggest.width
+                    height = file.biggest.height
+                    isAnimated = false
+                    originalExtension = "jpg"  // TODO: confirm if correct
+                }
+            }
+
             is PhotoSize -> {
                 image = imageAttachment {
                     width = file.width
                     height = file.height
                     isAnimated = false
+                    originalExtension = "jpg"  // TODO: confirm if correct
+                }
+            }
+
+            is AnimationFile if file.mimeType?.subType == "gif" -> {
+                image = imageAttachment {
+                    width = file.width
+                    height = file.height
+                    originalExtension = "gif"  // TODO: confirm if correct
+                    isAnimated = true
                 }
             }
 

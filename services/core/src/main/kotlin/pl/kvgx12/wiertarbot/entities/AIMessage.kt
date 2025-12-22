@@ -1,7 +1,12 @@
+@file:OptIn(ExperimentalSerializationApi::class)
+
 package pl.kvgx12.wiertarbot.entities
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.json.Json
 import org.springframework.ai.chat.messages.*
+import org.springframework.ai.content.MediaContent
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
 import pl.kvgx12.wiertarbot.utils.ToolResponseSerializer
@@ -14,6 +19,7 @@ class AIMessage(
     val conversationId: String,
     val messageType: String,
     val content: String,
+    val media: MediaWrapper?,
     val messageId: String,
     val createdAt: LocalDateTime,
 ) {
@@ -26,11 +32,13 @@ class AIMessage(
         return when (MessageType.fromValue(messageType)) {
             MessageType.USER -> UserMessage.builder()
                 .text(content)
+                .let { media?.items?.let { m -> it.media(m) } ?: it }
                 .metadata(metadata)
                 .build()
 
             MessageType.ASSISTANT -> AssistantMessage.builder()
                 .content(content)
+                .let { media?.items?.let { m -> it.media(m) } ?: it }
                 .build().apply {
                     this.metadata.putAll(metadata)
                 }
@@ -51,6 +59,10 @@ class AIMessage(
         const val METADATA_CREATED_AT = "createdAt"
         const val METADATA_MESSAGE_ID = "messageId"
 
+        private val cbor = Cbor {
+            encodeDefaults = false
+        }
+
         fun Message.toEntity(conversationId: String): AIMessage {
             val messageId = checkNotNull(metadata[METADATA_MESSAGE_ID] as? String)
 
@@ -59,13 +71,15 @@ class AIMessage(
                 messageType = messageType.value,
                 content = when (this) {
                     is ToolResponseMessage -> Json.encodeToString(ToolResponseSerializer.listSerializer, responses)
-                    else -> this.text ?: ""
+                    else -> text ?: ""
+                },
+                media = when (this) {
+                    is MediaContent -> media.ifEmpty { null }?.let { MediaWrapper(it) }
+                    else -> null
                 },
                 messageId = messageId,
-                createdAt = when (val createdAt = metadata[METADATA_CREATED_AT]) {
-                    is LocalDateTime -> createdAt
-                    else -> LocalDateTime.now()
-                }
+
+                createdAt = (metadata[METADATA_CREATED_AT] as? LocalDateTime) ?: LocalDateTime.now()
             )
         }
     }

@@ -28,7 +28,7 @@ caffeine = "3.2.3"
 scrimage = "4.3.5"
 sentry = "8.28.0"
 skrape = "1.2.2"
-inmo-telegram = "30.0.2"
+inmo-telegram = "24.0.2"
 kotlin-aws-sdk = "1.5.22"
 okhttp = "5.3.2"
 jaffree = "2024.08.29"
@@ -145,6 +145,8 @@ grpc-protobuf = { module = "io.grpc:grpc-protobuf", version.ref = "grpc" }
 grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
 grpc-protoc-java = { module = "io.grpc:protoc-gen-grpc-java", version.ref = "grpc" }
 grpc-protoc-kotlin = { module = "io.grpc:protoc-gen-grpc-kotlin", version.ref = "grpc-kotlin" }
+
+netty-all = { module = "io.netty:netty-all" }
 
 [bundles]
 ktor-client = [

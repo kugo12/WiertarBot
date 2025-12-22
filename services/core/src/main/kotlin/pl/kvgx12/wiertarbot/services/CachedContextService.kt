@@ -22,4 +22,7 @@ class CachedContextService(
         getThread(connector, threadId)
             ?.participantsList
             ?.find { it.id == userId }
+
+    suspend fun getUserNameAsThread(connector: ConnectorType, userId: String): String? =
+        getThread(connector, userId)?.name
 }
