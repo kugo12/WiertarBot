@@ -19,7 +19,19 @@ data class TUpdate(
     val myChatMember: TChatMemberUpdate? = null,
     @SerialName("chat_member")
     val chatMember: TChatMemberUpdate? = null,
-)
+) {
+    fun toUpdate(): Update? = when {
+        message != null -> Update.Message(Update.Message.Type.Normal, message)
+        editedMessage != null -> Update.EditedMessage(Update.Message.Type.Normal, editedMessage)
+        channelPost != null -> Update.Message(Update.Message.Type.Channel, channelPost)
+        editedChannelPost != null -> Update.EditedMessage(Update.Message.Type.Channel, editedChannelPost)
+        businessMessage != null -> Update.Message(Update.Message.Type.Business, businessMessage)
+        editedBusinessMessage != null -> Update.EditedMessage(Update.Message.Type.Business, editedBusinessMessage)
+        myChatMember != null -> Update.MyChatMember(myChatMember)
+        chatMember != null -> Update.ChatMember(chatMember)
+        else -> null
+    }
+}
 
 
 @Serializable
@@ -44,3 +56,14 @@ data class TChatInviteLink(
     @SerialName("invite_link")
     val inviteLink: String,
 )
+
+sealed interface Update {
+    data class Message(val type: Type, val data: TMessage) : Update {
+        enum class Type { Normal, Channel, Business }
+    }
+
+    data class EditedMessage(val type: Message.Type, val data: TMessage) : Update
+
+    data class ChatMember(val data: TChatMemberUpdate) : Update
+    data class MyChatMember(val data: TChatMemberUpdate) : Update
+}

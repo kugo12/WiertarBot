@@ -12,5 +12,7 @@ dependencies {
     implementation(libs.ktor.client.resources)
     implementation(libs.ktor.client.websockets)
 
+    implementation(libs.slf4j.api)
+
     testImplementation(libs.kotlin.test)
 }

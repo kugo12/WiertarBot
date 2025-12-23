@@ -9,7 +9,10 @@ import dev.inmo.tgbotapi.requests.get.GetFile
 import dev.inmo.tgbotapi.requests.send.SendTextMessage
 import dev.inmo.tgbotapi.requests.send.SetMessageReactions
 import dev.inmo.tgbotapi.requests.send.media.*
-import dev.inmo.tgbotapi.types.*
+import dev.inmo.tgbotapi.types.ChatIdentifier
+import dev.inmo.tgbotapi.types.MessageId
+import dev.inmo.tgbotapi.types.RawChatId
+import dev.inmo.tgbotapi.types.ReplyParameters
 import dev.inmo.tgbotapi.types.chat.ExtendedChatWithUsername
 import dev.inmo.tgbotapi.types.chat.PrivateChat
 import dev.inmo.tgbotapi.types.chat.PublicChat
@@ -31,7 +34,6 @@ import kotlinx.serialization.json.Json
 import pl.kvgx12.wiertarbot.connector.ConnectorContextServer
 import pl.kvgx12.wiertarbot.connector.DelegatedCommandInvoker
 import pl.kvgx12.wiertarbot.proto.*
-import pl.kvgx12.wiertarbot.proto.Response
 import pl.kvgx12.wiertarbot.proto.connector.*
 import pl.kvgx12.wiertarbot.proto.connector.Empty
 import kotlin.io.path.Path
@@ -193,8 +195,7 @@ class TelegramContext(
                 participants += when (chat) {
                     is ExtendedChatWithUsername -> chat.activeUsernames.map {
                         threadParticipant {
-                            // FIXME: fuck this api, migrate to something simpler
-                            id = it.threadId?.long?.toString().orEmpty()
+                            id = ""
                             username = it.username
                             name = username
                             customizedName = username
@@ -262,7 +263,6 @@ class TelegramContext(
     }
 
     companion object {
-
         private suspend fun downloadFile(urlString: String): UploadedFile {
             val url = Url(urlString)
             if (!urlString.startsWith(url.protocol.name)) {

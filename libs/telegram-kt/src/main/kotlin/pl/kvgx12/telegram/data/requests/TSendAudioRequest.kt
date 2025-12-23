@@ -12,7 +12,7 @@ import pl.kvgx12.telegram.data.TReplyParameters
 data class TSendAudioRequest(
     @SerialName("chat_id")
     val chatId: String,
-    val audio: String,
+    val audio: TInputFile.UrlOrId? = null,
     val caption: String? = null,
     @SerialName("caption_entities")
     val captionEntities: List<TMessageEntity> = emptyList(),

@@ -23,17 +23,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import org.springframework.boot.context.properties.ConfigurationProperties
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import pl.kvgx12.wiertarbot.connector.Connector
 import pl.kvgx12.wiertarbot.proto.*
 
-@ConfigurationProperties("wiertarbot.telegram")
-data class TelegramProperties(
-    val token: String,
-)
-
-@EnableConfigurationProperties(TelegramProperties::class)
 class TelegramConnector(
     telegramProperties: TelegramProperties,
 ) : Connector {

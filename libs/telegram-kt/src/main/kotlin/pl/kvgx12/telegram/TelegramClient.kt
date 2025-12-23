@@ -9,9 +9,16 @@ import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
+import io.ktor.http.*
 import io.ktor.http.URLProtocol.Companion.HTTPS
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
 import pl.kvgx12.telegram.TelegramApi.*
 import pl.kvgx12.telegram.data.*
 import pl.kvgx12.telegram.data.requests.*
@@ -21,7 +28,7 @@ class TelegramClient(
 ) {
     val basePath = TelegramApi(token)
     val filePath = TelegramFile(token)
-    private val client = createHttpClient()
+    val client = createHttpClient()
 
     suspend fun sendMessage(
         request: TSendMessageRequest
@@ -29,11 +36,46 @@ class TelegramClient(
         setBody(request)
     }.body<TMessage>()
 
+    suspend fun sendTextMessage(
+        chatId: String,
+        text: String,
+        entities: List<TMessageEntity> = emptyList(),
+        replyParameters: TReplyParameters? = null,
+    ): TMessage = sendMessage(
+        TSendMessageRequest(
+            chatId = chatId,
+            text = text,
+            entities = entities,
+            replyParameters = replyParameters
+        )
+    )
+
     suspend fun sendPhoto(
-        request: TSendPhotoRequest
-    ): TMessage = client.post(SendPhoto(basePath)) {
-        setBody(request)
-    }.body<TMessage>()
+        chatId: String,
+        photo: TInputFile,
+        caption: String? = null,
+        captionEntities: List<TMessageEntity> = emptyList(),
+        replyParameters: TReplyParameters? = null,
+    ): TMessage {
+        val request = TSendPhotoRequest(
+            chatId = chatId,
+            photo = photo as? TInputFile.UrlOrId,
+            caption = caption,
+            captionEntities = captionEntities,
+            replyParameters = replyParameters
+        )
+
+        return client.post<SendPhoto>(SendPhoto(basePath)) {
+            when (photo) {
+                is TInputFile.UrlOrId -> setBody(request)
+                is TInputFile.Upload -> multipartForm(
+                    TSendPhotoRequest.serializer(),
+                    request,
+                    mapOf("photo" to photo)
+                )
+            }
+        }.body<TMessage>()
+    }
 
     suspend fun sendAudio(
         request: TSendAudioRequest
@@ -41,11 +83,42 @@ class TelegramClient(
         setBody(request)
     }.body<TMessage>()
 
-    suspend fun sendMediaGroup(
-        request: TSendAudioRequest
-    ): List<TMessage> = client.post(SendMediaGroup(basePath)) {
-        setBody(request)
-    }.body<List<TMessage>>()
+    suspend fun <T : TInputMedia> sendMediaGroup(
+        chatId: String,
+        media: List<T>,
+        replyParameters: TReplyParameters? = null,
+    ): List<TMessage> {
+        val mp = mutableListOf<TInputFile.Upload>()
+        val mediaWithPlaceholders = media.mapIndexed { index, inputMedia ->
+            if (inputMedia.media is TInputFile.Upload) {
+                val placeholder = "attach://file$index"
+                mp.add(inputMedia.media as TInputFile.Upload)
+
+                when (inputMedia) {
+                    is TInputMedia.Photo -> inputMedia.copy(media = TInputFile.UrlOrId(placeholder))
+                    is TInputMedia.Video -> inputMedia.copy(media = TInputFile.UrlOrId(placeholder))
+                    is TInputMedia.Audio -> inputMedia.copy(media = TInputFile.UrlOrId(placeholder))
+                    is TInputMedia.Document -> inputMedia.copy(media = TInputFile.UrlOrId(placeholder))
+                }
+            } else {
+                inputMedia
+            }
+        }
+        val request = TSendMediaGroupRequest(
+            chatId = chatId,
+            media = mediaWithPlaceholders,
+            replyParameters = replyParameters
+        )
+
+        return client.post(SendMediaGroup(basePath)) {
+            multipartForm(
+                TSendMediaGroupRequest.serializer(TInputMedia.serializer()),
+                request,
+                mp.mapIndexed { index, upload -> "file$index" to upload }.toMap()
+            )
+        }.body<List<TMessage>>()
+    }
+
 
     suspend fun getFile(fileId: String): TFile =
         client.get(GetFile(basePath, fileId))
@@ -132,15 +205,74 @@ class TelegramClient(
         client.get(SetMyShortDescription(basePath, shortDescription = shortDescription))
             .body<Boolean>()
 
+    fun getUpdates(
+        offset: Long? = null,
+        limit: Int? = null,
+        timeout: Int? = 30,
+        allowedUpdates: List<String> = emptyList()
+    ): Flow<Update> = flow {
+        var currentOffset = offset
+
+        deleteWebhook()
+
+        while (true) {
+            try {
+                val updates = client.get(GetUpdates(basePath, currentOffset, limit, timeout, allowedUpdates)) {
+                    timeout {
+                        requestTimeoutMillis = (timeout ?: 0) * 1000L + 10000L
+                    }
+                }.body<List<TUpdate>>()
+
+                for (tUpdate in updates) {
+                    val update = tUpdate.toUpdate()
+
+                    if (update != null)
+                        emit(update)
+
+                    currentOffset = tUpdate.updateId + 1
+                }
+            } catch (e: Exception) {
+                delay(1000)
+            }
+        }
+    }
+
     companion object {
+        private fun HttpRequestBuilder.bodyMultipartForm(func: FormBuilder.() -> Unit) =
+            setBody(MultiPartFormDataContent(formData(func)))
+
+        private fun <T> HttpRequestBuilder.multipartForm(serializer: KSerializer<T>, data: T, files: Map<String, TInputFile.Upload>) {
+            val obj = json.encodeToJsonElement(serializer, data).jsonObject
+
+            bodyMultipartForm {
+                obj.forEach {
+                    append(it.key, it.value.toString())
+                }
+
+                files.forEach { (fileKey, file) ->
+                    append(
+                        fileKey,
+                        file.fileData,
+                        Headers.build {
+                            append(HttpHeaders.ContentDisposition, "form-data; name=\"$fileKey\"; filename=\"${file.fileName}\"")
+                            append(HttpHeaders.ContentType, "application/octet-stream")
+                        }
+                    )
+                }
+            }
+        }
+
+        private val json = Json {
+            ignoreUnknownKeys = true
+            prettyPrint = true
+        }
+
         private fun createHttpClient() = HttpClient(CIO) {
             install(Resources)
+            install(HttpTimeout)
 
             install(ContentNegotiation) {
-                json(Json {
-                    ignoreUnknownKeys = true
-                    prettyPrint = true
-                })
+                json(json)
             }
 
             ContentEncoding {

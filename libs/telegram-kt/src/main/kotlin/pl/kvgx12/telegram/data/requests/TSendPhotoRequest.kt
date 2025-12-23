@@ -12,7 +12,7 @@ import pl.kvgx12.telegram.data.TReplyParameters
 data class TSendPhotoRequest(
     @SerialName("chat_id")
     val chatId: String,
-    val photo: String,
+    val photo: TInputFile.UrlOrId? = null,
     val caption: String? = null,
     @SerialName("caption_entities")
     val captionEntities: List<TMessageEntity> = emptyList(),

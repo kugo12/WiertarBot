@@ -33,6 +33,7 @@ kotlin-aws-sdk = "1.5.22"
 okhttp = "5.3.2"
 jaffree = "2024.08.29"
 logback = "1.5.22"
+slf4j = "2.0.17"
 advrieze-xmlutil = "0.91.3"
 
 commons-codec = "1.20.0"
@@ -123,6 +124,7 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 jaffree = { module = "com.github.kokorin.jaffree:jaffree", version.ref = "jaffree" }
 
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
@@ -136,6 +138,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-spring = { module = "com.ninja-squad:springmockk", version.ref = "springmockk" }
 
 protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+protobuf-java-util = { module = "com.google.protobuf:protobuf-java-util", version.ref = "protobuf" }
 protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf" }
 protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
 

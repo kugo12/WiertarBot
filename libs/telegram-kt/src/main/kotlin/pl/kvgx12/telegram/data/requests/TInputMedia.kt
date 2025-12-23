@@ -1,23 +1,28 @@
-package pl.kvgx12.telegram.data
+package pl.kvgx12.telegram.data.requests
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import pl.kvgx12.telegram.data.TMessageEntity
 
 /**
  * [Telegram API Docs](https://core.telegram.org/bots/api#inputmedia)
  */
 @Serializable
 sealed interface TInputMedia {
+    val media: TInputFile
+    val caption: String?
+    val captionEntities: List<TMessageEntity>
+
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#inputmediaaudio)
      */
     @Serializable
     @SerialName("audio")
-    data class TInputMediaAudio(
-        val media: String,
-        val caption: String? = null,
+    data class Audio(
+        override val media: TInputFile,
+        override val caption: String? = null,
         @SerialName("caption_entities")
-        val captionEntities: List<TMessageEntity> = emptyList(),
+        override val captionEntities: List<TMessageEntity> = emptyList(),
     ) : TInputMedia
 
     /**
@@ -25,11 +30,11 @@ sealed interface TInputMedia {
      */
     @Serializable
     @SerialName("photo")
-    data class TInputMediaPhoto(
-        val media: String,
-        val caption: String? = null,
+    data class Photo(
+        override val media: TInputFile,
+        override val caption: String? = null,
         @SerialName("caption_entities")
-        val captionEntities: List<TMessageEntity> = emptyList(),
+        override val captionEntities: List<TMessageEntity> = emptyList(),
     ) : TInputMedia
 
     /**
@@ -37,11 +42,11 @@ sealed interface TInputMedia {
      */
     @Serializable
     @SerialName("video")
-    data class TInputMediaVideo(
-        val media: String,
-        val caption: String? = null,
+    data class Video(
+        override val media: TInputFile.UrlOrId,
+        override val caption: String? = null,
         @SerialName("caption_entities")
-        val captionEntities: List<TMessageEntity> = emptyList(),
+        override val captionEntities: List<TMessageEntity> = emptyList(),
     ) : TInputMedia
 
     /**
@@ -49,10 +54,10 @@ sealed interface TInputMedia {
      */
     @Serializable
     @SerialName("document")
-    data class TInputMediaDocument(
-        val media: String,
-        val caption: String? = null,
+    data class Document(
+        override val media: TInputFile,
+        override val caption: String? = null,
         @SerialName("caption_entities")
-        val captionEntities: List<TMessageEntity> = emptyList(),
+        override val captionEntities: List<TMessageEntity> = emptyList(),
     ) : TInputMedia
 }

@@ -2,7 +2,6 @@ package pl.kvgx12.telegram.data.requests
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import pl.kvgx12.telegram.data.TInputMedia
 import pl.kvgx12.telegram.data.TReplyParameters
 
 /**

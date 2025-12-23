@@ -24,7 +24,7 @@ data class TMessage(
     val viaBot: TUser? = null,
     @SerialName("media_group_id")
     val mediaGroupId: String? = null,
-    val text: String = "",
+    val text: String? = null,
     val entities: List<TMessageEntity> = emptyList(),
     val photo: List<TPhotoSize> = emptyList(),
     val caption: String? = null,
@@ -43,8 +43,8 @@ data class TMessage(
 @Serializable
 data class TMessageEntity(
     val type: Type,
-    val offset: Long,
-    val length: Long,
+    val offset: Int,
+    val length: Int,
     val url: String? = null,
     val user: TUser? = null,
     val language: String? = null,
@@ -118,8 +118,8 @@ data class TMessageEntity(
 @Serializable
 data class TPhotoSize(
     val fileId: String,
-    val width: Long,
-    val height: Long,
+    val width: Int,
+    val height: Int,
     @SerialName("file_size")
     val fileSize: Long? = null,
 )

@@ -19,6 +19,7 @@ dependencies {
     }
 
     implementation(libs.bundles.kotlinx.serialization)
+    implementation(libs.spring.starter.webflux)
 
     developmentOnly(libs.spring.devtools)
     annotationProcessor(libs.spring.configuration.processor)
