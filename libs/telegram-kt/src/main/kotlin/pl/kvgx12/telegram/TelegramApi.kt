@@ -136,7 +136,7 @@ class TelegramApi(val botToken: String) {
      *
      * Parameters: Arguments
      *
-     * Returns: [TODO]
+     * Returns: [List]<[pl.kvgx12.telegram.data.TUpdate]>
      */
     @Resource("getUpdates")
     class GetUpdates(

@@ -42,7 +42,7 @@ data class TMessage(
  */
 @Serializable
 data class TMessageEntity(
-    val type: String,
+    val type: Type,
     val offset: Long,
     val length: Long,
     val url: String? = null,
@@ -50,7 +50,67 @@ data class TMessageEntity(
     val language: String? = null,
     @SerialName("custom_emoji_id")
     val customEmojiId: String? = null,
-)
+) {
+    @Serializable
+    enum class Type {
+        @SerialName("mention")
+        Mention,
+
+        @SerialName("hashtag")
+        Hashtag,
+
+        @SerialName("cashtag")
+        Cashtag,
+
+        @SerialName("bot_command")
+        BotCommand,
+
+        @SerialName("url")
+        Url,
+
+        @SerialName("email")
+        Email,
+
+        @SerialName("phone_number")
+        PhoneNumber,
+
+        @SerialName("bold")
+        Bold,
+
+        @SerialName("italic")
+        Italic,
+
+        @SerialName("underline")
+        Underline,
+
+        @SerialName("strikethrough")
+        Strikethrough,
+
+        @SerialName("spoiler")
+        Spoiler,
+
+        @SerialName("blockquote")
+        Blockquote,
+
+        @SerialName("expandable_blockquote")
+        ExpandableBlockquote,
+
+        @SerialName("code")
+        Code,
+
+        @SerialName("pre")
+        Pre,
+
+        @SerialName("text_link")
+        TextLink,
+
+        @SerialName("text_mention")
+        TextMention,
+
+        @SerialName("custom_emoji")
+        CustomEmoji,
+    }
+}
 
 /**
  * [Telegram API Docs](https://core.telegram.org/bots/api#photosize)
