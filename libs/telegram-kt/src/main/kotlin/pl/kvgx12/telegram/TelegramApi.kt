@@ -25,9 +25,9 @@ class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#sendmessage)
      *
-     * Parameters: json
+     * Parameters: [pl.kvgx12.telegram.data.requests.TSendMessageRequest]
      *
-     * Returns: [TODO]
+     * Returns: [pl.kvgx12.telegram.data.TMessage]
      */
     @Resource("sendMessage")
     class SendMessage(val parent: TelegramApi)
@@ -35,9 +35,9 @@ class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#sendphoto)
      *
-     * Parameters: json
+     * Parameters: [pl.kvgx12.telegram.data.requests.TSendPhotoRequest]
      *
-     * Returns: [TODO]
+     * Returns: [pl.kvgx12.telegram.data.TMessage]
      */
     @Resource("sendPhoto")
     class SendPhoto(val parent: TelegramApi)
@@ -45,9 +45,9 @@ class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#sendaudio)
      *
-     * Parameters: json
+     * Parameters: [pl.kvgx12.telegram.data.requests.TSendAudioRequest]
      *
-     * Returns: [TODO]
+     * Returns: [pl.kvgx12.telegram.data.TMessage]
      */
     @Resource("sendAudio")
     class SendAudio(val parent: TelegramApi)
@@ -55,9 +55,9 @@ class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#sendmediagroup)
      *
-     * Parameters: json
+     * Parameters: [pl.kvgx12.telegram.data.requests.TSendMediaGroupRequest]
      *
-     * Returns: [TODO]
+     * Returns: [List]<[pl.kvgx12.telegram.data.TMessage]>
      */
     @Resource("sendMediaGroup")
     class SendMediaGroup(val parent: TelegramApi)
@@ -67,7 +67,7 @@ class TelegramApi(val botToken: String) {
      *
      * Parameters: Arguments
      *
-     * Returns: [TODO]
+     * Returns: [pl.kvgx12.telegram.data.TFile]
      */
     @Resource("getFile")
     class GetFile(val parent: TelegramApi, @SerialName("file_id") val fileId: String)
@@ -76,7 +76,7 @@ class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#setmessagereaction)
      *
-     * Parameters: json
+     * Parameters: [pl.kvgx12.telegram.data.requests.TSetMessageReactionRequest]
      *
      * Returns: true on success
      */
@@ -89,7 +89,7 @@ class TelegramApi(val botToken: String) {
      *
      * Parameters: Arguments
      *
-     * Returns: [TODO]
+     * Returns: [pl.kvgx12.telegram.data.TUserProfilePhotos]
      */
     @Resource("getUserProfilePhotos")
     class GetUserProfilePhotos(
@@ -105,7 +105,7 @@ class TelegramApi(val botToken: String) {
      *
      * Parameters: Arguments
      *
-     * Returns: [TODO]
+     * Returns: [pl.kvgx12.telegram.data.TChatFullInfo]
      */
     @Resource("getChat")
     class GetChat(
@@ -119,7 +119,7 @@ class TelegramApi(val botToken: String) {
      *
      * Parameters: Arguments
      *
-     * Returns: [TODO]
+     * Returns: [pl.kvgx12.telegram.data.TChatMember]
      */
     @Resource("getChatMember")
     class GetChatMember(
@@ -151,7 +151,7 @@ class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#setwebhook)
      *
-     * Parameters: json
+     * Parameters: [pl.kvgx12.telegram.data.requests.TSetWebhookRequest]
      *
      * Returns: true on success
      */
@@ -175,9 +175,9 @@ class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#getwebhookinfo)
      *
-     * Parameters: json
+     * Parameters: No Parameters
      *
-     * Returns: [TODO]
+     * Returns: [pl.kvgx12.telegram.data.TWebhookInfo]
      */
     @Resource("getWebhookInfo")
     class GetWebhookInfo(val parent: TelegramApi)
@@ -188,7 +188,7 @@ class TelegramApi(val botToken: String) {
      *
      * Parameters: No parameters
      *
-     * Returns: [pl.kvgx12.telegram.data.User]
+     * Returns: [pl.kvgx12.telegram.data.TUser]
      **/
     @Resource("getMe")
     class GetMe(val parent: TelegramApi)
@@ -216,9 +216,9 @@ class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#getmycommands)
      *
-     * Parameters: json
+     * Parameters: [pl.kvgx12.telegram.data.requests.TGetMyCommandsRequest]
      *
-     * Returns: [TODO]
+     * Returns: [List]<[pl.kvgx12.telegram.data.TBotCommand]>
      */
     @Resource("getMyCommands")
     class GetMyCommands(val parent: TelegramApi)
@@ -226,7 +226,7 @@ class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#setmycommands)
      *
-     * Parameters: json
+     * Parameters: [pl.kvgx12.telegram.data.requests.TSetMyCommandsRequest]
      *
      * Returns: true on success
      */
@@ -236,7 +236,7 @@ class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#deletemycommands)
      *
-     * Parameters: json
+     * Parameters: [pl.kvgx12.telegram.data.requests.TDeleteMyCommandsRequest]
      *
      * Returns: true on success
      */
@@ -246,7 +246,7 @@ class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#setmydefaultadministratorrights)
      *
-     * Parameters: json
+     * Parameters: [pl.kvgx12.telegram.data.requests.TSetMyDefaultAdministratorRightsRequest]
      *
      * Returns: true on success
      */

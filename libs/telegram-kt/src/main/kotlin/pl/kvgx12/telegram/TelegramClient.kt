@@ -15,6 +15,7 @@ class TelegramClient(
     token: String,
 ) {
     val basePath = TelegramApi(token)
+    val filePath = TelegramFile(token)
     private val client = createClient()
 
 
