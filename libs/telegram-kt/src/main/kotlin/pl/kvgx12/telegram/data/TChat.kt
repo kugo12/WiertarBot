@@ -4,6 +4,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonClassDiscriminator
+import pl.kvgx12.telegram.NestedJsonSerializer
 
 /**
  * [Telegram API Docs](https://core.telegram.org/bots/api#chat)
@@ -57,7 +58,9 @@ data class TChatAdministratorRights(
     val canManageTopics: Boolean,
     @SerialName("can_manage_direct_messages")
     val canManageDirectMessages: Boolean,
-)
+) {
+    internal object Serializer : NestedJsonSerializer<TChatAdministratorRights>(serializer())
+}
 
 /**
  * [Telegram API Docs](https://core.telegram.org/bots/api#chatmember)

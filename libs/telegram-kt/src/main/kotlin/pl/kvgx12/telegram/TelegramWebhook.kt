@@ -48,10 +48,10 @@ class TelegramWebhook(
         log.info("Closing webhook, removing webhook from Telegram")
 
         try {
-            client.deleteWebhook()
-            log.info("Webhook removed successfully: $it")
+            val result = client.deleteWebhook()
+            log.info("Webhook removed successfully: $result")
         } catch (e: Exception) {
-            log.error("Failed to remove webhook", it)
+            log.error("Failed to remove webhook", e)
         }
     }
 

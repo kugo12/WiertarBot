@@ -2,13 +2,16 @@ package pl.kvgx12.telegram.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import pl.kvgx12.telegram.NestedJsonSerializer
 
 /**
  * [Telegram API Docs](https://core.telegram.org/bots/api#message)
  */
 @Serializable
 data class TMessage(
+    @SerialName("message_id")
     val messageId: Long,
+    @SerialName("message_thread_id")
     val messageThreadId: Long? = null,
     val from: TUser? = null,
     @SerialName("sender_chat")
@@ -117,6 +120,7 @@ data class TMessageEntity(
  */
 @Serializable
 data class TPhotoSize(
+    @SerialName("file_id")
     val fileId: String,
     val width: Int,
     val height: Int,
@@ -136,7 +140,9 @@ data class TReplyParameters(
 
     @SerialName("allow_sending_without_reply")
     val allowSendingWithoutReply: Boolean = false,
-)
+) {
+    internal object Serializer : NestedJsonSerializer<TReplyParameters>(serializer())
+}
 
 /**
  * [Telegram API Docs](https://core.telegram.org/bots/api#file)

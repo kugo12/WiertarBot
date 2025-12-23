@@ -10,7 +10,7 @@ import pl.kvgx12.telegram.data.TBotCommandScope
  */
 @Serializable
 data class TGetMyCommandsRequest(
-    val scope: TBotCommandScope? = null,
+    val scope: @Serializable(TBotCommandScope.Companion.Serializer::class) TBotCommandScope? = null,
     @SerialName("language_code")
     val languageCode: String? = null,
 )

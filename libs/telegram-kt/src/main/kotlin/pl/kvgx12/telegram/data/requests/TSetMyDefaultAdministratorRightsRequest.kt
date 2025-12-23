@@ -1,5 +1,6 @@
 package pl.kvgx12.telegram.data.requests
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import pl.kvgx12.telegram.data.TChatAdministratorRights
 
@@ -8,6 +9,7 @@ import pl.kvgx12.telegram.data.TChatAdministratorRights
  */
 @Serializable
 data class TSetMyDefaultAdministratorRightsRequest(
-    val rights: TChatAdministratorRights? = null,
+    val rights: @Serializable(TChatAdministratorRights.Serializer::class) TChatAdministratorRights? = null,
+    @SerialName("for_channels")
     val forChannels: Boolean? = null,
 )

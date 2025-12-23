@@ -16,6 +16,8 @@ dependencies {
         exclude(module = "kotlinx-serialization-core")
         exclude(module = "kotlinx-serialization-properties")
         exclude(module = "kotlinx-serialization-cbor")
+        exclude(group = "io.ktor", module = "ktor-serialization-jvm")
+        exclude(group = "io.ktor", module = "ktor-serialization")
     }
 
     implementation(libs.bundles.kotlinx.serialization)
@@ -25,4 +27,12 @@ dependencies {
     annotationProcessor(libs.spring.configuration.processor)
 
     testImplementation(libs.spring.starter.test)
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group == "io.ktor") {
+            useVersion(libs.versions.ktor.get())
+        }
+    }
 }

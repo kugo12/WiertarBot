@@ -10,7 +10,7 @@ import kotlinx.serialization.SerialName
  *
  * Returns: file
  */
-@Resource("/file/bot{botToken}")
+@Resource("/file/{botToken}")
 class TelegramFile(val botToken: String) {
     @Resource("{path}")
     class Path(val parent: TelegramFile, val path: String)
@@ -20,7 +20,7 @@ class TelegramFile(val botToken: String) {
 /**
  * [Telegram API Docs](https://core.telegram.org/bots/api)
  */
-@Resource("/bot{botToken}/")
+@Resource("/{botToken}")
 class TelegramApi(val botToken: String) {
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#sendmessage)

@@ -2,6 +2,7 @@ package pl.kvgx12.telegram.data.requests
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import pl.kvgx12.telegram.NestedJsonListSerializer
 import pl.kvgx12.telegram.data.TMessageEntity
 
 /**
@@ -11,7 +12,7 @@ import pl.kvgx12.telegram.data.TMessageEntity
 sealed interface TInputMedia {
     val media: TInputFile
     val caption: String?
-    val captionEntities: List<TMessageEntity>
+    val captionEntities: @Serializable(NestedJsonListSerializer::class) List<TMessageEntity>
 
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#inputmediaaudio)
@@ -22,7 +23,7 @@ sealed interface TInputMedia {
         override val media: TInputFile,
         override val caption: String? = null,
         @SerialName("caption_entities")
-        override val captionEntities: List<TMessageEntity> = emptyList(),
+        override val captionEntities: @Serializable(NestedJsonListSerializer::class) List<TMessageEntity> = emptyList(),
     ) : TInputMedia
 
     /**
@@ -34,7 +35,7 @@ sealed interface TInputMedia {
         override val media: TInputFile,
         override val caption: String? = null,
         @SerialName("caption_entities")
-        override val captionEntities: List<TMessageEntity> = emptyList(),
+        override val captionEntities: @Serializable(NestedJsonListSerializer::class) List<TMessageEntity> = emptyList(),
     ) : TInputMedia
 
     /**
@@ -46,7 +47,7 @@ sealed interface TInputMedia {
         override val media: TInputFile.UrlOrId,
         override val caption: String? = null,
         @SerialName("caption_entities")
-        override val captionEntities: List<TMessageEntity> = emptyList(),
+        override val captionEntities: @Serializable(NestedJsonListSerializer::class) List<TMessageEntity> = emptyList(),
     ) : TInputMedia
 
     /**
@@ -58,6 +59,6 @@ sealed interface TInputMedia {
         override val media: TInputFile,
         override val caption: String? = null,
         @SerialName("caption_entities")
-        override val captionEntities: List<TMessageEntity> = emptyList(),
+        override val captionEntities: @Serializable(NestedJsonListSerializer::class) List<TMessageEntity> = emptyList(),
     ) : TInputMedia
 }

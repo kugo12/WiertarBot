@@ -2,6 +2,7 @@ package pl.kvgx12.telegram.data.requests
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import pl.kvgx12.telegram.NestedJsonListSerializer
 import pl.kvgx12.telegram.data.TReplyParameters
 
 /**
@@ -11,7 +12,7 @@ import pl.kvgx12.telegram.data.TReplyParameters
 data class TSendMediaGroupRequest<T : TInputMedia>(
     @SerialName("chat_id")
     val chatId: String,
-    val media: List<T>,
+    val media: @Serializable(NestedJsonListSerializer::class) List<T>,
     @SerialName("reply_parameters")
-    val replyParameters: TReplyParameters? = null,
+    val replyParameters: @Serializable(TReplyParameters.Serializer::class) TReplyParameters? = null,
 )

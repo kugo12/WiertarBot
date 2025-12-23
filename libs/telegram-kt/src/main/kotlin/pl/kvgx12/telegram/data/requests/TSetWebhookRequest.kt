@@ -2,6 +2,7 @@ package pl.kvgx12.telegram.data.requests
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import pl.kvgx12.telegram.NestedJsonListSerializer
 
 /**
  * [Telegram API Docs](https://core.telegram.org/bots/api#setwebhook)
@@ -15,7 +16,7 @@ data class TSetWebhookRequest(
     @SerialName("max_connections")
     val maxConnections: Int? = null,
     @SerialName("allowed_updates")
-    val allowedUpdates: List<String>? = null,
+    val allowedUpdates: @Serializable(NestedJsonListSerializer::class) List<String>? = null,
     @SerialName("drop_pending_updates")
     val dropPendingUpdates: Boolean? = null,
     @SerialName("secret_token")

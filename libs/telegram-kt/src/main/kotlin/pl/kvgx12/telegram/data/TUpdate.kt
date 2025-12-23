@@ -9,10 +9,15 @@ data class TUpdate(
     val updateId: Long,
 
     val message: TMessage? = null,
+    @SerialName("edited_message")
     val editedMessage: TMessage? = null,
+    @SerialName("channel_post")
     val channelPost: TMessage? = null,
+    @SerialName("edited_channel_post")
     val editedChannelPost: TMessage? = null,
+    @SerialName("business_message")
     val businessMessage: TMessage? = null,
+    @SerialName("edited_business_message")
     val editedBusinessMessage: TMessage? = null,
 
     @SerialName("my_chat_member")

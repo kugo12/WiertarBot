@@ -2,6 +2,7 @@ package pl.kvgx12.telegram.data.requests
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import pl.kvgx12.telegram.NestedJsonListSerializer
 import pl.kvgx12.telegram.data.TBotCommand
 import pl.kvgx12.telegram.data.TBotCommandScope
 
@@ -10,8 +11,8 @@ import pl.kvgx12.telegram.data.TBotCommandScope
  */
 @Serializable
 data class TSetMyCommandsRequest(
-    val commands: List<TBotCommand>,
-    val scope: TBotCommandScope? = null,
+    val commands: @Serializable(NestedJsonListSerializer::class) List<TBotCommand>,
+    val scope: @Serializable(TBotCommandScope.Companion.Serializer::class) TBotCommandScope? = null,
     @SerialName("language_code")
     val languageCode: String? = null,
 ) {

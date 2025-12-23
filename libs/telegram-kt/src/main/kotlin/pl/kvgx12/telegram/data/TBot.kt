@@ -3,6 +3,7 @@ package pl.kvgx12.telegram.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import pl.kvgx12.telegram.NestedJsonSerializer
 
 /**
  * [Telegram API Docs](https://core.telegram.org/bots/api#botcommand)
@@ -18,6 +19,10 @@ data class TBotCommand(
  */
 @Serializable
 sealed interface TBotCommandScope {
+    companion object {
+        internal object Serializer : NestedJsonSerializer<TBotCommandScope>(serializer())
+    }
+
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#botcommandscopedefault)
      */
@@ -51,19 +56,30 @@ sealed interface TBotCommandScope {
      */
     @Serializable
     @SerialName("chat")
-    data class Chat(val chatId: String) : TBotCommandScope
+    data class Chat(
+        @SerialName("chat_id")
+        val chatId: String,
+    ) : TBotCommandScope
 
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#botcommandscopechatadministrators)
      */
     @Serializable
     @SerialName("chat_administrators")
-    data class ChatAdministrators(val chatId: String) : TBotCommandScope
+    data class ChatAdministrators(
+        @SerialName("chat_id")
+        val chatId: String,
+    ) : TBotCommandScope
 
     /**
      * [Telegram API Docs](https://core.telegram.org/bots/api#botcommandscopechatmember)
      */
     @Serializable
     @SerialName("chat_member")
-    data class ChatMember(val chatId: String, val userId: Long) : TBotCommandScope
+    data class ChatMember(
+        @SerialName("chat_id")
+        val chatId: String,
+        @SerialName("user_id")
+        val userId: Long,
+    ) : TBotCommandScope
 }

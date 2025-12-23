@@ -1,5 +1,6 @@
 package pl.kvgx12.telegram.data.requests
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import pl.kvgx12.telegram.data.TBotCommandScope
 
@@ -8,6 +9,7 @@ import pl.kvgx12.telegram.data.TBotCommandScope
  */
 @Serializable
 data class TDeleteMyCommandsRequest(
-    val scope: TBotCommandScope? = null,
+    val scope: @Serializable(TBotCommandScope.Companion.Serializer::class) TBotCommandScope? = null,
+    @SerialName("language_code")
     val languageCode: String? = null,
 )

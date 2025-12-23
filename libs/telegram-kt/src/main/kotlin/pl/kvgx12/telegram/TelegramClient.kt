@@ -1,24 +1,12 @@
 package pl.kvgx12.telegram
 
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.*
-import io.ktor.client.plugins.compression.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.plugins.logging.*
 import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
-import io.ktor.client.request.forms.*
-import io.ktor.http.*
-import io.ktor.http.URLProtocol.Companion.HTTPS
-import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonObject
+import org.slf4j.LoggerFactory
 import pl.kvgx12.telegram.TelegramApi.*
 import pl.kvgx12.telegram.data.*
 import pl.kvgx12.telegram.data.requests.*
@@ -26,29 +14,26 @@ import pl.kvgx12.telegram.data.requests.*
 class TelegramClient(
     token: String,
 ) {
-    val basePath = TelegramApi(token)
-    val filePath = TelegramFile(token)
+    private val log = LoggerFactory.getLogger(TelegramClient::class.java)
+    val basePath = TelegramApi("bot$token")
+    val filePath = TelegramFile("bot$token")
     val client = createHttpClient()
-
-    suspend fun sendMessage(
-        request: TSendMessageRequest
-    ): TMessage = client.post(SendMessage(basePath)) {
-        setBody(request)
-    }.body<TMessage>()
 
     suspend fun sendTextMessage(
         chatId: String,
         text: String,
         entities: List<TMessageEntity> = emptyList(),
         replyParameters: TReplyParameters? = null,
-    ): TMessage = sendMessage(
-        TSendMessageRequest(
-            chatId = chatId,
-            text = text,
-            entities = entities,
-            replyParameters = replyParameters
+    ): TMessage = client.post<SendMessage>(SendMessage(basePath)) {
+        setBody(
+            TSendMessageRequest(
+                chatId = chatId,
+                text = text,
+                entities = entities,
+                replyParameters = replyParameters
+            )
         )
-    )
+    }.tResult()
 
     suspend fun sendPhoto(
         chatId: String,
@@ -74,14 +59,14 @@ class TelegramClient(
                     mapOf("photo" to photo)
                 )
             }
-        }.body<TMessage>()
+        }.tResult()
     }
 
     suspend fun sendAudio(
         request: TSendAudioRequest
     ): TMessage = client.post(SendAudio(basePath)) {
         setBody(request)
-    }.body<TMessage>()
+    }.tResult()
 
     suspend fun <T : TInputMedia> sendMediaGroup(
         chatId: String,
@@ -116,13 +101,13 @@ class TelegramClient(
                 request,
                 mp.mapIndexed { index, upload -> "file$index" to upload }.toMap()
             )
-        }.body<List<TMessage>>()
+        }.tResult()
     }
 
 
     suspend fun getFile(fileId: String): TFile =
         client.get(GetFile(basePath, fileId))
-            .body<TFile>()
+            .tResult()
 
     suspend fun setMessageReaction(
         messageId: Long,
@@ -130,19 +115,19 @@ class TelegramClient(
         emoji: String,
     ): Boolean = client.post(SetMessageReaction(basePath)) {
         setBody(TSetMessageReactionRequest(messageId = messageId, chatId = chatId, reaction = listOf(TReactionType.Emoji(emoji))))
-    }.body<Boolean>()
+    }.tResult()
 
-    suspend fun getUserProfilePhotos(userId: Long, offset: Int? = null, limit: Int? = null) =
+    suspend fun getUserProfilePhotos(userId: Long, offset: Int? = null, limit: Int? = null): TUserProfilePhotos =
         client.get(GetUserProfilePhotos(basePath, userId, offset, limit))
-            .body<TUserProfilePhotos>()
+            .tResult()
 
     suspend fun getChat(chatId: String): TChatFullInfo =
         client.get(GetChat(basePath, chatId))
-            .body<TChatFullInfo>()
+            .tResult()
 
     suspend fun getChatMember(chatId: String, userId: Long): TChatMember =
         client.get(GetChatMember(basePath, userId, chatId))
-            .body<TChatMember>()
+            .tResult()
 
 
     suspend fun setWebhook(
@@ -151,59 +136,59 @@ class TelegramClient(
         secretToken: String? = null,
     ): Boolean = client.post(SetWebhook(basePath)) {
         setBody(TSetWebhookRequest(url = url, dropPendingUpdates = dropPendingUpdates, secretToken = secretToken))
-    }.body<Boolean>()
+    }.tResult()
 
     suspend fun deleteWebhook(dropPendingUpdates: Boolean = false): Boolean =
         client.get(DeleteWebhook(basePath))
-            .body<Boolean>()
+            .tResult()
 
     suspend fun getWebhookInfo(): TWebhookInfo =
         client.get(GetWebhookInfo(basePath))
-            .body<TWebhookInfo>()
+            .tResult()
 
     suspend fun getMe(): TUser =
         client.get(GetMe(basePath))
-            .body<TUser>()
+            .tResult()
 
     suspend fun logOut(): Boolean =
         client.get(LogOut(basePath))
-            .body<Boolean>()
+            .tResult()
 
     suspend fun close(): Boolean =
         client.get(Close(basePath))
-            .body<Boolean>()
+            .tResult()
 
     suspend fun getMyCommands(): List<TBotCommand> =
         client.get(GetMyCommands(basePath))
-            .body<List<TBotCommand>>()
+            .tResult()
 
     suspend fun setMyCommands(commands: List<TBotCommand>, scope: TBotCommandScope? = null): Boolean =
         client.post(SetMyCommands(basePath)) {
             setBody(TSetMyCommandsRequest(commands = commands, scope = scope))
-        }.body<Boolean>()
+        }.tResult()
 
     suspend fun deleteMyCommands(scope: TBotCommandScope? = null): Boolean =
         client.post(DeleteMyCommands(basePath)) {
             setBody(TDeleteMyCommandsRequest(scope = scope))
-        }.body<Boolean>()
+        }.tResult()
 
     suspend fun setMyDefaultAdministratorRights(
         rights: TChatAdministratorRights,
     ): Boolean = client.post(SetMyDefaultAdministratorRights(basePath)) {
         setBody(TSetMyDefaultAdministratorRightsRequest(rights = rights))
-    }.body<Boolean>()
+    }.tResult()
 
     suspend fun setMyName(name: String? = null): Boolean =
         client.get(SetMyName(basePath, name = name))
-            .body<Boolean>()
+            .tResult()
 
     suspend fun setMyDescription(description: String? = null): Boolean =
         client.get(SetMyDescription(basePath, description = description))
-            .body<Boolean>()
+            .tResult()
 
     suspend fun setMyShortDescription(shortDescription: String? = null): Boolean =
         client.get(SetMyShortDescription(basePath, shortDescription = shortDescription))
-            .body<Boolean>()
+            .tResult()
 
     fun getUpdates(
         offset: Long? = null,
@@ -211,7 +196,7 @@ class TelegramClient(
         timeout: Int? = 30,
         allowedUpdates: List<String> = emptyList()
     ): Flow<Update> = flow {
-        var currentOffset = offset
+        var currentOffset = offset ?: 0
 
         deleteWebhook()
 
@@ -221,7 +206,9 @@ class TelegramClient(
                     timeout {
                         requestTimeoutMillis = (timeout ?: 0) * 1000L + 10000L
                     }
-                }.body<List<TUpdate>>()
+                }.tResult<List<TUpdate>>()
+
+                log.debug("Received {}", updates)
 
                 for (tUpdate in updates) {
                     val update = tUpdate.toUpdate()
@@ -232,62 +219,8 @@ class TelegramClient(
                     currentOffset = tUpdate.updateId + 1
                 }
             } catch (e: Exception) {
+                log.error("Error while getting updates", e)
                 delay(1000)
-            }
-        }
-    }
-
-    companion object {
-        private fun HttpRequestBuilder.bodyMultipartForm(func: FormBuilder.() -> Unit) =
-            setBody(MultiPartFormDataContent(formData(func)))
-
-        private fun <T> HttpRequestBuilder.multipartForm(serializer: KSerializer<T>, data: T, files: Map<String, TInputFile.Upload>) {
-            val obj = json.encodeToJsonElement(serializer, data).jsonObject
-
-            bodyMultipartForm {
-                obj.forEach {
-                    append(it.key, it.value.toString())
-                }
-
-                files.forEach { (fileKey, file) ->
-                    append(
-                        fileKey,
-                        file.fileData,
-                        Headers.build {
-                            append(HttpHeaders.ContentDisposition, "form-data; name=\"$fileKey\"; filename=\"${file.fileName}\"")
-                            append(HttpHeaders.ContentType, "application/octet-stream")
-                        }
-                    )
-                }
-            }
-        }
-
-        private val json = Json {
-            ignoreUnknownKeys = true
-            prettyPrint = true
-        }
-
-        private fun createHttpClient() = HttpClient(CIO) {
-            install(Resources)
-            install(HttpTimeout)
-
-            install(ContentNegotiation) {
-                json(json)
-            }
-
-            ContentEncoding {
-                gzip()
-                deflate()
-            }
-
-
-            Logging {
-                level = LogLevel.ALL
-            }
-
-            defaultRequest {
-                host = "api.telegram.org"
-                url { protocol = HTTPS }
             }
         }
     }
