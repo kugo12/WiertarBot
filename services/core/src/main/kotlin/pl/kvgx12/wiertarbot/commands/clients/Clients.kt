@@ -15,8 +15,11 @@ import org.springframework.web.reactive.function.client.support.WebClientAdapter
 import org.springframework.web.service.invoker.HttpServiceProxyFactory
 import org.springframework.web.service.invoker.createClient
 import pl.kvgx12.wiertarbot.commands.clients.external.*
+import pl.kvgx12.wiertarbot.commands.clients.internal.CEXApi
+import pl.kvgx12.wiertarbot.commands.clients.internal.CEXClient
 import pl.kvgx12.wiertarbot.commands.clients.internal.DownloadClient
 import pl.kvgx12.wiertarbot.commands.clients.internal.TTRSClient
+import pl.kvgx12.wiertarbot.config.properties.CEXProperties
 import pl.kvgx12.wiertarbot.config.properties.DownloadApiProperties
 import pl.kvgx12.wiertarbot.config.properties.TTRSProperties
 import pl.kvgx12.wiertarbot.utils.KiB
@@ -37,80 +40,77 @@ class ClientBeansRegistrar : BeanRegistrarDsl({
         ).build()
     }
 
-    httpClient<ImgFlipClient>()
-    httpClient<UnsplashApiClient>()
+    registerHttpClient<ImgFlipClient>()
+    registerHttpClient<UnsplashApiClient>()
 
-    httpClient<CurrencyApiClient>()
+    registerHttpClient<CurrencyApiClient>()
     registerBean<CurrencyApi>()
 
-    httpClient<AliPaczkaClient>()
+    registerHttpClient<AliPaczkaClient>()
     registerBean<AliPaczka>()
 
-    httpClient<WeatherComApi>()
+    registerHttpClient<WeatherComApi>()
     registerBean<WeatherComClient>()
 
-    httpClient<MojangApiClient>()
+    registerHttpClient<MojangApiClient>()
     registerBean<Minecraft>()
 
-    httpClient<SjpPwnClient> {
+    registerHttpClient<SjpPwnClient> {
         codecs {
             it.defaultCodecs().maxInMemorySize(512 * KiB)
         }
     }
     registerBean<SjpPwn>()
 
-    httpClient<SucharClient>()
+    registerHttpClient<SucharClient>()
     registerBean<Suchar>()
 
-    httpClient<PLCovidStatsClient>()
+    registerHttpClient<PLCovidStatsClient>()
     registerBean<PLCovidStats>()
 
-    httpClient<MiejskiClient>()
+    registerHttpClient<MiejskiClient>()
     registerBean<Miejski>()
 
-    httpClient<FantanoClient>()
+    registerHttpClient<FantanoClient>()
     registerBean<Fantano>()
 
     if (env.getProperty("wiertarbot.download-api.url") != null) {
-        registerBean {
+        registerHttpClient<DownloadClient> {
             val connector = ReactorClientHttpConnector(
                 reactor.netty.http.client.HttpClient.create()
                     .responseTimeout(Duration.ofMinutes(10)),
             )
 
-            HttpServiceProxyFactory.builderFor(
-                WebClientAdapter.create(
-                    WebClient.builder()
-                        .baseUrl(bean<DownloadApiProperties>().url)
-                        .clientConnector(connector)
-                        .build(),
-                ),
-            ).build().createClient<DownloadClient>()
+            baseUrl(it.bean<DownloadApiProperties>().url)
+            clientConnector(connector)
         }
     }
 
     if (env.getProperty("wiertarbot.ttrs.url") != null) {
-        registerBean {
-            HttpServiceProxyFactory.builderFor(
-                WebClientAdapter.create(
-                    WebClient.builder()
-                        .baseUrl(bean<TTRSProperties>().url)
-                        .build(),
-                ),
-            ).build().createClient<TTRSClient>()
+        registerHttpClient<TTRSClient> {
+            baseUrl(it.bean<TTRSProperties>().url)
         }
+    }
+
+    if (env.getProperty("wiertarbot.cex.api-key") != null) {
+        registerHttpClient<CEXApi> {
+            baseUrl(it.bean<CEXProperties>().url)
+        }
+        registerBean<CEXClient>()
     }
 })
 
-inline fun <reified T : Any> BeanRegistrarDsl.httpClient() =
+inline fun <reified T : Any> BeanRegistrarDsl.registerHttpClient() =
     registerBean { bean<HttpServiceProxyFactory>().createClient<T>() }
 
-inline fun <reified T : Any> BeanRegistrarDsl.httpClient(crossinline builder: WebClient.Builder.() -> Unit) =
+inline fun <reified T : Any> BeanRegistrarDsl.registerHttpClient(crossinline builder: WebClient.Builder.(BeanRegistrarDsl.SupplierContextDsl<*>) -> Unit) =
     registerBean {
         HttpServiceProxyFactory.builderFor(
             WebClientAdapter.create(
                 WebClient.builder()
-                    .apply<_>(builder)
+                    .apply<_> {
+                        builder(this, this@registerBean)
+                    }
                     .build(),
             ),
         ).build().createClient<T>()
