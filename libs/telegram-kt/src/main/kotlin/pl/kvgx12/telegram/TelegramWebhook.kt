@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.shareIn
 import org.slf4j.LoggerFactory
+import pl.kvgx12.telegram.data.TUpdate
 import pl.kvgx12.telegram.data.Update
 
 class TelegramWebhook(
@@ -19,7 +20,7 @@ class TelegramWebhook(
     updateBufferSize: Int = 100
 ) {
     private val log = LoggerFactory.getLogger(TelegramWebhook::class.java)
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val updates = Channel<Update>(updateBufferSize)
     private val updateFlow = updates.consumeAsFlow()
         .shareIn(scope, started = SharingStarted.Eagerly, replay = 0)
@@ -30,7 +31,8 @@ class TelegramWebhook(
         try {
             val result = client.setWebhook(
                 url = webhookUrl,
-                secretToken = secret
+                secretToken = secret,
+                dropPendingUpdates = true,
             )
             log.info("Webhook set successfully: $result")
 
@@ -57,13 +59,15 @@ class TelegramWebhook(
         }
     }
 
-    suspend fun handleUpdate(getHeader: (String) -> String?, body: suspend () -> Update) {
+    suspend fun handleUpdate(getHeader: (String) -> String?, body: suspend () -> TUpdate) {
         if (getHeader(TELEGRAM_SECRET_HEADER) != secret) {
             log.warn("Received update with invalid secret")
             return
         }
 
-        updates.send(body())
+        body().toUpdate()?.let {
+            updates.send(it)
+        }
     }
 
     companion object {

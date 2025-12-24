@@ -7,6 +7,7 @@ import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
+import pl.kvgx12.telegram.TelegramClient
 import pl.kvgx12.telegram.TelegramFile
 import pl.kvgx12.telegram.data.TMessage
 import pl.kvgx12.telegram.data.TMessageEntity
@@ -23,10 +24,10 @@ import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
 class TelegramKtContext(
+    private val client: TelegramClient,
     private val connector: TelegramKtConnector,
     delegatedCommantInvoker: DelegatedCommandInvoker,
 ) : ConnectorContextServer(ConnectorType.TELEGRAM, delegatedCommantInvoker) {
-    private val client = connector.client
 
     private suspend fun sendFiles(response: Response, files: List<UploadedFile>): TMessage? = coroutineScope {
         val replyToId = response.replyParameters()
