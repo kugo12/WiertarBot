@@ -16,24 +16,31 @@ import java.time.Duration
 @Suppress("ConfigurationProperties")
 @ConfigurationProperties("wiertarbot.genai")
 data class GenAIProperties(
-    val systemPrompt: String,
-    val thinkingBudget: Int = 1024,
-    val maxOutputTokens: Int = 2048,
-    val temperature: Double = 1.0,
-    val applyConversationRetention: Boolean = false,
-    val globalRetention: String? = null,
-    val model: String = "gemini-flash-latest",
     val memoryWindow: Int = 20,
     val maxToolCalls: Int = 5,
     val maxSerializationRetries: Int = 1,
+    val applyConversationRetention: Boolean = false,
+    val globalRetention: Duration? = null,
+
+    val model: ModelConfig,
+    val searchTool: ModelConfig,
 ) {
-    val globalRetentionDuration = globalRetention?.let { Duration.parse(it) }
+    data class ModelConfig(
+        val systemPrompt: String,
+        val thinkingBudget: Int,
+        val maxOutputTokens: Int,
+        val temperature: Double = 1.0,
+        val model: String = "gemini-flash-latest",
+    ) {
+        init {
+            require(thinkingBudget > 0) { "Thinking budget must be greater than 0" }
+            require(maxOutputTokens > 0) { "Max output tokens must be greater than 0" }
+            require(temperature in 0.0..2.0) { "Temperature must be between 0.0 and 2.0" }
+            require(systemPrompt.isNotBlank()) { "System prompt must not be blank" }
+        }
+    }
 
     init {
-        require(systemPrompt.isNotBlank()) { "System prompt must not be blank" }
-        require(thinkingBudget > 0) { "Thinking budget must be greater than 0" }
-        require(maxOutputTokens > 0) { "Max output tokens must be greater than 0" }
-        require(temperature in 0.0..2.0) { "Temperature must be between 0.0 and 2.0" }
         require(memoryWindow > 0) { "Memory window must be greater than 0" }
     }
 }
@@ -59,7 +66,7 @@ class GenAIRegistrar : BeanRegistrarDsl({
         aiSpecialCommand()
 
         registerBean<ChatOptions>("chatOptions", primary = true) {
-            val props = bean<GenAIProperties>()
+            val m = bean<GenAIProperties>().model
 
             GoogleGenAiChatOptions.builder()
                 // probably by default they're off, so just to be sure
@@ -79,19 +86,19 @@ class GenAIRegistrar : BeanRegistrarDsl({
                 .googleSearchRetrieval(false)
                 .includeThoughts(false)
                 .internalToolExecutionEnabled(false)
-                .thinkingBudget(props.thinkingBudget)
-                .maxOutputTokens(props.maxOutputTokens)
-                .temperature(props.temperature)
-                .model(props.model)
+                .thinkingBudget(m.thinkingBudget)
+                .maxOutputTokens(m.maxOutputTokens)
+                .temperature(m.temperature)
+                .model(m.model)
                 .build()
         }
 
         registerBean<ChatClient>("chatClient", primary = true) {
-            val props = bean<GenAIProperties>()
+            val m = bean<GenAIProperties>().model
             val options = bean<ChatOptions>("chatOptions")
 
             bean<ChatClient.Builder>()
-                .defaultSystem("${props.systemPrompt}\n${ResponseData.converter.instruction}")
+                .defaultSystem("${m.systemPrompt}\n${ResponseData.converter.instruction}")
                 .defaultAdvisors(AdvisorParams.ENABLE_NATIVE_STRUCTURED_OUTPUT)
                 .defaultAdvisors(SimpleLoggerAdvisor())
                 .defaultOptions(options)
@@ -100,7 +107,7 @@ class GenAIRegistrar : BeanRegistrarDsl({
         }
 
         registerBean<ChatOptions>("searchChatOptions") {
-            val props = bean<GenAIProperties>()
+            val m = bean<GenAIProperties>().searchTool
 
             GoogleGenAiChatOptions.builder()
                 // probably by default they're off, so just to be sure
@@ -118,19 +125,20 @@ class GenAIRegistrar : BeanRegistrarDsl({
                 .responseMimeType("text/plain")
                 .googleSearchRetrieval(true)
                 .includeThoughts(false)
-                .thinkingBudget(512)
-                .maxOutputTokens(props.maxOutputTokens / 2)
-                .temperature(1.0)
-                .model("gemini-flash-latest")
+                .thinkingBudget(m.thinkingBudget)
+                .maxOutputTokens(m.maxOutputTokens)
+                .temperature(m.temperature)
+                .model(m.model)
                 .build()
         }
 
         registerBean<ChatClient>("searchChatClient") {
             val options = bean<ChatOptions>("searchChatOptions")
+            val m = bean<GenAIProperties>().searchTool
 
             bean<ChatClient.Builder>()
                 .defaultOptions(options)
-                .defaultSystem("You are a helpful assistant that searches the web for information.\nBe as short as possible, include only relevant information.")
+                .defaultSystem(m.systemPrompt)
                 .build()
         }
     }
