@@ -16,7 +16,7 @@ on:
         description: 'Services to build'
         type: 'string'
         required: true
-        default: 'core,connector-fb,connector-telegram,download-api,ttrs-api,migration'
+        default: 'core,connector-fb,connector-telegram,download-api,ttrs-api,cex-api,migration'
 concurrency:
   group: '${{ github.ref }}'
   cancel-in-progress: true
@@ -44,6 +44,7 @@ jobs:
       connector-telegram: '${{ steps.step-1.outputs.connector-telegram }}'
       download-api: '${{ steps.step-1.outputs.download-api }}'
       ttrs-api: '${{ steps.step-1.outputs.ttrs-api }}'
+      cex-api: '${{ steps.step-1.outputs.cex-api }}'
       migration: '${{ steps.step-1.outputs.migration }}'
     steps:
     - id: 'step-0'
@@ -82,6 +83,8 @@ jobs:
             - 'services/download-api/**'
           ttrs-api:
             - 'services/ttrs-api/**'
+          cex-api:
+            - 'services/cex-api/**'
           migration:
             - 'services/migration/**'
   gradle-build:
@@ -346,6 +349,43 @@ jobs:
           ${{ secrets.DOCKERHUB_USER }}/wiertarbot-ttrs-api:latest
           ${{ secrets.DOCKERHUB_USER }}/wiertarbot-ttrs-api:ci-${{ github.run_id }}
         push: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
+  docker-cex-api:
+    runs-on: 'ubuntu-latest'
+    needs:
+    - 'gradle-build'
+    - 'detect-changes'
+    - 'check_yaml_consistency'
+    if: '${{ needs.detect-changes.outputs.cex-api == ''true'' || contains(github.event.inputs.services, ''cex-api'') }}'
+    steps:
+    - id: 'step-0'
+      name: 'Check out'
+      uses: 'actions/checkout@v6'
+    - id: 'step-1'
+      name: 'Setup docker buildx'
+      uses: 'docker/setup-buildx-action@v3'
+    - id: 'step-2'
+      name: 'Login to docker registry'
+      uses: 'docker/login-action@v3'
+      with:
+        username: '${{ secrets.DOCKER_USERNAME }}'
+        password: '${{ secrets.DOCKER_PASSWORD }}'
+      if: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
+    - id: 'step-3'
+      name: 'Download build artifacts'
+      uses: 'actions/download-artifact@v6'
+      with:
+        name: 'jars'
+    - id: 'step-4'
+      name: 'Build docker image'
+      uses: 'docker/build-push-action@v6'
+      with:
+        context: 'services/cex-api'
+        file: 'services/cex-api/Dockerfile'
+        platforms: 'linux/amd64'
+        tags: |-
+          ${{ secrets.DOCKERHUB_USER }}/wiertarbot-cex-api:latest
+          ${{ secrets.DOCKERHUB_USER }}/wiertarbot-cex-api:ci-${{ github.run_id }}
+        push: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'
   docker-migration:
     runs-on: 'ubuntu-latest'
     needs:
@@ -391,6 +431,7 @@ jobs:
     - 'docker-connector-telegram'
     - 'docker-download-api'
     - 'docker-ttrs-api'
+    - 'docker-cex-api'
     - 'docker-migration'
     - 'check_yaml_consistency'
     if: '${{ github.ref_name == ''main'' && (github.event_name == ''push'' || github.event_name == ''workflow_dispatch'') }}'

@@ -9,6 +9,10 @@ services:
     image: kugo12/wiertarbot-ttrs-api
     platform: linux/amd64
     env_file: ../.env
+  cex-api:
+    image: kugo12/wiertarbot-cex-api
+    env_file: ../.env
+    ports: [ "8088:8080" ]
 
   connector-telegram:
     image: kugo12/wiertarbot-connector-telegram
@@ -17,7 +21,7 @@ services:
     links:
       - db
       - rabbitmq
-    ports: [ "8088:8080" ]
+    ports: [ "8087:8081", "8086:8080" ]
   connector-fb:
     image: kugo12/wiertarbot-connector-fb
     links:
