@@ -1,14 +1,16 @@
 package pl.kvgx12.wiertarbot.commands.ai
 
+import org.slf4j.LoggerFactory
 import pl.kvgx12.wiertarbot.command.dsl.command
-import pl.kvgx12.wiertarbot.command.dsl.genericWithCallback
+import pl.kvgx12.wiertarbot.command.dsl.manual
 import pl.kvgx12.wiertarbot.command.dsl.special
 import pl.kvgx12.wiertarbot.command.dsl.specialCommandName
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.proto.MessageEvent
 import pl.kvgx12.wiertarbot.proto.mention
 import pl.kvgx12.wiertarbot.proto.response
-import pl.kvgx12.wiertarbot.utils.proto.Response
+
+private val log = LoggerFactory.getLogger("pl.kvgx12.wiertarbot.commands.ai.Command")
 
 fun ResponseData.toResponse(event: MessageEvent) = response {
     this@response.event = event
@@ -27,28 +29,35 @@ fun ResponseData.toResponse(event: MessageEvent) = response {
 }
 
 val aiCommand = command("ai") {
-    help(usage = "<prompt>", returns = "tekst")
+    help(usage = "(prompt)", returns = "tekst")
 
     val client = dsl.bean<AIService>()
 
-    genericWithCallback { event ->
+    manual { event ->
         val text = event.text.split(' ', limit = 2)
-        val last = text.last()
+        val last = text.getOrNull(1) ?: ""
 
-        if (text.size == 2 && last.isNotBlank()) {
-            val result = client.generate(event, text.last())
-
-            return@genericWithCallback result.data.toResponse(event) to {
-                if (it.messageId.isNotBlank()) {
-                    client.afterSuccessfulSend(result, it)
-                }
+        if ((text.size == 2 && last.isNotBlank()) || event.hasReplyToId()) {
+            val result = try {
+                client.generate(event, last)
+            } catch (e: Exception) {
+                log.error("Error during generation: ", e)
+                event.context.sendText(event, "Wystąpił błąd podczas generowania odpowiedzi AI")
+                return@manual
             }
+
+            val response = event.context.send(result.data.toResponse(event))
+            if (response.messageId.isNotBlank()) {
+                client.afterSuccessfulSend(result, response)
+            }
+            return@manual
         }
 
-        Response(event, text = help!!) to null
+        event.context.sendText(event, help!!)
     }
 }
 
+// FIXME permissions
 val aiSpecialCommand = command(specialCommandName("ai")) {
     val client = dsl.bean<AIService>()
     val aiCommandPrefix = "${dsl.bean<WiertarbotProperties>().prefix}ai"
@@ -60,7 +69,13 @@ val aiSpecialCommand = command(specialCommandName("ai")) {
         val conversationId = client.findConversationId(event)
             ?: return@special
 
-        val result = client.generate(event, event.text, conversationId)
+        val result = try {
+            client.generate(event, event.text, conversationId)
+        } catch (e: Exception) {
+            log.error("Error during generation: ", e)
+            event.context.sendText(event, "Wystąpił błąd podczas generowania odpowiedzi AI")
+            return@special
+        }
         val response = event.context.send(result.data.toResponse(event))
 
         client.afterSuccessfulSend(result, response)

@@ -6,8 +6,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import pl.kvgx12.wiertarbot.Constants
 import pl.kvgx12.wiertarbot.command.GenericCommandHandler
-import pl.kvgx12.wiertarbot.command.GenericWithCallbackCommandHandler
 import pl.kvgx12.wiertarbot.command.ImageEditCommand
+import pl.kvgx12.wiertarbot.command.ManualCommandHandler
 import pl.kvgx12.wiertarbot.config.ContextHolder
 import pl.kvgx12.wiertarbot.config.properties.WiertarbotProperties
 import pl.kvgx12.wiertarbot.proto.MessageEvent
@@ -69,17 +69,8 @@ class CommandService(
                             }
                         }
 
-                        is GenericWithCallbackCommandHandler -> launch {
-                            val (response, callback) = command.process(event)
-
-                            if (response != null) {
-                                val sendResponse = contextHolder[event.connectorInfo.connectorType]
-                                    .send(response)
-
-                                if (callback != null) {
-                                    callback(sendResponse)
-                                }
-                            }
+                        is ManualCommandHandler -> launch {
+                            command.process(event)
                         }
 
                         else -> {}
