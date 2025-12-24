@@ -1,22 +1,29 @@
 package pl.kvgx12.wiertarbot.commands.ai
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.flatMapConcat
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.reactive.asFlow
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
+import org.springframework.ai.chat.messages.Message
+import org.springframework.ai.chat.messages.ToolResponseMessage
+import org.springframework.ai.chat.prompt.ChatOptions
+import org.springframework.ai.chat.prompt.Prompt
 import org.springframework.ai.content.Media
+import org.springframework.ai.google.genai.GoogleGenAiChatOptions
+import org.springframework.ai.model.tool.ToolCallingManager
 import org.springframework.core.io.UrlResource
 import pl.kvgx12.wiertarbot.config.ContextHolder
 import pl.kvgx12.wiertarbot.entities.AIMessage.Companion.METADATA_MESSAGE_ID
 import pl.kvgx12.wiertarbot.proto.ConnectorType
 import pl.kvgx12.wiertarbot.proto.MessageEvent
+import pl.kvgx12.wiertarbot.proto.ThreadData
 import pl.kvgx12.wiertarbot.proto.connector.SendResponse
 import pl.kvgx12.wiertarbot.services.CachedContextService
+import pl.kvgx12.wiertarbot.utils.ThreadDataJsonSerializer
 import pl.kvgx12.wiertarbot.utils.getLogger
 import java.util.*
 import kotlin.math.abs
@@ -50,12 +57,17 @@ data class UserMessage(
     data class Metadata(
         val authorId: String,
         val authorName: String,
-        val threadId: String,
         val messageId: String,
         val replyToMessageId: String,
-        val botId: String,
         val mentions: List<ResponseData.Mention>,
         val hasAttachments: Boolean,
+    )
+
+    @Serializable
+    data class TopMetadata(
+        val platform: String,
+        val botId: String,
+        val threadData: @Serializable(ThreadDataJsonSerializer::class) ThreadData?,
     )
 }
 
@@ -72,8 +84,12 @@ class AIService(
     private val chatMemory: ChatMemory,
     private val contextHolder: ContextHolder,
     private val cachedContextService: CachedContextService,
+    private val toolCallingManager: ToolCallingManager,
+    private val chatOptions: ChatOptions,
+    private val props: GenAIProperties,
 ) {
     private val log = getLogger()
+
 
     suspend fun afterSuccessfulSend(result: GenerationResult, sendResponse: SendResponse) {
         result.assMessage.metadata[METADATA_MESSAGE_ID] = "${result.connectorType.name}-${sendResponse.messageId}"
@@ -81,10 +97,9 @@ class AIService(
         chatMemory.applyRetention(result.conversationId)
     }
 
-    // FIXME: handle invalid response
-    // TODO: configurable retries?
     // TODO: consider adding more replies to context?
-    // TODO: tool calls
+    // TODO: add command output to context
+    // TODO: consider implementing image generation
     // TODO: maybe cache messages with small TTL?
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -99,36 +114,93 @@ class AIService(
         val conversationId = existingConversationId ?: generateConversationId(event)
 
         chatMemory.add(conversationId, event.toUserMessage(message, existingConversationId == null))
+        val options = chatOptions.copy<GoogleGenAiChatOptions>().apply {
+            toolContext = mapOf("messageEvent" to event)
+        }
 
-        val textSb = StringBuilder()
-        chatClient.prompt()
-            .messages(chatMemory.get(conversationId))
-            .stream()
-            .chatResponse()
-            .asFlow()
-            .flatMapConcat { it.results.asFlow() }
-            .map { it.output }
-            .collect {
-                if (it.text != null) {
-                    textSb.append(it.text)
+        var serializationRetries = 0
+        var toolCallCount = 0
+        while (toolCallCount < props.maxToolCalls) {
+            val messages = Prompt(getMessages(event, conversationId), options)
+
+            val response = withContext(Dispatchers.IO) {
+                chatClient.prompt(messages)
+                    .call()
+                    .chatResponse()
+            } ?: break
+
+            val assistantMessage = response.result.output
+
+            if (!assistantMessage.hasToolCalls()) {
+                val raw = assistantMessage.text ?: ""
+                log.debug("AI raw response: {}", raw)
+
+                val text = ResponseData.converter.clean(raw)
+                log.debug("AI cleaned response: {}", text)
+
+                val data = try {
+                    ResponseData.converter.convert(text)
+                        .fixMentions()
+                } catch (e: SerializationException) {
+                    log.error("Failed to convert AI response to ResponseData, using raw text", e)
+
+                    if (serializationRetries++ >= props.maxSerializationRetries) {
+                        log.warn("Max serialization retries reached (${props.maxSerializationRetries}), using raw text")
+                        ResponseData(text)
+                    } else {
+                        log.info("Retrying serialization (${serializationRetries}/${props.maxSerializationRetries})")
+                        continue
+                    }
                 }
+
+                return GenerationResult(
+                    conversationId,
+                    data,
+                    AssistantMessage.builder()
+                        .content(text)
+                        .media(assistantMessage.media)
+                        .build(),
+                    event.connectorInfo.connectorType,
+                )
             }
 
-        val raw = textSb.toString()
-        log.debug("AI raw response: {}", raw)
+            log.info("AI requested tool calls: {}", assistantMessage.toolCalls)
+            val toolCallId = UUID.randomUUID()
+            assistantMessage.metadata[METADATA_MESSAGE_ID] = "toolcall-$toolCallId"
+            chatMemory.add(conversationId, assistantMessage)
 
-        val text = ResponseData.converter.clean(raw)
-        log.debug("AI cleaned response: {}", text)
+            val executionResult = withContext(Dispatchers.IO) {
+                toolCallingManager.executeToolCalls(messages, response)
+            }
 
-        val data = ResponseData.converter.convert(text)
-            .fixMentions()
+            log.debug("Tool response: {}", executionResult.conversationHistory().last())
+            val toolResponseMessage = executionResult.conversationHistory().last() as ToolResponseMessage
+            toolResponseMessage.metadata[METADATA_MESSAGE_ID] = "toolresponse-$toolCallId"
+            chatMemory.add(conversationId, toolResponseMessage)
+            toolCallCount++
+        }
 
-        return GenerationResult(
-            conversationId,
-            data,
-            AssistantMessage(text),
-            event.connectorInfo.connectorType,
-        )
+        if (toolCallCount >= props.maxToolCalls) {
+            log.warn("Max tool calls reached (${props.maxToolCalls}), returning error response")
+
+            val text = "Przekroczono maksymalną liczbę wywołań narzędzi."
+            return GenerationResult(
+                conversationId,
+                ResponseData(text),
+                AssistantMessage(text),
+                event.connectorInfo.connectorType,
+            )
+        } else {
+            log.warn("Failed to generate a valid response, returning error response")
+
+            val text = "Wystąpił błąd podczas generowania odpowiedzi."
+            return GenerationResult(
+                conversationId,
+                ResponseData(text),
+                AssistantMessage(text),
+                event.connectorInfo.connectorType,
+            )
+        }
     }
 
     private fun generateConversationId(event: MessageEvent): String =
@@ -139,6 +211,26 @@ class AIService(
             chatMemory.findConversationIdByMessageId("${event.connectorInfo.connectorType.name}-${event.replyToId}")
 
         else -> null
+    }
+
+    suspend fun getMessages(event: MessageEvent, conversationId: String): List<Message> = buildList {
+        try {
+            val threadInfo = cachedContextService.getThread(
+                event.connectorInfo.connectorType,
+                event.threadId,
+            )
+            val content = Json.encodeToString(
+                UserMessage.TopMetadata(
+                    platform = event.connectorInfo.connectorType.name,
+                    botId = event.connectorInfo.botId,
+                    threadData = threadInfo,
+                )
+            )
+            add(SpringUserMessage(content))
+        } catch (e: Exception) {
+            log.error("Failed to fetch thread info for threadId=${event.threadId}", e)
+        }
+        addAll(chatMemory.get(conversationId))
     }
 
     private fun ResponseData.fixMentions(): ResponseData {
@@ -246,10 +338,8 @@ class AIService(
         val metadata = UserMessage.Metadata(
             authorId = authorId,
             authorName = authorName,
-            threadId = threadId,
             messageId = messageId,
             replyToMessageId = replyToId,
-            botId = connectorInfo.botId,
             mentions = mentionsList.map {
                 ResponseData.Mention(it.threadId, it.offset, it.length)
             },

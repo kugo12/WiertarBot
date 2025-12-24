@@ -3,14 +3,22 @@
 package pl.kvgx12.wiertarbot.entities
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.json.Json
 import org.springframework.ai.chat.messages.*
 import org.springframework.ai.content.MediaContent
 import org.springframework.data.annotation.Id
 import org.springframework.data.relational.core.mapping.Table
+import pl.kvgx12.wiertarbot.utils.ToolCallSerializer
 import pl.kvgx12.wiertarbot.utils.ToolResponseSerializer
 import java.time.LocalDateTime
+
+@Serializable
+data class AssistantMessageSurrogate(
+    val text: String,
+    val toolCalls: List<@Serializable(with = ToolCallSerializer::class) AssistantMessage.ToolCall> = emptyList()
+)
 
 @Table(name = "ai_message")
 class AIMessage(
@@ -36,12 +44,22 @@ class AIMessage(
                 .metadata(metadata)
                 .build()
 
-            MessageType.ASSISTANT -> AssistantMessage.builder()
-                .content(content)
-                .let { media?.items?.let { m -> it.media(m) } ?: it }
-                .build().apply {
-                    this.metadata.putAll(metadata)
+            MessageType.ASSISTANT -> {
+                val (text, toolCalls) = try {
+                    val surrogate = Json.Default.decodeFromString<AssistantMessageSurrogate>(content)
+                    surrogate.text to surrogate.toolCalls
+                } catch (e: Exception) {
+                    content to emptyList()
                 }
+
+                AssistantMessage.builder()
+                    .content(text)
+                    .toolCalls(toolCalls)
+                    .let { media?.items?.let { m -> it.media(m) } ?: it }
+                    .build().apply {
+                        this.metadata.putAll(metadata)
+                    }
+            }
 
             MessageType.SYSTEM -> SystemMessage.builder()
                 .text(content)
@@ -71,6 +89,12 @@ class AIMessage(
                 messageType = messageType.value,
                 content = when (this) {
                     is ToolResponseMessage -> Json.encodeToString(ToolResponseSerializer.listSerializer, responses)
+                    is AssistantMessage -> if (toolCalls.isNotEmpty()) {
+                        Json.encodeToString(AssistantMessageSurrogate(text ?: "", toolCalls))
+                    } else {
+                        text ?: ""
+                    }
+
                     else -> text ?: ""
                 },
                 media = when (this) {
