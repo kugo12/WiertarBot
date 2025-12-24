@@ -11,7 +11,6 @@ import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.http.URLProtocol.Companion.HTTPS
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
@@ -24,6 +23,8 @@ import kotlinx.serialization.json.JsonEncoder
 import kotlinx.serialization.json.jsonObject
 import pl.kvgx12.telegram.data.TResult
 import pl.kvgx12.telegram.data.requests.TInputFile
+
+val telegramApiUrl = URLBuilder("https://api.telegram.org").build()
 
 internal suspend inline fun <reified T : Any> HttpResponse.tResult(): T =
     body<TResult<T>>().let {
@@ -77,8 +78,7 @@ internal fun createHttpClient() = HttpClient(CIO) {
     }
 
     defaultRequest {
-        host = "api.telegram.org"
-        url { protocol = HTTPS }
+        url.takeFrom(telegramApiUrl)
         contentType(ContentType.Application.Json)
     }
 }

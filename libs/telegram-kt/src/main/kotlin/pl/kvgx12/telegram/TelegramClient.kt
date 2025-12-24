@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package pl.kvgx12.telegram
 
 import io.ktor.client.plugins.*
@@ -63,10 +65,31 @@ class TelegramClient(
     }
 
     suspend fun sendAudio(
-        request: TSendAudioRequest
-    ): TMessage = client.post(SendAudio(basePath)) {
-        setBody(request)
-    }.tResult()
+        chatId: String,
+        audio: TInputFile,
+        caption: String? = null,
+        captionEntities: List<TMessageEntity> = emptyList(),
+        replyParameters: TReplyParameters? = null,
+    ): TMessage {
+        val request = TSendAudioRequest(
+            chatId = chatId,
+            audio = audio as? TInputFile.UrlOrId,
+            caption = caption,
+            captionEntities = captionEntities,
+            replyParameters = replyParameters
+        )
+
+        return client.post(SendAudio(basePath)) {
+            when (audio) {
+                is TInputFile.UrlOrId -> setBody(request)
+                is TInputFile.Upload -> multipartForm(
+                    TSendAudioRequest.serializer(),
+                    request,
+                    mapOf("audio" to audio)
+                )
+            }
+        }.tResult()
+    }
 
     suspend fun <T : TInputMedia> sendMediaGroup(
         chatId: String,
@@ -139,7 +162,7 @@ class TelegramClient(
     }.tResult()
 
     suspend fun deleteWebhook(dropPendingUpdates: Boolean = false): Boolean =
-        client.get(DeleteWebhook(basePath))
+        client.get(DeleteWebhook(basePath, dropPendingUpdates = dropPendingUpdates))
             .tResult()
 
     suspend fun getWebhookInfo(): TWebhookInfo =
@@ -190,6 +213,7 @@ class TelegramClient(
         client.get(SetMyShortDescription(basePath, shortDescription = shortDescription))
             .tResult()
 
+    @Suppress("TooGenericExceptionCaught")
     fun getUpdates(
         offset: Long? = null,
         limit: Int? = null,

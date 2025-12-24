@@ -1,16 +1,19 @@
 package pl.kvgx12.wiertarbot.telegram
 
 import com.google.protobuf.kotlin.toByteString
-import dev.inmo.tgbotapi.utils.RiskFeature
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.resources.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
+import pl.kvgx12.telegram.TelegramFile
+import pl.kvgx12.telegram.data.TMessage
 import pl.kvgx12.telegram.data.TMessageEntity
 import pl.kvgx12.telegram.data.TReplyParameters
 import pl.kvgx12.telegram.data.requests.TInputFile
 import pl.kvgx12.telegram.data.requests.TInputMedia
+import pl.kvgx12.telegram.telegramApiUrl
 import pl.kvgx12.wiertarbot.connector.ConnectorContextServer
 import pl.kvgx12.wiertarbot.connector.DelegatedCommandInvoker
 import pl.kvgx12.wiertarbot.proto.*
@@ -25,8 +28,7 @@ class TelegramKtContext(
 ) : ConnectorContextServer(ConnectorType.TELEGRAM, delegatedCommantInvoker) {
     private val client = connector.client
 
-    @OptIn(RiskFeature::class)
-    private suspend fun sendFiles(response: Response, files: List<UploadedFile>) = coroutineScope {
+    private suspend fun sendFiles(response: Response, files: List<UploadedFile>): TMessage? = coroutineScope {
         val replyToId = response.replyParameters()
 
         if (files.size == 1) {
@@ -34,7 +36,7 @@ class TelegramKtContext(
             val mimeType = uploadedFile.mimeType
             val entities = response.buildEntities()
 
-            when { // TODO: mimetype as enum?
+            return@coroutineScope when { // TODO: mimetype as enum?
                 mimeType.startsWith("image") -> client.sendPhoto(
                     chatId = response.event.threadId,
                     photo = TInputFile.Upload(uploadedFile.content.toByteArray(), uploadedFile.id),
@@ -43,35 +45,53 @@ class TelegramKtContext(
                     captionEntities = entities,
                 )
 
+                mimeType.startsWith("audio") -> client.sendAudio(
+                    chatId = response.event.threadId,
+                    audio = TInputFile.Upload(uploadedFile.content.toByteArray(), uploadedFile.id),
+                    replyParameters = replyToId,
+                    caption = response.text,
+                    captionEntities = entities,
+                )
+
                 else -> error("mime type $mimeType not supported")
             }
-
-            return@coroutineScope true
         } else if (files.size >= 2) {
-            client.sendMediaGroup(
+            return@coroutineScope client.sendMediaGroup(
                 chatId = response.event.threadId,
-                media = files.map {
+                media = files.mapIndexed { index, it ->
+                    val caption = if (index == 0) response.text else null
+                    val entities = if (index == 0) response.buildEntities() else emptyList()
+
                     when {
                         it.mimeType.startsWith("image") -> TInputMedia.Photo(
                             media = TInputFile.Upload(it.content.toByteArray(), it.id),
-                            caption = response.text.orEmpty(),
-                            captionEntities = response.buildEntities(),
+                            caption = caption,
+                            captionEntities = entities,
+                        )
+
+                        it.mimeType.startsWith("audio") -> TInputMedia.Audio(
+                            media = TInputFile.Upload(it.content.toByteArray(), it.id),
+                            caption = caption,
+                            captionEntities = entities,
                         )
 
                         else -> error("mime type ${it.mimeType} not supported")
                     }
                 },
                 replyParameters = replyToId,
-            )
+            ).first()
         }
 
-        false
+        null
     }
 
     override suspend fun send(request: Response): SendResponse {
-        if (!request.filesList.isNullOrEmpty() && sendFiles(request, request.filesList)) {
-            return sendResponse {
-                messageId = ""  // TODO
+        if (!request.filesList.isNullOrEmpty()) {
+            val result = sendFiles(request, request.filesList)
+            if (result != null) {
+                return sendResponse {
+                    messageId = result.messageId.toString()
+                }
             }
         }
 
@@ -139,7 +159,14 @@ class TelegramKtContext(
     }
 
     override suspend fun fetchImageUrl(request: FetchImageUrlRequest): FetchImageUrlResponse = fetchImageUrlResponse {
-        url = client.getFile(request.id).fileId
+        val file = client.getFile(request.id)
+        val builder = URLBuilder(telegramApiUrl)
+
+        client.client.href(
+            TelegramFile.Path(client.filePath, file.filePath!!),
+            builder
+        )
+        url = builder.buildString()
     }
 
     override suspend fun sendText(request: SendTextRequest): Empty {
@@ -183,7 +210,7 @@ class TelegramKtContext(
         private fun Response.replyParameters() =
             replyToId?.toLongOrNull()?.let {
                 TReplyParameters(
-                    messageId = event.messageId.toLong(),
+                    messageId = it,
                     chatId = event.threadId,
                     allowSendingWithoutReply = true,
                 )

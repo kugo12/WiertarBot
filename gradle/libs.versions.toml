@@ -28,7 +28,6 @@ caffeine = "3.2.3"
 scrimage = "4.3.5"
 sentry = "8.28.0"
 skrape = "1.2.2"
-inmo-telegram = "24.0.2"
 kotlin-aws-sdk = "1.5.22"
 okhttp = "5.3.2"
 jaffree = "2024.08.29"
@@ -92,8 +91,6 @@ sentry-logback = { module = "io.sentry:sentry-logback", version.ref = "sentry" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 scrimage-core = { module = "com.sksamuel.scrimage:scrimage-core", version.ref = "scrimage" }
 skrape-html = { module = "it.skrape:skrapeit-html-parser", version.ref = "skrape" }
-inmo-telegram-core = { module = "dev.inmo:tgbotapi.core", version.ref = "inmo-telegram" }
-inmo-telegram-utils = { module = "dev.inmo:tgbotapi.utils", version.ref = "inmo-telegram" }
 
 spring-ai-bom = { module = "org.springframework.ai:spring-ai-bom", version.ref = "spring-ai" }
 
@@ -176,7 +173,6 @@ spring-webflux = [
     "spring-kotlin-reactor-extensions",
     "spring-kotlinx-coroutines-reactor",
 ]
-telegram = ["inmo-telegram-core", "inmo-telegram-utils"]
 s3 = ["aws-s3", "okhttp"]
 imageio = ["imageio-core", "imageio", "imageio-jpeg"]
 kotest-spring = ["kotest-junit5", "kotest-assertions-core", "kotest-property", "kotest-spring"]

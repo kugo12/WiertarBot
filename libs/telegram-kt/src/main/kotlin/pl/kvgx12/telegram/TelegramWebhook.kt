@@ -20,10 +20,11 @@ class TelegramWebhook(
 ) {
     private val log = LoggerFactory.getLogger(TelegramWebhook::class.java)
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
-    private val updates = Channel<Update>(100)
+    private val updates = Channel<Update>(updateBufferSize)
     private val updateFlow = updates.consumeAsFlow()
         .shareIn(scope, started = SharingStarted.Eagerly, replay = 0)
 
+    @Suppress("TooGenericExceptionCaught")
     suspend fun initWebhook(): Boolean {
         log.info("Setting webhook to $webhookUrl")
         try {
@@ -42,6 +43,7 @@ class TelegramWebhook(
 
     fun updates(): Flow<Update> = updateFlow
 
+    @Suppress("TooGenericExceptionCaught")
     suspend fun close() {
         updates.close()
         scope.cancel("TelegramWebhook is closing")

@@ -58,8 +58,9 @@ class TelegramKtConnector(
         text = m.caption ?: m.text ?: ""
         threadId = m.chat.id.toString()
         authorId = m.from?.id?.toString()
+            ?: m.senderChat?.id?.toString()
             ?: m.viaBot?.id?.toString()
-                ?: return null
+            ?: return null
         at = m.date
         messageId = m.messageId.toString()
         attachments.addAll(getAttachments(m))
@@ -75,7 +76,7 @@ class TelegramKtConnector(
     private fun getAttachments(message: TMessage): List<Attachment> {
         val attachments = mutableListOf<Attachment>()
 
-        message.photo.forEach { photo ->
+        message.photo.lastOrNull()?.let { photo ->
             attachments += attachment {
                 id = photo.fileId
                 image = imageAttachment {

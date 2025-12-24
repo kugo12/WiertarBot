@@ -1,6 +1,5 @@
 package pl.kvgx12.wiertarbot.telegram
 
-import korlibs.encoding.base64
 import org.springframework.beans.factory.BeanRegistrarDsl
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -15,20 +14,18 @@ import pl.kvgx12.telegram.TelegramWebhook
 import pl.kvgx12.telegram.data.Update
 import pl.kvgx12.wiertarbot.connector.ConnectorBeanRegistrar
 import pl.kvgx12.wiertarbot.telegram.TelegramProperties.Companion.BASE_URL_PROPERTY
-import pl.kvgx12.wiertarbot.telegram.TelegramProperties.Companion.USE_NEW_CONNECTOR_PROPERTY
 import java.security.SecureRandom
+import kotlin.io.encoding.Base64
 
 @ConfigurationProperties("wiertarbot.telegram")
 data class TelegramProperties(
     val token: String,
-    val useNewConnector: Boolean = false,
     val baseUrl: String? = null,
 ) {
     companion object {
         const val WEBHOOK_PATH = "/api/telegram/webhook"
 
         const val BASE_URL_PROPERTY = "wiertarbot.telegram.base-url"
-        const val USE_NEW_CONNECTOR_PROPERTY = "wiertarbot.telegram.use-new-connector"
     }
 }
 
@@ -38,13 +35,8 @@ data class TelegramProperties(
 class Application
 
 class BeansRegistrar : BeanRegistrarDsl({
-    if (env.getProperty(USE_NEW_CONNECTOR_PROPERTY)?.toBoolean() == true) {
-        registerBean<TelegramKtConnector>()
-        registerBean<TelegramKtContext>()
-    } else {
-        registerBean<TelegramConnector>()
-        registerBean<TelegramContext>()
-    }
+    registerBean<TelegramKtConnector>()
+    registerBean<TelegramKtContext>()
 
     if (!env.getProperty(BASE_URL_PROPERTY).isNullOrEmpty()) {
         registerBean {
@@ -53,7 +45,7 @@ class BeansRegistrar : BeanRegistrarDsl({
             val byteArray = ByteArray(64)
             SecureRandom.getInstanceStrong().nextBytes(byteArray)
 
-            TelegramWebhook(bean(), props.baseUrl!! + TelegramProperties.WEBHOOK_PATH, byteArray.base64)
+            TelegramWebhook(bean(), props.baseUrl!! + TelegramProperties.WEBHOOK_PATH, Base64.encode(byteArray))
         }
         registerBean {
             val webhook = bean<TelegramWebhook>()
