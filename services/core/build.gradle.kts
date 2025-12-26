@@ -59,6 +59,7 @@ dependencies {
         exclude("org.jetbrains.kotlinx", "kotlinx-serialization-core")
     }
 
+    implementation(libs.protobuf.java.util)
     implementation(libs.caffeine)
     implementation(libs.scrimage.core)
     implementation(libs.bundles.imageio)

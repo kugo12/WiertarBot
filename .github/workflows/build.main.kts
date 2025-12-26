@@ -90,6 +90,11 @@ val wbServices = listOf(
         setOf("services/ttrs-api/**"),
     ),
     Service(
+        "cex-api",
+        "wiertarbot-cex-api",
+        setOf("services/cex-api/**"),
+    ),
+    Service(
         "migration",
         "wiertarbot-migration",
         setOf("services/migration/**"),

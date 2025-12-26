@@ -56,11 +56,11 @@ open class AIMessageService(
 
     @Scheduled(cron = $$"${wiertarbot.genai.retention-global-cron:0 0 3 * * *}")
     suspend fun applyGlobalRetention() {
-        if (props.globalRetentionDuration != null) {
+        if (props.globalRetention != null) {
             log.info("Applying global retention")
 
             val count = repository.deleteByCreatedAtLessThanEqual(
-                LocalDateTime.now().minus(props.globalRetentionDuration)
+                LocalDateTime.now().minus(props.globalRetention)
             )
             if (count > 0) {
                 log.info("Deleted $count messages")

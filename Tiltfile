@@ -5,11 +5,12 @@ PROFILES = {
     "telegram": ["connector-telegram", "build-connector-telegram"],
     "fb": ["connector-fb", "build-connector-fb"],
     "api": ["ttrs-api", "download-api", "build-download-api"],
+    "cex": ["cex-api"],
     "core": ["core", "build-core"]
 }
 COMPOSE_LABELS = {
     "WiertarBot": ["core", "connector-telegram", "connector-fb"],
-    "API": ["ttrs-api", "download-api"],
+    "API": ["ttrs-api", "download-api", "cex-api"],
     "Infrastructure": ["minio", "rabbitmq", "db"],
 }
 
@@ -56,7 +57,7 @@ build_service(
 build_service(
     name="wiertarbot-connector-telegram",
     service_name="connector-telegram",
-    deps=deps("services/connector-telegram", CONNECTOR_DEPS),
+    deps=deps("services/connector-telegram", CONNECTOR_DEPS) + deps("libs/telegram-kt"),
     label="WiertarBot",
 )
 
@@ -74,6 +75,7 @@ build_service(
     label="API",
 )
 
+docker_build(image("wiertarbot-cex-api"), "services/cex-api")
 docker_build(image("wiertarbot-ttrs-api"), "services/ttrs-api", platform="linux/amd64")
 docker_build(image("wiertarbot-migration"), "services/migration")
 

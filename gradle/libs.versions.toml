@@ -28,11 +28,11 @@ caffeine = "3.2.3"
 scrimage = "4.3.5"
 sentry = "8.28.0"
 skrape = "1.2.2"
-inmo-telegram = "24.0.2"
 kotlin-aws-sdk = "1.5.22"
 okhttp = "5.3.2"
 jaffree = "2024.08.29"
 logback = "1.5.22"
+slf4j = "2.0.17"
 advrieze-xmlutil = "0.91.3"
 
 commons-codec = "1.20.0"
@@ -91,8 +91,6 @@ sentry-logback = { module = "io.sentry:sentry-logback", version.ref = "sentry" }
 caffeine = { module = "com.github.ben-manes.caffeine:caffeine", version.ref = "caffeine" }
 scrimage-core = { module = "com.sksamuel.scrimage:scrimage-core", version.ref = "scrimage" }
 skrape-html = { module = "it.skrape:skrapeit-html-parser", version.ref = "skrape" }
-inmo-telegram-core = { module = "dev.inmo:tgbotapi.core", version.ref = "inmo-telegram" }
-inmo-telegram-utils = { module = "dev.inmo:tgbotapi.utils", version.ref = "inmo-telegram" }
 
 spring-ai-bom = { module = "org.springframework.ai:spring-ai-bom", version.ref = "spring-ai" }
 
@@ -123,6 +121,7 @@ okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 
 jaffree = { module = "com.github.kokorin.jaffree:jaffree", version.ref = "jaffree" }
 
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 logback = { module = "ch.qos.logback:logback-core", version.ref = "logback" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 
@@ -136,6 +135,7 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 mockk-spring = { module = "com.ninja-squad:springmockk", version.ref = "springmockk" }
 
 protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+protobuf-java-util = { module = "com.google.protobuf:protobuf-java-util", version.ref = "protobuf" }
 protobuf-kotlin = { module = "com.google.protobuf:protobuf-kotlin", version.ref = "protobuf" }
 protobuf-protoc = { module = "com.google.protobuf:protoc", version.ref = "protobuf" }
 
@@ -173,7 +173,6 @@ spring-webflux = [
     "spring-kotlin-reactor-extensions",
     "spring-kotlinx-coroutines-reactor",
 ]
-telegram = ["inmo-telegram-core", "inmo-telegram-utils"]
 s3 = ["aws-s3", "okhttp"]
 imageio = ["imageio-core", "imageio", "imageio-jpeg"]
 kotest-spring = ["kotest-junit5", "kotest-assertions-core", "kotest-property", "kotest-spring"]

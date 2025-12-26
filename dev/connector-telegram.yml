@@ -1,6 +1,8 @@
 wiertarbot:
   telegram:
     token: ${TELEGRAM_TOKEN}
+  connector:
+    port: 8081
 
 spring:
   r2dbc:

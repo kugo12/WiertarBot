@@ -28,7 +28,7 @@ inline fun CommandDsl.immutableImageEdit(
 
 fun CommandDsl.generic(func: GenericCommandHandler) = metadata(func)
 
-fun CommandDsl.genericWithCallback(func: GenericWithCallbackCommandHandler) = metadata(func)
+fun CommandDsl.manual(func: ManualCommandHandler) = metadata(func)
 
 fun CommandDsl.metadata(func: CommandHandler) = CommandMetadata(
     help = if (func is SpecialCommand) "" else help!!,
@@ -89,10 +89,6 @@ inline fun CommandDsl.rawFile(
     }
 }
 
-fun CommandDsl.delegated() = generic {
-    it.context.delegatedCommand(name, it)
-
-    null
-}
+fun CommandDsl.delegated() = manual { it.context.delegatedCommand(name, it) }
 
 fun CommandDsl.special(func: SpecialCommand) = metadata(func)
