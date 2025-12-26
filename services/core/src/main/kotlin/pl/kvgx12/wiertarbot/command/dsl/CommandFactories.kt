@@ -89,10 +89,6 @@ inline fun CommandDsl.rawFile(
     }
 }
 
-fun CommandDsl.delegated() = generic {
-    it.context.delegatedCommand(name, it)
-
-    null
-}
+fun CommandDsl.delegated() = manual { it.context.delegatedCommand(name, it) }
 
 fun CommandDsl.special(func: SpecialCommand) = metadata(func)

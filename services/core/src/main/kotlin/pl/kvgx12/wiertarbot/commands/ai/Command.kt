@@ -37,23 +37,23 @@ val aiCommand = command("ai") {
         val text = event.text.split(' ', limit = 2)
         val last = text.getOrNull(1) ?: ""
 
-        if ((text.size == 2 && last.isNotBlank()) || event.hasReplyToId()) {
-            val result = try {
-                client.generate(event, last)
-            } catch (e: Exception) {
-                log.error("Error during generation: ", e)
-                event.context.sendText(event, "Wystąpił błąd podczas generowania odpowiedzi AI")
-                return@manual
-            }
-
-            val response = event.context.send(result.data.toResponse(event))
-            if (response.messageId.isNotBlank()) {
-                client.afterSuccessfulSend(result, response)
-            }
+        if (!event.hasReplyToId() && (text.size != 2 || last.isBlank())) {
+            event.context.sendText(event, help!!)
             return@manual
         }
 
-        event.context.sendText(event, help!!)
+        val result = try {
+            client.generate(event, last)
+        } catch (e: Exception) {
+            log.error("Error during generation: ", e)
+            event.context.sendText(event, "Wystąpił błąd podczas generowania odpowiedzi AI")
+            return@manual
+        }
+
+        val response = event.context.send(result.data.toResponse(event))
+        if (response.messageId.isNotBlank()) {
+            client.afterSuccessfulSend(result, response)
+        }
     }
 }
 
