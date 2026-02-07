@@ -15,19 +15,21 @@ import pl.kvgx12.wiertarbot.utils.getLogger
 import java.time.LocalDateTime
 import java.time.ZoneId
 
+sealed interface AITool
+
 class AITools(
     @Qualifier("searchChatClient")
     searchChatClientProvider: ObjectProvider<ChatClient>,
     private val contextHolder: ContextHolder,
 
     private val cexClient: CEXClient? = null,
-) {
+) : AITool {
     private val log = getLogger()
     private val searchChatClient: ChatClient by lazy {
         checkNotNull(searchChatClientProvider.getIfAvailable())
     }
 
-    @Tool
+    @Tool(description = "Get the current date and time in Warsaw")
     fun getCurrentTime(): String = LocalDateTime.now(ZoneId.of("Europe/Warsaw")).toString()
 
     @Tool(description = "Search the web for information")
@@ -41,7 +43,7 @@ class AITools(
     }.orEmpty()
 
     @Tool(description = "Execute code in a QuickJS environment")
-    fun executeCode(@ToolParam(description = "single JS expression") code: String): String {
+    fun executeCode(@ToolParam(description = "single JS expression, wrap code inside (() => {CODE})()") code: String): String {
         if (cexClient == null) {
             log.warn("CEXClient is not configured, cannot execute code.")
             return "Code execution service is not available."
@@ -67,7 +69,7 @@ class AITools(
 
     @Tool
     fun reactToNewestMessage(
-        @ToolParam(description = "single emoji. for telegram use basic emojis like 👍, ❤️, 😂, 😮, 😢, 😠")
+        @ToolParam(description = "single emoji. for telegram use basic emojis like 👍, ❤️, 😮, 😢, 😠")
         reactionEmoji: String,
         context: ToolContext
     ): String =

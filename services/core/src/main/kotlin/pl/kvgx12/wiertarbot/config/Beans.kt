@@ -31,7 +31,7 @@ class BeanRegistrar : BeanRegistrarDsl({
             dialect,
             listOf(
                 MediaWrapperToByteArrayConverter(),
-                ByteArrayToMediaWrapperConverter()
+                ByteArrayToMediaWrapperConverter(),
             )
         )
     }

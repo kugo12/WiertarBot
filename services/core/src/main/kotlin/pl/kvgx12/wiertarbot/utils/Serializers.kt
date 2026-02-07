@@ -117,7 +117,6 @@ object ThreadDataJsonSerializer : KSerializer<ThreadData> {
         val username: String,
         val name: String,
         val customizedName: String,
-        val profilePictureUri: String,
         val gender: String
     )
 
@@ -132,7 +131,6 @@ object ThreadDataJsonSerializer : KSerializer<ThreadData> {
                     username = p.username,
                     name = p.name,
                     customizedName = p.customizedName,
-                    profilePictureUri = p.profilePictureUri,
                     gender = p.gender
                 )
             }
@@ -154,7 +152,7 @@ object ThreadDataJsonSerializer : KSerializer<ThreadData> {
                     username = p.username
                     name = p.name
                     customizedName = p.customizedName
-                    profilePictureUri = p.profilePictureUri
+                    profilePictureUri = ""
                     gender = p.gender
                 }
             }
