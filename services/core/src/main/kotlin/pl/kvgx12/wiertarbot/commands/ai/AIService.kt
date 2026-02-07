@@ -131,10 +131,14 @@ class AIService(
                 val messages = Prompt(getMessages(event, finalConversationId), options)
 
                 val response = withContext(Dispatchers.IO) {
-                    chatClient.prompt(messages)
-                        .call()
-                        .chatClientResponse()
-                        .chatResponse
+                    try {
+                        chatClient.prompt(messages)
+                            .call()
+                            .chatClientResponse()
+                            .chatResponse
+                    } catch (e: NullPointerException) {
+                        null
+                    }
                 } ?: run {
                     log.error("Failed to get response from chat client")
                     if (failed) {
