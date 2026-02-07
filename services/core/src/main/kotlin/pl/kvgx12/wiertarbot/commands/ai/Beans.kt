@@ -11,6 +11,7 @@ import org.springframework.ai.tool.method.MethodToolCallbackProvider
 import org.springframework.beans.factory.BeanRegistrarDsl
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.core.env.getProperty
 import java.time.Duration
 
 @Suppress("ConfigurationProperties")
@@ -21,6 +22,7 @@ data class GenAIProperties(
     val maxSerializationRetries: Int = 1,
     val applyConversationRetention: Boolean = false,
     val globalRetention: Duration? = null,
+    val killUserEnabled: Boolean = false,
 
     val model: ModelConfig,
     val searchTool: ModelConfig,
@@ -45,6 +47,9 @@ data class GenAIProperties(
     }
 }
 
+@JvmInline
+value class AIToolArray(val tools: Array<AITool>)
+
 class GenAIRegistrar : BeanRegistrarDsl({
     if (env.getProperty("spring.ai.google.genai.api-key") != null) {
         registerBean {
@@ -56,9 +61,19 @@ class GenAIRegistrar : BeanRegistrarDsl({
         registerBean<AIMessageService>()
 
         registerBean<AITools>()
+        if (env.getProperty<Boolean>("wiertarbot.genai.kill-user-enabled", false)) {
+            registerBean<KillUserTool>()
+        }
+        registerBean<AIToolArray> {
+            AIToolArray(
+                beanProvider<AITool>()
+                    .toList()
+                    .toTypedArray()
+            )
+        }
         registerBean<ToolCallbackProvider> {
             MethodToolCallbackProvider.builder()
-                .toolObjects(bean<AITools>())
+                .toolObjects(*bean<AIToolArray>().tools)
                 .build()
         }
 
@@ -102,7 +117,7 @@ class GenAIRegistrar : BeanRegistrarDsl({
                 .defaultAdvisors(AdvisorParams.ENABLE_NATIVE_STRUCTURED_OUTPUT)
                 .defaultAdvisors(SimpleLoggerAdvisor())
                 .defaultOptions(options)
-                .defaultTools(bean<AITools>())
+                .defaultTools(*bean<AIToolArray>().tools)
                 .build()
         }
 
