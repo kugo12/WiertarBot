@@ -2,6 +2,8 @@ package pl.kvgx12.wiertarbot.commands.ai
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -26,6 +28,7 @@ import pl.kvgx12.wiertarbot.services.CachedContextService
 import pl.kvgx12.wiertarbot.utils.ThreadDataJsonSerializer
 import pl.kvgx12.wiertarbot.utils.getLogger
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.abs
 import org.springframework.ai.chat.messages.UserMessage as SpringUserMessage
 
@@ -89,12 +92,14 @@ class AIService(
     private val props: GenAIProperties,
 ) {
     private val log = getLogger()
-
+    private val conversationMutexes = ConcurrentHashMap<String, Mutex>()
 
     suspend fun afterSuccessfulSend(result: GenerationResult, sendResponse: SendResponse) {
-        result.assMessage.metadata[METADATA_MESSAGE_ID] = "${result.connectorType.name}-${sendResponse.messageId}"
-        chatMemory.add(result.conversationId, result.assMessage)
-        chatMemory.applyRetention(result.conversationId)
+        conversationMutexes.computeIfAbsent(result.conversationId) { Mutex() }.withLock {
+            result.assMessage.metadata[METADATA_MESSAGE_ID] = "${result.connectorType.name}-${sendResponse.messageId}"
+            chatMemory.add(result.conversationId, result.assMessage)
+            chatMemory.applyRetention(result.conversationId)
+        }
     }
 
     // TODO: consider adding more replies to context?
@@ -102,115 +107,117 @@ class AIService(
     // TODO: consider implementing image generation
     // TODO: maybe cache messages with small TTL?
 
+    // TODO: refactor
+
     @OptIn(ExperimentalCoroutinesApi::class)
     suspend fun generate(
         event: MessageEvent,
         message: String,
         conversationId: String? = null,
     ): GenerationResult {
-        val existingConversationId = conversationId
-            ?: findConversationId(event)
+        val existingConversationId = conversationId ?: findConversationId(event)
+        val finalConversationId = existingConversationId ?: generateConversationId(event)
 
-        val conversationId = existingConversationId ?: generateConversationId(event)
-
-        chatMemory.add(conversationId, event.toUserMessage(message, existingConversationId == null))
-        val options = chatOptions.copy<GoogleGenAiChatOptions>().apply {
-            toolContext = mapOf("messageEvent" to event)
-        }
-
-        var serializationRetries = 0
-        var toolCallCount = 0
-        var failed = false
-        while (toolCallCount < props.maxToolCalls) {
-            val messages = Prompt(getMessages(event, conversationId), options)
-
-            val response = withContext(Dispatchers.IO) {
-                chatClient.prompt(messages)
-                    .call()
-                    .chatClientResponse()
-                    .chatResponse
-            } ?: run {
-                log.error("Failed to get response from chat client")
-                if (failed) {
-                    log.warn("Already failed once, returning error response")
-                    break
-                } else {
-                    log.info("Retrying chat client call")
-                    failed = true
-                    continue
-                }
+        return conversationMutexes.computeIfAbsent(finalConversationId) { Mutex() }.withLock {
+            chatMemory.add(finalConversationId, event.toUserMessage(message, existingConversationId == null))
+            val options = chatOptions.copy<GoogleGenAiChatOptions>().apply {
+                toolContext = mapOf("messageEvent" to event)
             }
 
-            val assistantMessage = response.result.output
-            if (!assistantMessage.hasToolCalls()) {
-                val raw = assistantMessage.text ?: ""
-                log.debug("AI raw response: {}", raw)
+            var serializationRetries = 0
+            var toolCallCount = 0
+            var failed = false
+            while (toolCallCount < props.maxToolCalls) {
+                val messages = Prompt(getMessages(event, finalConversationId), options)
 
-                val text = ResponseData.converter.clean(raw)
-                log.debug("AI cleaned response: {}", text)
-
-                val data = try {
-                    ResponseData.converter.convert(text)
-                        .fixMentions()
-                } catch (e: SerializationException) {
-                    log.error("Failed to convert AI response to ResponseData, using raw text", e)
-
-                    if (serializationRetries++ >= props.maxSerializationRetries) {
-                        log.warn("Max serialization retries reached (${props.maxSerializationRetries}), using raw text")
-                        ResponseData(text)
+                val response = withContext(Dispatchers.IO) {
+                    chatClient.prompt(messages)
+                        .call()
+                        .chatClientResponse()
+                        .chatResponse
+                } ?: run {
+                    log.error("Failed to get response from chat client")
+                    if (failed) {
+                        log.warn("Already failed once, returning error response")
+                        break
                     } else {
-                        log.info("Retrying serialization (${serializationRetries}/${props.maxSerializationRetries})")
+                        log.info("Retrying chat client call")
+                        failed = true
                         continue
                     }
                 }
 
-                return GenerationResult(
-                    conversationId,
-                    data,
-                    AssistantMessage.builder()
-                        .content(text)
-                        .media(assistantMessage.media)
-                        .build(),
+                val assistantMessage = response.result.output
+                if (!assistantMessage.hasToolCalls()) {
+                    val raw = assistantMessage.text ?: ""
+                    log.debug("AI raw response: {}", raw)
+
+                    val text = ResponseData.converter.clean(raw)
+                    log.debug("AI cleaned response: {}", text)
+
+                    val data = try {
+                        ResponseData.converter.convert(text)
+                            .fixMentions()
+                    } catch (e: SerializationException) {
+                        log.error("Failed to convert AI response to ResponseData, using raw text", e)
+
+                        if (serializationRetries++ >= props.maxSerializationRetries) {
+                            log.warn("Max serialization retries reached (${props.maxSerializationRetries}), using raw text")
+                            ResponseData(text)
+                        } else {
+                            log.info("Retrying serialization (${serializationRetries}/${props.maxSerializationRetries})")
+                            continue
+                        }
+                    }
+
+                    return@withLock GenerationResult(
+                        finalConversationId,
+                        data,
+                        AssistantMessage.builder()
+                            .content(text)
+                            .media(assistantMessage.media)
+                            .build(),
+                        event.connectorInfo.connectorType,
+                    )
+                }
+
+                log.info("AI requested tool calls: {}", assistantMessage.toolCalls)
+                val toolCallId = UUID.randomUUID()
+                assistantMessage.metadata[METADATA_MESSAGE_ID] = "toolcall-$toolCallId"
+                chatMemory.add(finalConversationId, assistantMessage)
+
+                val executionResult = withContext(Dispatchers.IO) {
+                    toolCallingManager.executeToolCalls(messages, response)
+                }
+
+                log.debug("Tool response: {}", executionResult.conversationHistory().last())
+                val toolResponseMessage = executionResult.conversationHistory().last() as ToolResponseMessage
+                toolResponseMessage.metadata[METADATA_MESSAGE_ID] = "toolresponse-$toolCallId"
+                chatMemory.add(finalConversationId, toolResponseMessage)
+                toolCallCount++
+            }
+
+            if (toolCallCount >= props.maxToolCalls) {
+                log.warn("Max tool calls reached (${props.maxToolCalls}), returning error response")
+
+                val text = "Przekroczono maksymalną liczbę wywołań narzędzi."
+                GenerationResult(
+                    finalConversationId,
+                    ResponseData(text),
+                    AssistantMessage(text),
+                    event.connectorInfo.connectorType,
+                )
+            } else {
+                log.warn("Failed to generate a valid response, returning error response")
+
+                val text = "Wystąpił błąd podczas generowania odpowiedzi."
+                GenerationResult(
+                    finalConversationId,
+                    ResponseData(text),
+                    AssistantMessage(text),
                     event.connectorInfo.connectorType,
                 )
             }
-
-            log.info("AI requested tool calls: {}", assistantMessage.toolCalls)
-            val toolCallId = UUID.randomUUID()
-            assistantMessage.metadata[METADATA_MESSAGE_ID] = "toolcall-$toolCallId"
-            chatMemory.add(conversationId, assistantMessage)
-
-            val executionResult = withContext(Dispatchers.IO) {
-                toolCallingManager.executeToolCalls(messages, response)
-            }
-
-            log.debug("Tool response: {}", executionResult.conversationHistory().last())
-            val toolResponseMessage = executionResult.conversationHistory().last() as ToolResponseMessage
-            toolResponseMessage.metadata[METADATA_MESSAGE_ID] = "toolresponse-$toolCallId"
-            chatMemory.add(conversationId, toolResponseMessage)
-            toolCallCount++
-        }
-
-        if (toolCallCount >= props.maxToolCalls) {
-            log.warn("Max tool calls reached (${props.maxToolCalls}), returning error response")
-
-            val text = "Przekroczono maksymalną liczbę wywołań narzędzi."
-            return GenerationResult(
-                conversationId,
-                ResponseData(text),
-                AssistantMessage(text),
-                event.connectorInfo.connectorType,
-            )
-        } else {
-            log.warn("Failed to generate a valid response, returning error response")
-
-            val text = "Wystąpił błąd podczas generowania odpowiedzi."
-            return GenerationResult(
-                conversationId,
-                ResponseData(text),
-                AssistantMessage(text),
-                event.connectorInfo.connectorType,
-            )
         }
     }
 
