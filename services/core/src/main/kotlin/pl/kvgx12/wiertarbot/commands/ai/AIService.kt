@@ -120,17 +120,28 @@ class AIService(
 
         var serializationRetries = 0
         var toolCallCount = 0
+        var failed = false
         while (toolCallCount < props.maxToolCalls) {
             val messages = Prompt(getMessages(event, conversationId), options)
 
             val response = withContext(Dispatchers.IO) {
                 chatClient.prompt(messages)
                     .call()
-                    .chatResponse()
-            } ?: break
+                    .chatClientResponse()
+                    .chatResponse
+            } ?: run {
+                log.error("Failed to get response from chat client")
+                if (failed) {
+                    log.warn("Already failed once, returning error response")
+                    break
+                } else {
+                    log.info("Retrying chat client call")
+                    failed = true
+                    continue
+                }
+            }
 
             val assistantMessage = response.result.output
-
             if (!assistantMessage.hasToolCalls()) {
                 val raw = assistantMessage.text ?: ""
                 log.debug("AI raw response: {}", raw)
