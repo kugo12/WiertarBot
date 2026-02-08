@@ -63,7 +63,7 @@ val wbServices = listOf(
     Service(
         "core",
         "wiertarbot",
-        gradleStuff + libProto + "services/core/**",
+        gradleStuff + libProto + "services/core/**" + "libs/toon/**",
     ),
     Service(
         "connector-fb",

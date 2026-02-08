@@ -12,6 +12,8 @@ import org.springframework.beans.factory.BeanRegistrarDsl
 import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.core.env.getProperty
+import pl.kvgx12.toon.Toon
+import pl.kvgx12.toon.Toon.KeyFolding
 import java.time.Duration
 
 @Suppress("ConfigurationProperties")
@@ -55,6 +57,10 @@ class GenAIRegistrar : BeanRegistrarDsl({
         registerBean {
             @EnableConfigurationProperties(GenAIProperties::class)
             object {}
+        }
+
+        registerBean<Toon> {
+            Toon(keyFolding = KeyFolding.Safe)
         }
 
         registerBean<AIService>()

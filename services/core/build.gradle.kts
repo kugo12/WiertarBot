@@ -38,6 +38,7 @@ dependencies {
     implementation(platform(libs.spring.ai.bom))
 
     implementation(project(":libs:core-proto"))
+    implementation(project(":libs:toon"))
 
     implementation(libs.bundles.spring)
     implementation(libs.spring.starter.web)

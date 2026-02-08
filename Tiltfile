@@ -50,7 +50,7 @@ def build_service(name, service_name, deps, label):
 build_service(
     name="wiertarbot",
     service_name="core",
-    deps=deps("services/core", PROTO_DEPS),
+    deps=deps("services/core", PROTO_DEPS) + deps("libs/toon"),
     label="WiertarBot",
 )
 
