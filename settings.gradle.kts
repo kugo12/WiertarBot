@@ -10,4 +10,5 @@ include(
     "libs:telegram-kt",
     "libs:core-proto",
     "libs:connector",
+    "libs:toon",
 )
