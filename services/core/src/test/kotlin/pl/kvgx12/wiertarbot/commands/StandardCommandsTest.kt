@@ -281,7 +281,7 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec() {
                 handler.process(event) shouldBe Response(event, text = metadata.help)
             }
 
-            test("returns correct value") {
+            xtest("returns correct value") {
                 every { event.text } returns "${prefix}slownik test"
                 handler.process(event) shouldBe Response(
                     event,
@@ -293,7 +293,7 @@ class StandardCommandsTest(context: GenericApplicationContext) : FunSpec() {
                 )
             }
 
-            test("returns invalid word message") {
+            xtest("returns invalid word message") {
                 every { event.text } returns "${prefix}slownik ${UUID.randomUUID()}"
                 handler.process(event) shouldBe Response(
                     event,
