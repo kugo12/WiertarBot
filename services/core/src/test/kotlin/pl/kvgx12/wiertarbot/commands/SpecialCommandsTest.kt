@@ -167,7 +167,16 @@ class SpecialCommandsTest(
                 coEvery {
                     connectorContext.fetchThread("test-thread")
                 } returns threadData {
-                    this.participants += mentions.map { it.threadId }
+                    participants.addAll(
+                        mentions.map {
+                            threadParticipant {
+                                id = it.threadId
+                                name = ""
+                                customizedName = ""
+                                username = ""
+                            }
+                        }
+                    )
                 }
 
                 val matcher = FunctionMatcher<Response>(

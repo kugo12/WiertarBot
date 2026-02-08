@@ -133,14 +133,10 @@ class AIService(
                 val messages = Prompt(getMessages(event, finalConversationId), options)
 
                 val response = withContext(Dispatchers.IO) {
-                    try {
-                        chatClient.prompt(messages)
-                            .call()
-                            .chatClientResponse()
-                            .chatResponse
-                    } catch (e: NullPointerException) {
-                        null
-                    }
+                    chatClient.prompt(messages)
+                        .call()
+                        .chatClientResponse()
+                        .chatResponse
                 } ?: run {
                     log.error("Failed to get response from chat client")
                     if (failed) {
@@ -153,7 +149,19 @@ class AIService(
                     }
                 }
 
-                val assistantMessage = response.result.output
+                val assistantMessage = response.result?.output
+                if (assistantMessage == null) {
+                    log.error("No assistant message in response")
+                    if (failed) {
+                        log.warn("Already failed once, returning error response")
+                        break
+                    } else {
+                        log.info("Retrying chat client call")
+                        failed = true
+                        continue
+                    }
+                }
+
                 if (!assistantMessage.hasToolCalls()) {
                     val raw = assistantMessage.text ?: ""
                     log.debug("AI raw response: {}", raw)
