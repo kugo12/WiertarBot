@@ -7,7 +7,6 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.json.Json
 import org.springframework.ai.chat.client.ChatClient
 import org.springframework.ai.chat.messages.AssistantMessage
 import org.springframework.ai.chat.messages.Message
@@ -18,6 +17,8 @@ import org.springframework.ai.content.Media
 import org.springframework.ai.google.genai.GoogleGenAiChatOptions
 import org.springframework.ai.model.tool.ToolCallingManager
 import org.springframework.core.io.UrlResource
+import pl.kvgx12.toon.Toon
+import pl.kvgx12.toon.encodeToToonString
 import pl.kvgx12.wiertarbot.config.ContextHolder
 import pl.kvgx12.wiertarbot.entities.AIMessage.Companion.METADATA_MESSAGE_ID
 import pl.kvgx12.wiertarbot.proto.ConnectorType
@@ -90,6 +91,7 @@ class AIService(
     private val toolCallingManager: ToolCallingManager,
     private val chatOptions: ChatOptions,
     private val props: GenAIProperties,
+    private val toon: Toon,
 ) {
     private val log = getLogger()
     private val conversationMutexes = ConcurrentHashMap<String, Mutex>()
@@ -241,7 +243,7 @@ class AIService(
                 event.connectorInfo.connectorType,
                 event.threadId,
             )
-            val content = Json.encodeToString(
+            val content = toon.encodeToToonString(
                 UserMessage.TopMetadata(
                     platform = event.connectorInfo.connectorType.name,
                     botId = event.connectorInfo.botId,
@@ -370,7 +372,7 @@ class AIService(
 
         return repliedTo + SpringUserMessage.builder()
             .apply { media?.let { media(listOf(it)) } }
-            .text(Json.encodeToString(UserMessage(message, metadata)))
+            .text(toon.encodeToToonString(UserMessage(message, metadata)))
             .metadata(mapOf(METADATA_MESSAGE_ID to "${connectorInfo.connectorType.name}-$messageId"))
             .build()
 

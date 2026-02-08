@@ -61,6 +61,7 @@ jobs:
             - 'build.gradle.kts'
             - 'libs/core-proto/**'
             - 'services/core/**'
+            - 'libs/toon/**'
           connector-fb:
             - 'gradle/**'
             - 'settings.gradle.kts'
